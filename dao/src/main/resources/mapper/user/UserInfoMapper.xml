@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserInfoDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}login_name ${prefix}login_name,
+        ${alias}login_password ${prefix}login_password,
+        ${alias}pay_password ${prefix}pay_password,
+        ${alias}name ${prefix}name,
+        ${alias}gender ${prefix}gender,
+        ${alias}birthday ${prefix}birthday,
+        ${alias}mobile ${prefix}mobile,
+        ${alias}mobile_status ${prefix}mobile_status,
+        ${alias}email ${prefix}email,
+        ${alias}email_status ${prefix}email_status,
+        ${alias}description ${prefix}description,
+        ${alias}introduction ${prefix}introduction,
+        ${alias}profession ${prefix}profession,
+        ${alias}address ${prefix}address,
+        ${alias}avatar ${prefix}avatar,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}star_count ${prefix}star_count,
+        ${alias}follower_count ${prefix}follower_count,
+        ${alias}question_count ${prefix}question_count,
+        ${alias}answer_count ${prefix}answer_count,
+        ${alias}article_count ${prefix}article_count,
+        ${alias}column_count ${prefix}column_count,
+        ${alias}collection_count ${prefix}collection_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <resultMap id="searchMap" type="UserDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="bank" javaType="UserBankModel" columnPrefix="b_" autoMapping="true">
+            <id property="userId" column="user_id" />
+        </association>
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="loginName != null">
+                and ${alias}login_name = #{loginName}
+            </if>
+            <if test="name != null">
+                and ${alias}name = #{name}
+            </if>
+            <if test="mobile != null">
+                and ${alias}mobile = #{mobile}
+            </if>
+            <if test="email != null">
+                and ${alias}email = #{email}
+            </if>
+            <if test="ids != null">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value=""/>
+        </include>,
+        <include refid="com.itellyou.dao.user.UserBankDao.columns">
+            <property name="alias" value="b."/>
+            <property name="prefix" value="b_"/>
+        </include>,
+        <if test="searchUserId != null">
+            case when s.created_user_id is not null then 1 else 0 end use_star,
+        </if>
+        p.path
+        from user_info u
+        left join user_bank b on b.user_id = u.id
+        left join sys_path p on p.id = u.id and p.type = 1
+        <if test="searchUserId != null">
+        left join user_star s on s.user_id=u.id and s.created_user_id=#{searchUserId}
+        </if>
+        <include refid="where">
+            <property name="alias" value="u."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>u.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from user_info
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="findByToken" resultType="UserInfoModel" >
+        select
+        <include refid="columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info u
+        left join user_login_log l on u.id = l.created_user_id
+        where
+            l.is_disabled = 0 and
+            l.token = #{token} and
+            l.created_time >= #{time}
+    </select>
+    <select id="findByName" resultType="UserInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info where name = #{name}
+    </select>
+    <select id="findByLoginName" resultType="UserInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info where login_name = #{loginName}
+    </select>
+    <select id="findByMobile" resultType="UserInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info where mobile = #{mobile}
+        <if test="status != null">
+            and mobile_status=#{status}
+        </if>
+    </select>
+    <select id="findByEmail" resultType="UserInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info where email = #{email}
+        <if test="status != null">
+            and email_status=#{status}
+        </if>
+    </select>
+    <select id="findById" resultType="UserInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_info where id = #{id}
+    </select>
+    <insert id="createUser" parameterType="UserInfoModel" useGeneratedKeys="true" keyProperty="id">
+        insert into user_info(login_name,login_password,pay_password,`name`,gender,birthday,mobile,mobile_status,email,email_status,
+        description,introduction,profession,address,avatar,is_disabled,star_count,follower_count,created_time,created_user_id,created_ip,updated_time,updated_ip,updated_user_id) values (
+            #{loginName},
+            #{loginPassword},
+            #{payPassword},
+            #{name},
+            #{gender},
+            #{birthday},
+            #{mobile},
+            #{mobileStatus},
+            #{email},
+            #{emailStatus},
+            #{description},
+            #{introduction},
+            #{profession},
+            #{address},
+            #{avatar},
+            #{isDisabled},
+            #{starCount},
+            #{followerCount},
+            #{createdTime},
+            #{createdUserId},
+            #{createdIp},
+            #{updatedTime},
+            #{updatedIp},
+            #{updatedUserId}
+        )
+    </insert>
+    <update id="updateByUserId">
+        update user_info
+        <set>
+            <if test="loginName != null">
+                login_name=#{loginName},
+            </if>
+            <if test="loginPassword != null">
+                login_password=#{loginPassword},
+            </if>
+            <if test="payPassword != null">
+                pay_password=#{payPassword},
+            </if>
+            <if test="name != null">
+                `name`=#{name},
+            </if>
+            <if test="gender != null">
+                gender=#{gender},
+            </if>
+            <if test="birthday != null">
+                birthday=#{birthday},
+            </if>
+            <if test="mobile != null">
+                mobile=#{mobile},
+            </if>
+            <if test="mobileStatus != null">
+                mobile_status=#{mobileStatus},
+            </if>
+            <if test="email != null">
+                email=#{email},
+            </if>
+            <if test="emailStatus != null">
+                email_status=#{emailStatus},
+            </if>
+            <if test="description != null">
+                description=#{description},
+            </if>
+            <if test="introduction != null">
+                introduction=#{introduction},
+            </if>
+            <if test="profession != null">
+                profession=#{profession},
+            </if>
+            <if test="address != null">
+                address=#{address},
+            </if>
+            <if test="avatar != null">
+                avatar=#{avatar},
+            </if>
+            <if test="isDisabled != null">
+                is_disabled=#{isDisabled},
+            </if>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateStarCount">
+        update user_info
+        <set>
+            star_count=star_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateFollowerCount">
+        update user_info
+        <set>
+            follower_count=follower_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateQuestionCount">
+        update user_info
+        <set>
+            question_count=question_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateAnswerCount">
+        update user_info
+        <set>
+            answer_count=answer_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateArticleCount">
+        update user_info
+        <set>
+            article_count=article_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateColumnCount">
+        update user_info
+        <set>
+            column_count=column_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateCollectionCount">
+        update user_info
+        <set>
+            collection_count=collection_count + #{step},
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

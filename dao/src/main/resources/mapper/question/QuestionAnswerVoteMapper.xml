@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.question.QuestionAnswerVoteDao">
+
+    <insert id="insert">
+        insert into question_answer_vote (type,answer_id,created_user_id,created_time,created_ip) values (#{type},#{answerId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="deleteByAnswerIdAndUserId">
+        delete from question_answer_vote where answer_id=#{answerId} and created_user_id=#{userId}
+    </delete>
+    <select id="findByAnswerIdAndUserId" resultType="QuestionAnswerVoteModel">
+        select type,answer_id,created_user_id,created_time,created_ip from question_answer_vote where answer_id=#{answerId} and created_user_id=#{userId}
+    </select>
+</mapper>

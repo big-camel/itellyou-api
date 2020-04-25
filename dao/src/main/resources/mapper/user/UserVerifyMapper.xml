@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserVerifyDao">
+    <sql id="columns">
+        ${alias}key ${prefix}key,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id
+    </sql>
+    <insert id="insert">
+        insert into user_verify(`key`,is_disabled,created_time,created_ip,created_user_id) values (#{key},#{isDisabled},#{createdTime},#{createdUserId},#{createdIp})
+    </insert>
+    <sql id="where">
+        <where>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="key != null">
+                and ${alias}key = #{key}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="UserVerifyModel">
+        select <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>,
+        from user_verify
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+</mapper>

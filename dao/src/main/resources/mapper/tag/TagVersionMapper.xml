@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.tag.TagVersionDao">
+    <sql id="columns">
+        ${alias}id,
+        ${alias}tag_id,
+        ${alias}description,
+        ${alias}content,
+        ${alias}html,
+        ${alias}icon,
+        ${alias}version,
+        ${alias}is_reviewed,
+        ${alias}is_disabled,
+        ${alias}is_published,
+        ${alias}save_type,
+        ${alias}remark,
+        ${alias}created_time,
+        ${alias}created_user_id,
+        ${alias}created_ip,
+        ${alias}updated_time,
+        ${alias}updated_user_id,
+        ${alias}updated_ip
+    </sql>
+    <select id="findVersionById" resultType="java.lang.Integer">
+        select version from tag_version where id = #{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into tag_version(tag_id,content,html,icon,description,version,is_reviewed,is_disabled,is_published,save_type,remark,
+        created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip)
+        select #{tagId},#{content},#{html},#{icon},#{description},
+        <choose>
+            <when test="version == null || version == 0">
+                count(id) + 1
+            </when>
+            <otherwise>
+                #{version}
+            </otherwise>
+        </choose>
+        ,#{isReviewed},#{isDisabled},#{isPublished},#{saveType},#{remark},
+        #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp}
+        <if test="version == null || version == 0">
+            from tag_version where tag_id=#{tagId}
+        </if>
+    </insert>
+    <sql id="where">
+        <where>
+            <if test="isReviewed != null">
+                ${alias}is_reviewed = #{isReviewed}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="tagId != null">
+                and ${alias}tag_id = #{tagId}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+        </where>
+    </sql>
+    <resultMap id="searchMap" type="TagVersionModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="author" javaType="UserInfoModel" columnPrefix="user_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+    </resultMap>
+    <select id="search" resultMap="searchMap">
+        select v.id,v.tag_id,v.version,v.is_reviewed,v.is_disabled,v.is_published,v.save_type,v.remark,
+        v.created_time,v.created_ip,v.created_user_id,v.updated_time,v.updated_ip,v.updated_user_id,
+        <if test="hasContent != false">
+            v.content,
+            v.html,
+            v.icon,
+            v.description,
+        </if>
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="u_"/>
+        </include>
+        from tag_version v
+        left join user_info u on v.created_user_id=u.id
+        <include refid="where">
+            <property name="alias" value="v."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>v.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="java.lang.Integer">
+        select count(v.id) from from tag_version v
+        <include refid="where">
+            <property name="alias" value="v."/>
+        </include>
+    </select>
+    <update id="update">
+        update tag_version
+        <set>
+            <if test="content != null">content=#{content}</if>
+            <if test="html != null">html=#{html}</if>
+            <if test="icon != null">icon=#{icon}</if>
+            <if test="description != null">description=#{description}</if>
+            <if test="isReviewed != null">is_reviewed=#{isReviewed}</if>
+            <if test="isDisabled != null">is_disabled=#{isDisabled}</if>
+            <if test="isPublished != null">is_published=#{isPublished}</if>
+            <if test="saveType != null">save_type=#{saveType}</if>
+            <if test="remark != null">remark=#{remark}</if>
+            <if test="rewardType != null">reward_type=#{rewardType}</if>
+            <if test="rewardValue != null">reward_value=#{rewardValue}</if>
+            <if test="rewardAdd != null">reward_add=#{rewardAdd}</if>
+            <if test="updatedTime != null">updated_time=#{updatedTime}</if>
+            <if test="updatedIp != null">updated_ip=#{updatedIp}</if>
+            <if test="updatedUserId != null">updated_user_id=#{updatedUserId}</if>
+        </set> where id=#{id}
+    </update>
+</mapper>

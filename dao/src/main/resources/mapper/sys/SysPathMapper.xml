@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysPathDao">
+    <sql id="columns">
+        ${alias}path ${prefix}path,
+        ${alias}type ${prefix}type,
+        ${alias}id ${prefix}id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_path (path,type,id) values (#{path},#{type},#{id})
+    </insert>
+    <select id="findByPath" resultType="SysPathModel">
+        select * from sys_path where path=#{path}
+    </select>
+    <select id="findByTypeAndId" resultType="SysPathModel">
+        select * from sys_path where type=#{type} and id=#{id}
+    </select>
+    <update id="updateByTypeAndId">
+        update sys_path
+        <set>path=#{path}</set>
+        where type=#{type} and id=#{id}
+    </update>
+</mapper>

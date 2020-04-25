@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.column.ColumnInfoDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}name ${prefix}name,
+        ${alias}avatar ${prefix}avatar,
+        ${alias}description ${prefix}description,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}is_deleted ${prefix}is_deleted,
+        ${alias}is_reviewed ${prefix}is_reviewed,
+        ${alias}member_count ${prefix}member_count,
+        ${alias}article_count ${prefix}article_count,
+        ${alias}star_count ${prefix}star_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_user_id ${prefix}updated_user_id,
+        ${alias}updated_ip ${prefix}updated_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into column_info(name,avatar,description,is_disabled,is_deleted,is_reviewed,member_count,article_count,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{name},#{avatar},#{description},#{isDisabled},#{isDeleted},#{isReviewed},#{memberCount},#{articleCount},#{starCount},#{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <insert id="insertTag">
+        insert into column_tag(column_id,tag_id) values
+        <foreach collection="tags" item="id" separator=",">
+            (#{columnId},#{id})
+        </foreach>
+    </insert>
+    <delete id="deleteTag">
+        delete from column_tag where column_id=#{columnId}
+    </delete>
+    <resultMap id="searchMap" type="ColumnDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="author"  notNullColumn="id" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+        <collection property="tags" notNullColumn="id" ofType="TagInfoModel" javaType="ArrayList" columnPrefix="t_" autoMapping="true">
+            <id property="id" column="id" />
+        </collection>
+    </resultMap>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isReviewed != null">
+                and ${alias}is_reviewed = #{isReviewed}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="memberId != null">
+                and ${alias}id in (select column_id from column_member where user_id = #{memberId})
+            </if>
+            <if test="ids != null">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+            <if test="minArticles != null">
+                and ${alias}article_count >= #{minArticles}
+            </if>
+            <if test="maxArticles != null">
+                and ${alias}article_count &lt;= #{maxArticles}
+            </if>
+            <if test="minStars != null">
+                and ${alias}star_count >= #{minStars}
+            </if>
+            <if test="maxStars != null">
+                and ${alias}star_count &lt;= #{maxStars}
+            </if>
+            <if test="tags != null &amp;&amp; tags.size() > 0">
+                and ${tagAlias}tag_id in
+                <foreach collection="tags" item="id" open="(" close=")" separator=",">
+                    ${id}
+                </foreach>
+            </if>
+            <if test="name != null">
+                <bind name="bindName" value="name + '%'"/>
+                and ${alias}name like #{bindName}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select c.*,
+        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
+            <property name="alias" value="t."/>
+            <property name="prefix" value="t_"/>
+        </include>
+         from (
+            select
+            <include refid="columns">
+                <property name="alias" value="c."/>
+                <property name="prefix" value=""/>
+            </include>,sp.path path,
+            <if test="searchUserId != null">
+                case when s.created_user_id is not null then 1 else 0 end use_star,
+            </if>
+            <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+                <property name="alias" value="u."/>
+                <property name="prefix" value="u_"/>
+            </include>,up.path u_path
+            from column_info c
+
+            left join sys_path sp on sp.id=c.id and sp.type=2
+            <if test="tags != null &amp;&amp; tags.size() > 0">
+                left join column_tag ct on ct.column_id = c.id
+            </if>
+            left join user_info u on c.created_user_id=u.id
+            left join sys_path up on up.id=u.id and up.type = 1
+            <if test="searchUserId != null">
+                left join column_star s on s.column_id=c.id and s.created_user_id=#{searchUserId}
+            </if>
+            <include refid="searchWhere">
+                <property name="alias" value="c."/>
+                <property name="tagAlias" value="ct."/>
+            </include>
+            <if test="tags != null &amp;&amp; tags.size() > 0">
+                group by c.id
+            </if>
+            <if test="order != null">
+                <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                    <choose>
+                        <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                        <otherwise>c.${key} ${value}</otherwise>
+                    </choose>
+                </foreach>
+            </if>
+            <if test="limit != null and offset != null">
+                limit #{offset},#{limit}
+            </if>
+        )c
+        left join column_tag ct on ct.column_id = c.id
+        left join tag t on ct.tag_id = t.id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>c.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(<if test="tags != null &amp;&amp; tags.size() > 0">distinct</if> c.id) from column_info c
+        <if test="tags != null &amp;&amp; tags.size() > 0">
+            left join column_tag ct on ct.column_id = c.id
+        </if>
+        <include refid="searchWhere">
+            <property name="alias" value="c."/>
+            <property name="tagAlias" value="ct."/>
+        </include>
+    </select>
+    <select id="findById" resultType="ColumnInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include> from column_info where id=#{id}
+    </select>
+    <select id="findByName" resultType="ColumnInfoModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include> from column_info where name=#{name}
+    </select>
+    <update id="updateArticles">
+        update column_info set article_count=article_count+#{step} where id=#{id}
+    </update>
+    <update id="updateStars">
+        update column_info set star_count=star_count+#{step} where id=#{id}
+    </update>
+    <update id="updateMemberCount">
+        update column_info set member_count=member_count+#{step} where id=#{id}
+    </update>
+    <update id="update">
+        update column_info
+        <set>
+            <if test="name != null">name=#{name},</if>
+            <if test="avatar != null">avatar=#{avatar},</if>
+            <if test="description != null">description=#{description},</if>
+            updated_user_id=#{updatedUserId},
+            updated_time=#{updatedTime},
+            updated_ip=#{updatedIp}
+        </set>
+        where id=#{id}
+    </update>
+    <update id="updateDeleted">
+        update column_info set is_deleted=#{deleted} where id=#{id}
+    </update>
+</mapper>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserNotificationQueueDao">
+    <select id="searchFollowUser" resultType="UserOperationalModel">
+        select
+        <include refid="com.itellyou.dao.user.UserOperationalDao.columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_operational n
+        <where>
+            n.target_id=#{userId}
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.action = 1 and n.type = 1
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="searchPublishAnswer" resultType="UserOperationalModel">
+        select
+        <include refid="com.itellyou.dao.user.UserOperationalDao.columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_operational n
+        inner join question_answer a on a.id = n.target_id
+        inner join question_info q on q.id = a.question_id
+        left join question_star s on s.question_id = q.id
+        <where>
+            (q.created_user_id = #{userId} or s.created_user_id=#{userId})
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.created_user_id != #{userId}
+            and n.action = 4 and n.type = 3
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="searchPublishArticle" resultType="UserOperationalModel">
+        select
+        <include refid="com.itellyou.dao.user.UserOperationalDao.columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_operational n
+        inner join article_info a on a.id = n.target_id
+        inner join article_version v on v.article_id=a.id and v.version=a.version
+        left join column_star s on s.column_id = v.column_id
+        <where>
+            s.created_user_id=#{userId}
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.created_user_id != #{userId}
+            and n.action = 4 and n.type = 4
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+</mapper>

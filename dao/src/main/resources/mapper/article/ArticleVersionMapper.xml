@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.article.ArticleVersionDao">
+    <sql id="columns">
+        ${alias}article_id,
+        ${alias}column_id,
+        ${alias}source_type,
+        ${alias}source_data,
+        ${alias}title,
+        ${alias}content,
+        ${alias}html,
+        ${alias}description,
+        ${alias}version,
+        ${alias}is_reviewed,
+        ${alias}is_disabled,
+        ${alias}is_published,
+        ${alias}save_type,
+        ${alias}remark,
+        ${alias}created_time,
+        ${alias}created_user_id,
+        ${alias}created_ip,
+        ${alias}updated_time,
+        ${alias}updated_user_id,
+        ${alias}updated_ip
+    </sql>
+    <sql id="primary">id</sql>
+    <select id="findVersionById" resultType="java.lang.Integer">
+        select version from article_version where id = #{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into article_version(<include refid="columns"><property name="alias" value=""/></include>) select #{articleId},#{columnId},#{sourceType},#{sourceData},#{title},#{content},#{html},#{description},
+        <choose>
+            <when test="version == null || version == 0">
+                count(id) + 1
+            </when>
+            <otherwise>
+                #{version}
+            </otherwise>
+        </choose>
+        ,#{isReviewed},#{isDisabled},#{isPublished},#{saveType},#{remark},
+        #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp}
+        <if test="version == null || version == 0">
+            from article_version where article_id=#{articleId}
+        </if>
+    </insert>
+    <insert id="insertTag">
+        insert into article_version_tag(version,tag) values
+        <foreach collection="tags" item="tag" separator=",">
+            (#{version},#{tag.id})
+        </foreach>
+    </insert>
+    <delete id="deleteTag">
+        delete from article_version_tag where version=#{version}
+    </delete>
+    <sql id="where">
+        <where>
+            <if test="isReviewed != null">
+                ${alias}is_reviewed = #{isReviewed}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="sourceType != null">
+                and ${alias}source_type = #{sourceType}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="articleId != null">
+                and ${alias}article_id = #{articleId}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+        </where>
+    </sql>
+    <resultMap id="searchMap" type="ArticleVersionModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="author" javaType="UserInfoModel" columnPrefix="user_" autoMapping="true" />
+        <collection property="tags" ofType="TagInfoModel" javaType="ArrayList" columnPrefix="tag_" autoMapping="true" />
+    </resultMap>
+    <select id="search" resultMap="searchMap">
+        select v.*,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="user_"/>
+        </include>,
+        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
+            <property name="alias" value="t."/>
+            <property name="prefix" value="tag_"/>
+        </include>
+        from (
+            select
+            <trim suffixOverrides=",">
+                id,article_id,column_id,source_type,source_data,version,is_reviewed,is_disabled,is_published,save_type,remark,created_time,created_ip,created_user_id,
+                <if test="hasContent != false">
+                    title,
+                    content,
+                    html,
+                    description
+                </if>
+            </trim>
+            from article_version
+            <include refid="where">
+                <property name="alias" value=""/>
+            </include>
+            <if test="order != null">
+                <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                    ${key} ${value}
+                </foreach>
+            </if>
+            <if test="limit != null and offset != null">
+                limit #{offset},#{limit}
+            </if>
+        ) v
+        left join user_info u on v.created_user_id=u.id
+        left join article_version_tag vt on vt.version = v.id
+        left join tag t on vt.tag = t.id
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(v.id) from from article_version v
+        <include refid="where">
+            <property name="alias" value="v."/>
+        </include>
+    </select>
+    <update id="update">
+        update article_version
+        <set>
+            <if test="columnId != null">column_id=#{columnId}</if>
+            <if test="sourceType != null">source_type=#{sourceType}</if>
+            <if test="sourceData != null">source_data=#{sourceData}</if>
+            <if test="title != null">title=#{title}</if>
+            <if test="content != null">content=#{content}</if>
+            <if test="html != null">html=#{html}</if>
+            <if test="description != null">description=#{description}</if>
+            <if test="isReviewed != null">is_reviewed=#{isReviewed}</if>
+            <if test="isDisabled != null">is_disabled=#{isDisabled}</if>
+            <if test="isPublished != null">is_published=#{isPublished}</if>
+            <if test="saveType != null">save_type=#{saveType}</if>
+            <if test="remark != null">remark=#{remark}</if>
+            <if test="updatedTime != null">updated_time=#{updatedTime}</if>
+            <if test="updatedIp != null">updated_ip=#{updatedIp}</if>
+            <if test="updatedUserId != null">updated_user_id=#{updatedUserId}</if>
+        </set> where id=#{id}
+    </update>
+</mapper>

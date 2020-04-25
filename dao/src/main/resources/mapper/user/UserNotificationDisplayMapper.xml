@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserNotificationDisplayDao">
+    <sql id="columns">
+        ${alias}user_id ${prefix}user_id,
+        ${alias}action ${prefix}action,
+        ${alias}type ${prefix}type,
+        ${alias}value ${prefix}value
+    </sql>
+    <insert id="insertOrUpdate">
+        insert into user_notification_display (user_id,action,type,value) values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.userId},#{item.action},#{item.type},#{item.value})
+        </foreach>
+        on duplicate key update value=values(value)
+    </insert>
+    <select id="searchByDefault" resultType="UserNotificationDisplayModel">
+        select
+        case when n.user_id is null then #{userId} else n.user_id end  user_id,
+        d.action,d.type,
+        case when n.value is null then d.value else n.value end value
+        from user_notification_display_default d
+        left join user_notification_display n on n.action = d.action and n.type = d.type
+        <if test="userId != null">
+            and n.user_id=#{userId}
+        </if>
+        <where>
+            <if test="action != null">
+                and d.action=#{action}
+            </if>
+            <if test="type != null">
+                and d.type=#{type}
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.question.QuestionCommentDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}question_id ${prefix}question_id,
+        ${alias}parent_id ${prefix}parent_id,
+        ${alias}reply_id ${prefix}reply_id,
+        ${alias}is_deleted ${prefix}is_deleted,
+        (case when ${alias}is_deleted=1 then '' else ${alias}content end)${prefix}content,
+        (case when ${alias}is_deleted=1 then '' else ${alias}html end) ${prefix}html,
+        ${alias}comments ${prefix}comments,
+        ${alias}support ${prefix}support,
+        ${alias}oppose ${prefix}oppose,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into question_comment (question_id,parent_id,reply_id,is_deleted,content,html,comments,support,oppose,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        (#{questionId},#{parentId},#{replyId},#{isDeleted},#{content},#{html},#{comments},#{support},#{oppose},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="questionId != null">
+                and ${alias}question_id = #{questionId}
+            </if>
+            <if test="parentId != null">
+                and ${alias}parent_id = #{parentId}
+            </if>
+            <if test="replyId != null">
+                and ${alias}reply_id = #{replyId}
+            </if>
+            <if test="minComments != null">
+                and ${alias}comments >= #{minComments}
+            </if>
+            <if test="maxComments != null">
+                and ${alias}comments &lt;= #{maxComments}
+            </if>
+            <if test="minSupport != null">
+                and ${alias}support >= #{minSupport}
+            </if>
+            <if test="maxSupport != null">
+                and ${alias}support &lt;= #{maxSupport}
+            </if>
+            <if test="minOppose != null">
+                and ${alias}oppose >= #{minOppose}
+            </if>
+            <if test="maxOppose != null">
+                and ${alias}oppose &lt;= #{maxOppose}
+            </if>
+        </where>
+    </sql>
+    <resultMap id="searchMap" type="QuestionCommentDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true" />
+        <association property="reply" javaType="QuestionCommentDetailModel" columnPrefix="r_c_" autoMapping="true">
+            <id property="id" column="id"></id>
+            <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true" />
+        </association>
+        <collection property="child" ofType="QuestionCommentDetailModel" javaType="ArrayList" columnPrefix="ch_" autoMapping="true">
+            <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true" />
+            <association property="reply" javaType="QuestionCommentDetailModel" columnPrefix="r_c_" autoMapping="true">
+                <id property="id" column="id"></id>
+                <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true" />
+            </association>
+        </collection>
+    </resultMap>
+    <sql id="searchFields">
+        <include refid="columns"><property name="alias" value="c."/><property name="prefix" value="${prefix}"/></include>,
+        <if test="searchUserId != null">
+        (case when v.type is null then null when v.type=1 then 1 else 0 end) ${prefix}use_support,
+        (case when v.type is null then null when v.type=0 then 1 else 0 end) ${prefix}use_oppose,
+        </if>
+        <include refid="columns"><property name="alias" value="r."/><property name="prefix" value="${prefix}r_c_"/></include>,
+        <if test="searchUserId != null">
+        (case when rv.type is null then null when rv.type=1 then 1 else 0 end) ${prefix}r_c_use_support,
+        (case when rv.type is null then null when rv.type=0 then 1 else 0 end) ${prefix}r_c_use_oppose,
+        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} and c.is_deleted=0 then 1 else 0 end) ${prefix}allow_delete,
+        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} and c.is_deleted=0 then 1 else 0 end) ${prefix}r_c_allow_delete,
+        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_support,
+        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_support,
+        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_oppose,
+        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_oppose,
+        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_reply,
+        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_reply,
+        </if>
+        (case when c.created_user_id is null then null when c.created_user_id=an.created_user_id then 1 else 0 end) ${prefix}use_author,
+        (case when r.created_user_id is null then null when r.created_user_id=anr.created_user_id then 1 else 0 end) ${prefix}r_c_use_author,
+
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="u."/><property name="prefix" value="${prefix}u_"/></include>,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="ru."/><property name="prefix" value="${prefix}r_c_u_"/></include>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        <if test="childCount != null &amp;&amp; childCount &gt; 0">
+        select * from (
+            select b.* , (case when @parent_id=b.ch_parent_id then @row_num:=@row_num+1 else @row_num:=1 end) as rownum,@parent_id:=b.ch_parent_id tmp_parent_id from (
+                select t.*,<include refid="searchFields"><property name="prefix" value="ch_"/></include>
+                from (
+        </if>
+                    select <include refid="searchFields"><property name="prefix" value=""/></include>
+                    from question_comment c
+                    left join question_info an on an.id = c.question_id
+                    left join question_comment r on c.reply_id = r.id
+                    left join question_info anr on anr.id = r.question_id
+                    <if test="searchUserId != null">
+                    left join question_comment_vote v on v.created_user_id = #{searchUserId} and v.comment_id=c.id
+                    left join question_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
+                    </if>
+                    left join user_info u on c.created_user_id = u.id
+                    left join user_info ru on r.created_user_id = ru.id
+
+                    <include refid="searchWhere">
+                        <property name="alias" value="c."/>
+                    </include>
+                    <if test="order != null">
+                        <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                            c.${key} ${value}
+                        </foreach>
+                    </if>
+                    <if test="limit != null and offset != null">
+                        limit #{offset},#{limit}
+                    </if>
+        <if test="childCount != null &amp;&amp; childCount &gt; 0">
+                ) t
+                left join question_comment c on c.parent_id = t.id
+                left join question_comment r on c.reply_id = r.id
+                <if test="searchUserId != null">
+                left join question_comment_vote v on v.created_user_id = #{searchUserId} and v.comment_id=c.id
+                left join question_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
+                </if>
+                left join user_info u on c.created_user_id = u.id
+                left join user_info ru on r.created_user_id = ru.id
+                left join question_info an on an.id = c.question_id
+                left join question_info anr on anr.id = r.question_id,(select @row_num:=0) tmp_rownum,(select @parent_id:=0) tmp_parent order by t.id
+            ) b
+            <if test="order != null">
+                <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                    b.${key} ${value}
+                </foreach>
+            </if>
+        ) a where a.rownum &lt;= #{childCount}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from question_comment
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="findById" resultType="QuestionCommentModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from question_comment where id=#{id}
+    </select>
+    <update id="updateDeleted">
+        update question_comment
+        <set>
+            <if test="isDeleted != null">
+                is_deleted=#{isDeleted},
+            </if>
+        </set> where id=#{id}
+    </update>
+    <update id="updateComments">
+        update question_comment
+        <set>
+            <if test="value != null">
+                comments=comments+#{value},
+            </if>
+        </set> where id=#{id}
+    </update>
+    <update id="updateVote">
+        update question_comment
+        <set>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
+                oppose=oppose+#{value},
+            </if>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
+                support=support+#{value},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

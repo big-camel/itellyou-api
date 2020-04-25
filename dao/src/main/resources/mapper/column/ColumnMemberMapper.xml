@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.column.ColumnMemberDao">
+    <sql id="columns">
+        ${alias}column_id ${prefix}column_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}user_id ${prefix}user_id
+    </sql>
+    <insert id="insert">
+        insert into column_member (column_id,created_time,created_ip,user_id) values (#{columnId},#{createdTime},#{createdIp},#{userId})
+    </insert>
+    <delete id="delete">
+        delete from column_member where column_id=#{columnId} and user_id=#{userId}
+    </delete>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="columnId != null">
+                and ${alias}column_id = #{columnId}
+            </if>
+            <if test="userId != null">
+                and ${alias}user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="ColumnMemberDetailModel">
+        select
+        <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include>
+        from column_member
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from column_member
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

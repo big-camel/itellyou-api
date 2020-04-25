@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.article.ArticleVoteDao">
+
+    <insert id="insert">
+        insert into article_vote (type,article_id,created_user_id,created_time,created_ip) values (#{type},#{articleId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="deleteByArticleIdAndUserId">
+        delete from article_vote where article_id=#{articleId} and created_user_id=#{userId}
+    </delete>
+    <select id="findByArticleIdAndUserId" resultType="ArticleVoteModel">
+        select `type`,article_id,created_user_id,created_time,created_ip from article_vote where article_id=#{articleId} and created_user_id=#{userId}
+    </select>
+</mapper>

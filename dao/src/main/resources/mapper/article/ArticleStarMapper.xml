@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.article.ArticleStarDao">
+    <sql id="columns">
+        ${alias}article_id ${prefix}article_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id
+    </sql>
+    <insert id="insert">
+        insert into article_star (article_id,created_time,created_ip,created_user_id) values (#{articleId},#{createdTime},#{createdIp},#{createdUserId})
+    </insert>
+    <delete id="delete">
+        delete from article_star where article_id=#{articleId} and created_user_id=#{userId}
+    </delete>
+    <resultMap id="searchMap" type="ArticleStarDetailModel" autoMapping="true">
+        <association property="article"  notNullColumn="id" javaType="ArticleDetailModel" columnPrefix="a_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+        <association property="user"  notNullColumn="id" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="articleId != null">
+                and ${alias}article_id = #{articleId}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="s."/>
+            <property name="prefix" value=""/>
+        </include>,
+        <include refid="com.itellyou.dao.article.ArticleInfoDao.columns">
+            <property name="alias" value="a."/>
+            <property name="prefix" value="a_"/>
+        </include>,
+        v.title a_title,v.description a_description,v.source_type a_source_type,v.source_data a_source_data,1 a_use_star,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="u_"/>
+        </include>
+        from article_star s
+        inner join article_info a on a.id = s.article_id
+        inner join article_version v on v.article_id = a.id and v.version = a.version
+        left join user_info u on u.id = s.created_user_id
+        <include refid="where">
+            <property name="alias" value="s."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>s.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from article_star s
+        inner join article_info a on a.id = s.article_id
+        <include refid="where">
+            <property name="alias" value="s."/>
+        </include>
+    </select>
+</mapper>

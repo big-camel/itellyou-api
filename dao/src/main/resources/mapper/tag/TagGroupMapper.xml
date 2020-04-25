@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.tag.TagGroupDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}name ${prefix}name,
+        ${alias}tag_count ${prefix}tag_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into tag_group (`name`,tag_count,created_time,created_ip,created_user_id) values
+        (#{name},#{tagCount},#{createdTime},#{createdIp},#{createdUserId})
+    </insert>
+    <select id="findById" resultType="TagGroupModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag_group where id=#{id}
+    </select>
+    <update id="updateTagCountById">
+        update tag_group set tag_count=tag_count+#{step} where id=#{id}
+    </update>
+    <resultMap id="searchMap" type="TagGroupModel" autoMapping="true">
+        <id property="id" column="id"></id>
+        <collection property="tagList" ofType="TagInfoModel" javaType="ArrayList" columnPrefix="t_" notNullColumn="id" autoMapping="true">
+            <id property="id" column="id"></id>
+        </collection>
+    </resultMap>
+    <sql id="searchWhere">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="minTagCount != null">
+                and ${alias}tag_count >= #{minTagCount}
+            </if>
+            <if test="maxTagCount != null">
+                and ${alias}tag_count &lt;= #{maxTagCount}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select <include refid="columns">
+            <property name="alias" value="g."/>
+            <property name="prefix" value=""/>
+        </include> ,
+        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
+            <property name="alias" value="t."/>
+            <property name="prefix" value="t_"/>
+        </include>
+        from (
+        select * from tag_group
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+        ) g left join (
+            select * from tag
+            <where>
+                <if test="isDisabled != null">
+                    and is_disabled = #{isDisabled}
+                </if>
+                <if test="isPublished != null">
+                    and is_published = #{isPublished}
+                </if>
+                and group_id != 0
+            </where>
+        ) t on t.group_id = g.id
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from tag_group
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

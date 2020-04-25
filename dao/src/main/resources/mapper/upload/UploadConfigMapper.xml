@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.upload.UploadConfigDao">
+    <sql id="columns">
+        ${alias}type ${prefix}type,
+        ${alias}bucket ${prefix}bucket,
+        ${alias}domain ${prefix}domain,
+        ${alias}endpoint ${prefix}endpoint,
+        ${alias}size ${prefix}size
+    </sql>
+
+    <select id="get" resultType="UploadConfigModel">
+        select
+        <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from upload_config
+        where `type` = #{type}
+    </select>
+</mapper>

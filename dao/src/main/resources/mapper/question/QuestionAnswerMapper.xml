@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.question.QuestionAnswerDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}question_id ${prefix}question_id,
+        ${alias}version ${prefix}version,
+        ${alias}is_published ${prefix}is_published,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}is_deleted ${prefix}is_deleted,
+        ${alias}is_adopted ${prefix}is_adopted,
+        ${alias}draft ${prefix}draft,
+        ${alias}cover ${prefix}cover,
+        ${alias}comments ${prefix}comments,
+        ${alias}view ${prefix}view,
+        ${alias}support ${prefix}support,
+        ${alias}oppose ${prefix}oppose,
+        ${alias}star_count ${prefix}star_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_user_id ${prefix}updated_user_id,
+        ${alias}updated_ip ${prefix}updated_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into question_answer(question_id,version,is_published,is_disabled,is_deleted,is_adopted,draft,cover,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{questionId},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{isAdopted},#{draft},#{cover},#{comments},#{view},#{support},#{oppose},#{starCount},
+        #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <select id="findByQuestionIdAndUserId" resultType="QuestionAnswerModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from question_answer where created_user_id=#{userId} and question_id=#{questionId}
+    </select>
+    <select id="findById" resultType="QuestionAnswerModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from question_answer where id=#{id}
+    </select>
+    <resultMap id="searchMap" type="QuestionAnswerDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="question" javaType="QuestionDetailModel" columnPrefix="q_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+        <association property="author" javaType="UserDetailModel" columnPrefix="user_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+    </resultMap>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="isAdopted != null">
+                and ${alias}is_adopted = #{isAdopted}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="questionId != null">
+                and ${alias}question_id = #{questionId}
+            </if>
+            <if test="minComments != null">
+                and ${alias}comments >= #{minComments}
+            </if>
+            <if test="maxComments != null">
+                and ${alias}comments &lt;= #{maxComments}
+            </if>
+            <if test="minView != null">
+                and ${alias}view >= #{minView}
+            </if>
+            <if test="maxView != null">
+                and ${alias}view &lt;= #{maxView}
+            </if>
+            <if test="minSupport != null">
+                and ${alias}support >= #{minSupport}
+            </if>
+            <if test="maxSupport != null">
+                and ${alias}support &lt;= #{maxSupport}
+            </if>
+            <if test="minOppose != null">
+                and ${alias}oppose >= #{minOppose}
+            </if>
+            <if test="maxOppose != null">
+                and ${alias}oppose &lt;= #{maxOppose}
+            </if>
+            <if test="minStar != null">
+                and ${alias}star_count >= #{minStar}
+            </if>
+            <if test="maxStar != null">
+                and ${alias}star_count &lt;= #{maxStar}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select q.id,q.question_id,q.is_published,q.is_disabled,q.is_deleted,q.is_adopted,q.comments,q.view,q.support,q.oppose,q.star_count,q.draft,q.cover,q.version,
+        q.created_time,q.created_user_id,q.created_ip,i.id q_id,
+        <if test="hasContent != false">
+            w.title q_title,w.description q_description,v.content,v.html,v.description,
+        </if>
+        <choose>
+            <when test="mode == 'draft'">
+                v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
+            </when>
+            <otherwise>
+                q.updated_user_id,q.updated_time,q.updated_ip,
+            </otherwise>
+        </choose>
+        <if test="searchUserId != null">
+            (case when q.created_user_id=#{searchUserId} then 1 else 0 end) allow_delete,
+            (case when q.created_user_id=#{searchUserId} then 0 else 1 end) allow_support,
+            (case when q.created_user_id=#{searchUserId} then 0 else 1 end) allow_oppose,
+            (case when q.created_user_id=#{searchUserId} then 1 else 0 end) allow_edit,
+            case when q.created_user_id=#{searchUserId} then 0 else 1 end allow_star,
+            (case when i.created_user_id=#{searchUserId} and i.is_adopted=0 and q.is_adopted=0 then 1 else 0 end) allow_adopt,
+            (case when vt.type=1 then 1 else 0 end) use_support,
+            (case when vt.type=0 then 1 else 0 end) use_oppose,
+            case when qs.created_user_id is not null then 1 else 0 end use_star,
+        </if>
+        (case when q.created_user_id is null then null when q.created_user_id=i.created_user_id then 1 else 0 end) use_author,
+
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="user_"/>
+        </include>
+        from question_answer q
+        inner join question_answer_version v on
+        <choose>
+            <when test="mode == 'draft'">
+                q.draft=v.version
+            </when>
+            <otherwise>
+                q.version=v.version
+            </otherwise>
+        </choose>
+        and q.id=v.answer_id
+        left join user_info u on q.created_user_id=u.id
+        <if test="searchUserId != null">
+        left join question_answer_vote vt on vt.answer_id=q.id and vt.created_user_id = #{searchUserId}
+        left join question_answer_star qs on qs.answer_id=q.id and qs.created_user_id = #{searchUserId}
+        </if>
+        left join question_info i on q.question_id=i.id
+        <if test="hasContent != false">
+            left join question_version w on i.id = w.question_id and i.version = w.version
+        </if>
+        <include refid="searchWhere">
+            <property name="alias" value="q."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                q.${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from question_answer
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <sql id="groupWhere">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="isAdopted != null">
+                and ${alias}is_adopted = #{isAdopted}
+            </if>
+            <if test="questionId != null">
+                and ${alias}question_id = #{questionId}
+            </if>
+        </where>
+    </sql>
+    <select id="groupByUserId" resultType="java.util.HashMap">
+        select created_user_id user_id,count(id) count from question_answer a
+        <include refid="groupWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by created_user_id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open=" order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="groupCountByUserId" resultType="Integer">
+        select count(created_user_id) count from question_answer a group by created_user_id
+        <include refid="groupWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <update id="updateVersion">
+        update question_answer
+        <set>
+            <if test="draft != null">
+                draft=#{draft},
+            </if>
+            <if test="version != null">
+                version=#{version},
+            </if>
+            <if test="isPublished != null">
+                is_published=#{isPublished},
+            </if>
+            <if test="isDisabled != null">
+                is_disabled=#{isDisabled},
+            </if>
+            <if test="isDeleted != null">
+                is_deleted=#{isDeleted},
+            </if>
+            <if test="time != null">
+                updated_time=#{time},
+            </if>
+            <if test="ip != null">
+                updated_ip=#{ip},
+            </if>
+            <if test="time != userId">
+                updated_user_id=#{userId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateDisabled">
+        update question_answer set is_disabled=#{isDisabled} where id=#{id}
+    </update>
+    <update id="updateDeleted">
+        update question_answer set is_deleted=#{isDeleted} where id=#{id}
+    </update>
+    <update id="updateAdopted">
+        update question_answer set is_adopted=#{isAdopted} where id=#{id}
+    </update>
+    <update id="updateView">
+        update question_answer set view=view+#{view} where id=#{id}
+    </update>
+    <update id="updateComments">
+        update question_answer set comments=comments+#{value} where id=#{id}
+    </update>
+    <update id="updateVote">
+        update question_answer
+        <set>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
+                oppose=oppose+#{value},
+            </if>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
+                support=support+#{value},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <update id="updateStarCountById">
+        update question_answer set star_count=star_count+#{step} where id=#{id}
+    </update>
+    <update id="updateMetas">
+        update question_answer
+        <set>
+            <if test="cover != null">
+                cover = #{cover},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

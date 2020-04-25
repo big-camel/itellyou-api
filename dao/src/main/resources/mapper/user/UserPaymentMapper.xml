@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserPaymentDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}type ${prefix}type,
+        ${alias}amount ${prefix}amount,
+        ${alias}subject ${prefix}subject,
+        ${alias}status ${prefix}status,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" parameterType="UserPaymentModel">
+        insert into user_payment(id,type,amount,subject,status,created_time,created_user_id,created_ip,updated_time,updated_ip,updated_user_id) values (
+            #{id},
+            #{type},
+            #{amount},
+            #{subject},
+            #{status},
+            #{createdTime},
+            #{createdUserId},
+            #{createdIp},
+            #{updatedTime},
+            #{updatedIp},
+            #{updatedUserId}
+        )
+    </insert>
+    <resultMap id="searchMap" type="UserPaymentDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="user" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
+            <id property="id" column="created_user_id" />
+        </association>
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="status != null">
+                and ${alias}status = #{status}
+            </if>
+            <if test="type != null">
+                and ${alias}type = #{type}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="up."/>
+            <property name="prefix" value=""/>
+        </include>,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="u_"/>
+        </include>,
+        p.path u_path
+        from user_payment up
+        left join user_info u on up.created_user_id = u.id
+        left join sys_path p on p.id = u.id and p.type = 1
+        <include refid="where">
+            <property name="alias" value="up."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>up.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from user_payment
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <update id="updateStatus">
+        update user_payment
+        <set>
+            status=#{status},
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

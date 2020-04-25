@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.tag.TagStarDao">
+    <sql id="columns">
+        ${alias}tag_id ${prefix}tag_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id
+    </sql>
+    <insert id="insert">
+        insert into tag_star (tag_id,created_time,created_ip,created_user_id) values (#{tagId},#{createdTime},#{createdIp},#{createdUserId})
+    </insert>
+    <delete id="delete">
+        delete from tag_star where tag_id=#{tagId} and created_user_id=#{userId}
+    </delete>
+    <resultMap id="searchMap" type="TagStarDetailModel" autoMapping="true">
+        <association property="tag"  notNullColumn="id" javaType="TagInfoModel" columnPrefix="t_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+        <association property="user"  notNullColumn="id" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
+            <id property="id" column="id" />
+        </association>
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="tagId != null">
+                and ${alias}tag_id = #{tagId}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="s."/>
+            <property name="prefix" value=""/>
+        </include>,
+        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
+            <property name="alias" value="t."/>
+            <property name="prefix" value="t_"/>
+        </include>,1 t_use_star,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="u_"/>
+        </include>
+        from tag_star s
+        inner join tag t on t.id = s.tag_id
+        left join user_info u on u.id = s.created_user_id
+        <include refid="where">
+            <property name="alias" value="s."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>s.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from tag_star s
+        inner join tag t on t.id = s.tag_id
+        <include refid="where">
+            <property name="alias" value="s."/>
+        </include>
+    </select>
+</mapper>

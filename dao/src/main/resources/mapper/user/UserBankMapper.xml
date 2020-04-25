@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserBankDao">
+    <sql id="columns">
+        ${alias}user_id ${prefix}user_id,
+        ${alias}cash ${prefix}cash,
+        ${alias}credit ${prefix}credit
+    </sql>
+    <select id="findByUserId" resultType="UserBankModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from user_bank where user_id=#{userId}
+    </select>
+    <insert id="insert">
+        insert into user_bank(user_id,cash,credit) values (#{userId},#{cash},#{credit})
+    </insert>
+    <update id="update">
+        update user_bank
+        <set>
+            <if test="type.getValue() == @com.itellyou.model.user.UserBankType@CREDIT.getValue">
+                credit = credit + #{amount}
+            </if>
+            <if test="type.getValue() == @com.itellyou.model.user.UserBankType@CASH.getValue">
+                cash = cash + #{amount}
+            </if>
+        </set>
+        <where>
+            <if test="amount lt 0">
+                <if test="type.getValue() == @com.itellyou.model.user.UserBankType@CREDIT.getValue">
+                    credit >= -#{amount}
+                </if>
+                <if test="type.getValue() == @com.itellyou.model.user.UserBankType@CASH.getValue">
+                    cash >= -#{amount}
+                </if>
+            </if>
+            and user_id=#{userId}
+        </where>
+    </update>
+</mapper>

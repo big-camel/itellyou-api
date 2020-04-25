@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.tag.TagInfoDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}name ${prefix}name,
+        ${alias}group_id ${prefix}group_id,
+        ${alias}star_count ${prefix}star_count,
+        ${alias}question_count ${prefix}question_count,
+        ${alias}article_count ${prefix}article_count,
+        ${alias}version ${prefix}version,
+        ${alias}draft ${prefix}draft,
+        ${alias}is_published ${prefix}is_published,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into tag (`name`,group_id,star_count,question_count,article_count,version,draft,is_published,is_disabled,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        (#{name},#{groupId},#{starCount},#{questionCount},#{articleCount},#{version},#{draft},#{isPublished},#{isDisabled},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+    </insert>
+    <select id="exists" resultType="java.lang.Integer">
+        select count(id) rows from tag where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="minStar != null">
+                and ${alias}star_count >= #{minStar}
+            </if>
+            <if test="maxStar != null">
+                and ${alias}star_count &lt;= #{maxStar}
+            </if>
+            <if test="minQuestion != null">
+                and ${alias}question_count >= #{minQuestion}
+            </if>
+            <if test="maxQuestion != null">
+                and ${alias}question_count &lt;= #{maxQuestion}
+            </if>
+            <if test="minArticle != null">
+                and ${alias}article_count >= #{minArticle}
+            </if>
+            <if test="maxArticle != null">
+                and ${alias}article_count &lt;= #{maxArticle}
+            </if>
+            <if test="groupId != null">
+                and ${alias}group_id = #{groupId}
+            </if>
+            <if test="name != null">
+                <bind name="bindName" value="name + '%'"/>
+                and ${alias}name like #{bindName}
+            </if>
+        </where>
+    </sql>
+    <resultMap id="searchMap" type="TagDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
+            <id property="id" column="id"></id>
+        </association>
+        <association property="group" javaType="TagGroupModel" columnPrefix="g_" autoMapping="true">
+            <id property="id" column="id"></id>
+        </association>
+    </resultMap>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns"><property name="alias" value="t."/><property name="prefix" value=""/></include>,
+        v.description,
+        <if test="hasContent != false">
+            v.content,v.html,
+        </if>
+        <if test="searchUserId != null">
+            case when ut.created_user_id is not null then 1 else 0 end use_star,
+        </if>
+        <choose>
+            <when test="mode == 'draft'">
+                v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
+            </when>
+            <otherwise>
+                t.updated_user_id,t.updated_time,t.updated_ip,
+            </otherwise>
+        </choose>
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="u."/>
+            <property name="prefix" value="u_"/>
+        </include>,
+        <include refid="com.itellyou.dao.tag.TagGroupDao.columns">
+            <property name="alias" value="g."/>
+            <property name="prefix" value="g_"/>
+        </include>
+        from tag t
+        inner join tag_version v on
+        <choose>
+            <when test="mode == 'draft'">
+                t.draft=v.version
+            </when>
+            <otherwise>
+                t.version=v.version
+            </otherwise>
+        </choose>
+        and t.id=v.tag_id
+        left join user_info u on t.created_user_id=u.id
+        left join tag_group g on t.group_id = g.id
+        <if test="searchUserId != null">
+            left join tag_star ut on ut.tag_id=t.id and ut.created_user_id=#{searchUserId}
+        </if>
+        <include refid="searchWhere">
+            <property name="alias" value="t."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>t.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(t.id) from tag t
+        inner join tag_version v on
+        <choose>
+            <when test="mode == 'draft'">
+                t.draft=v.version
+            </when>
+            <otherwise>
+                t.version=v.version
+            </otherwise>
+        </choose> and t.id=v.tag_id
+        <include refid="searchWhere">
+            <property name="alias" value="t."/>
+        </include>
+    </select>
+    <select id="findById" resultType="TagInfoModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag where id=#{id}
+    </select>
+    <select id="findByName" resultType="TagInfoModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag where name=#{name}
+    </select>
+    <update id="updateStarCountById">
+        update tag set star_count=star_count+#{step} where id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+    </update>
+    <update id="updateArticleCountById">
+        update tag set article_count=article_count+#{step} where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+    <update id="updateQuestionCountById">
+        update tag set question_count=question_count+#{step} where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+    <update id="updateVersionById">
+        update tag
+        <set>
+            <if test="draft != null">
+                draft=#{draft},
+            </if>
+            <if test="version != null">
+                version=#{version},
+            </if>
+            <if test="isPublished != null">
+                is_published=#{isPublished},
+            </if>
+            updated_time=#{time},
+            updated_ip=#{ip},
+            updated_user_id=#{userId}
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.geetest.GeetestLogDao">
+    <sql id="baseColumns">
+        `key` , client_type , client_ip , status , mode , created_user_id,created_time
+    </sql>
+    <resultMap id="geetestLogResult" type="GeetestLogModel">
+        <result property="type" column="client_type" />
+        <result property="ip" column="client_ip" />
+    </resultMap>
+    <select id="findByKey" resultMap="geetestLogResult">
+        select
+            <include refid="baseColumns"></include>
+        from geetest_log
+        where `key` = #{key}
+    </select>
+</mapper>

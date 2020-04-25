@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserNotificationDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}is_read ${prefix}is_read,
+        ${alias}is_deleted ${prefix}is_deleted,
+        ${alias}receive_id ${prefix}receive_id,
+        ${alias}type ${prefix}type,
+        ${alias}action ${prefix}action,
+        ${alias}target_id ${prefix}target_id,
+        ${alias}merge_count ${prefix}merge_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into user_notification (is_read,is_deleted,receive_id,type,action,target_id,merge_count,created_time,created_ip,updated_time,updated_ip) values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.isRead},#{item.isDeleted},#{item.receiveId},#{item.type},#{item.action},#{item.targetId},#{item.mergeCount},#{item.createdTime},#{item.createdIp},#{item.updatedTime},#{item.updatedIp})
+        </foreach>
+    </insert>
+    <update id="updateIsReadByReceiveId">
+        update user_notification
+        <set>
+            is_read=#{isRead},
+            updated_time=#{updatedTime},
+            updated_ip=#{updatedIp},
+        </set>
+        where receive_id=#{receiveId}
+    </update>
+    <delete id="updateIsDeletedByIdAndReceiveId">
+        update user_notification
+        <set>
+            is_deleted=#{isRead},
+            updated_time=#{updatedTime},
+            updated_ip=#{updatedIp},
+        </set>
+        where id=#{id} and receive_id=#{receiveId}
+    </delete>
+    <resultMap id="searchMap" type="UserNotificationDetailModel" autoMapping="true">
+        <id property="id" column="id" />
+        <collection property="actors" notNullColumn="id" ofType="UserDetailModel" javaType="ArrayList" columnPrefix="au_" autoMapping="true">
+            <id property="id" column="id" />
+        </collection>
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="receiveId != null">
+                and ${alias}receive_id = #{receiveId}
+            </if>
+            <if test="isRead != null">
+                and ${alias}is_read = #{isRead}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="action != null and action.getValue() != @com.itellyou.model.user.UserOperationalAction@DEFAULT.getValue">
+                and ${alias}action = #{action}
+            </if>
+            <if test="type != null">
+                and ${alias}type = #{type}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select a.* from (
+        select t.*,
+        (case when @id=t.id then @row_num:=@row_num+1 else @row_num:=1 end) as rownum,@id:=t.id tmp_id,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
+            <property name="alias" value="au."/>
+            <property name="prefix" value="au_"/>
+        </include>,p.path au_path
+        from (
+        select
+        <include refid="columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_notification n
+
+        <include refid="where">
+            <property name="alias" value="n."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+        ) t
+        left join user_notification_actors a on a.notification_id = t.id
+        left join user_info au on au.id = a.user_id
+        left join sys_path p on p.id = au.id and p.type=1,
+        (select @row_num:=0) tmp_rownum,(select @id:=0) tmp_id
+        order by t.id
+        ) a
+        <if test="actorsCount != null">
+            where a.rownum &lt;= #{actorsCount}
+        </if>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>a.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from user_notification
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="groupCount" resultType="UserNotificationGroupCountModel">
+        select action,type,count(id) count from user_notification
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+         group by action,type
+    </select>
+</mapper>
