@@ -52,6 +52,7 @@ public class GithubServiceImpl implements GithubService {
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
         httpHeaders.setAccept(mediaTypes);
+        httpHeaders.set("User-Agent", "ITELLYOU");
         String body = HttpClient.get("https://api.github.com/user",paramMap,httpHeaders);
         try{
             return JSONObject.parseObject(body);
