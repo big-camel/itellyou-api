@@ -24,11 +24,14 @@ public class GeetestServiceImpl implements GeetestService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-    @Autowired
-    private GeetestConfigService geetestConfigService;
+    private final GeetestConfigService geetestConfigService;
 
-    @Autowired
-    private GeetestLogService geetestLogService;
+    private final GeetestLogService geetestLogService;
+
+    public GeetestServiceImpl(GeetestConfigService geetestConfigService, GeetestLogService geetestLogService) {
+        this.geetestConfigService = geetestConfigService;
+        this.geetestLogService = geetestLogService;
+    }
 
     public GeetestModel init(String mode, Long userId, GeetestClientTypeEnum clientType, String ip){
         HashMap<String,String> data = new HashMap<>();
@@ -66,7 +69,7 @@ public class GeetestServiceImpl implements GeetestService {
         if(configModel == null) return false;
 
         GeetestSdk geetestSdk = new GeetestSdk(configModel.getId(),configModel.getKey(),true);
-
+        geetestSdk.debugCode = false;
         GeetestLogModel geetestLogModel = geetestLogService.findByKey(geetestResultModel.getKey());
         if(geetestLogModel == null) return false;
 

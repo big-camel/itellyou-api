@@ -128,8 +128,8 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
             result = updateAdopted(true,id);
             if(result != 1) throw new Exception("更新回答采纳状态失败");
             if(detailModel.getRewardType() != RewardType.DEFAULT && detailModel.getRewardValue() > 0){
-                result = bankService.update(detailModel.getRewardValue(),UserBankType.valueOf(detailModel.getRewardType().getValue()),answerModel.getCreatedUserId(),"回答[" + detailModel.getTitle() + "]被采纳", UserBankLogType.QUESTION_ANSWER,id.toString(), IPUtils.toLong(ip));
-                if(result != 1){
+                UserBankLogModel logModel = bankService.update(detailModel.getRewardValue(),UserBankType.valueOf(detailModel.getRewardType().getValue()),answerModel.getCreatedUserId(),"回答[" + detailModel.getTitle() + "]被采纳", UserBankLogType.QUESTION_ANSWER,id.toString(), IPUtils.toLong(ip));
+                if(logModel == null){
                     throw new Exception("悬赏支付失败");
                 }
             }

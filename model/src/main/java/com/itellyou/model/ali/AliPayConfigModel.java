@@ -18,6 +18,7 @@ public class AliPayConfigModel {
     private String rootCertPath;
     private String notifyUrl;
     private String returnUrl;
+    private String redirectUri;
     private boolean isEnable;
     private boolean isDefault;
 }

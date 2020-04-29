@@ -169,7 +169,7 @@ public class UserUpdateController {
     }
 
     @PutMapping("/path")
-    public Result path(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Path String path){
+    public Result path(UserInfoModel userModel, @MultiRequestBody @NotBlank @Path String path){
         if(userModel == null) return new Result(403,"未登陆");
         path = path.toLowerCase();
         SysPathModel pathModel = pathService.findByTypeAndId(SysPath.USER,userModel.getId());

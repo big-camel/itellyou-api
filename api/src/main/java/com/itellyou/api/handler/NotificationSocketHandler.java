@@ -71,6 +71,7 @@ public class NotificationSocketHandler extends AbstractWebSocketHandler {
         UserInfoModel userModel = getUser(session);
         if(userModel == null) {
             session.close();
+            System.out.println("user is null , start before , close");
             return;
         }
         batchService.start(userModel.getId(),callback);
@@ -80,12 +81,14 @@ public class NotificationSocketHandler extends AbstractWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UserInfoModel userModel = getUser(session);
         if(userModel == null) {
+            System.out.println("user is null , close");
             session.close();
             return;
         }
         if(socketMap.containsKey(userModel.getId())){
             List<WebSocketSession> socketSessions = socketMap.get(userModel.getId());
             if(socketSessions.size() >= 30) {
+                System.out.println("sessions size >= 30 , close");
                 session.close();
                 return;
             }
@@ -102,8 +105,11 @@ public class NotificationSocketHandler extends AbstractWebSocketHandler {
         UserInfoModel userModel = getUser(session);
         if(userModel == null) return;
         List<WebSocketSession> socketSessions = socketMap.get(userModel.getId());
+        System.out.println("sessions remove before , " + userModel.getId() + ":" + socketSessions.size());
         socketSessions.remove(session);
+        System.out.println("sessions remove after , " + userModel.getId() + ":" + socketSessions.size());
         if(socketSessions.size() == 0){
+            System.out.println("sessions size is 0 , stop ws");
             batchService.stop(userModel.getId());
         }
     }

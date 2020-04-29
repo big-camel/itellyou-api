@@ -33,7 +33,7 @@ public class UserBankServiceImpl implements UserBankService {
 
     @Override
     @Transactional
-    public int update(Double amount, UserBankType type, Long userId, String remark, UserBankLogType dataType, String dataKey, Long clientIp) {
+    public UserBankLogModel update(Double amount, UserBankType type, Long userId, String remark, UserBankLogType dataType, String dataKey, Long clientIp) throws Exception {
         try{
             int result = bankDao.update(amount,type,userId);
             if(result != 1){
@@ -54,16 +54,15 @@ public class UserBankServiceImpl implements UserBankService {
             if(result != 1){
                 throw new Exception("写入日志失败");
             }
-            return result;
+            return bankLogModel;
         }catch (Exception e){
-            e.printStackTrace();
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return 0;
+            throw e;
         }
     }
 
     @Override
-    public int update(Double amount, UserBankType type, Long userId, String remark, Long clientIp) {
+    public UserBankLogModel update(Double amount, UserBankType type, Long userId, String remark, Long clientIp) throws Exception {
         return update(amount,type,userId,remark,UserBankLogType.DEFAULT,"",clientIp);
     }
 

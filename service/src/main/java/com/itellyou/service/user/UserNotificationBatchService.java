@@ -8,5 +8,5 @@ public interface UserNotificationBatchService {
 
     void stop(Long userId);
 
-    void doStart(Long userId);
+    void doStart(Long userId, BiConsumer callback);
 }

@@ -5,6 +5,7 @@ import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.UserThirdAccountService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -23,8 +24,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -39,7 +38,7 @@ public class UserController {
     private final SysPathService pathService;
 
     @Autowired
-    public UserController(UserInfoService userInfoService,UserSearchService userSearchService,UserLoginLogService userLoginLogService,SysPathService pathService){
+    public UserController(UserInfoService userInfoService, UserSearchService userSearchService, UserLoginLogService userLoginLogService, SysPathService pathService){
         this.userInfoService = userInfoService;
         this.userSearchService = userSearchService;
         this.userLoginLogService = userLoginLogService;

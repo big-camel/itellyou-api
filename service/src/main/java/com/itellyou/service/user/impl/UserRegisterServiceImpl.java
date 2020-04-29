@@ -37,7 +37,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
     @Transactional
     public Long mobile(String name, String password, String mobile,String ip) {
         try {
-            password = StringUtils.encoderPassword(password);
+            password = StringUtils.isEmpty(password) ? null : StringUtils.encoderPassword(password);
             UserInfoModel userInfoModel = new UserInfoModel();
             userInfoModel.setName(name);
             userInfoModel.setAvatar("https://cdn-object.itellyou.com/avatar/default.png");

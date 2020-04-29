@@ -24,7 +24,7 @@
         (#{name},#{groupId},#{starCount},#{questionCount},#{articleCount},#{version},#{draft},#{isPublished},#{isDisabled},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
     </insert>
     <select id="exists" resultType="java.lang.Integer">
-        select count(id) rows from tag where id in
+        select count(id) from tag where id in
         <foreach collection="ids" item="id" open="(" close=")" separator=",">
             #{id}
         </foreach>

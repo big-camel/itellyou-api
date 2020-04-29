@@ -80,6 +80,12 @@
             <property name="alias" value=""/>
         </include>
     </select>
+    <select id="findByTargetId" resultType="UserOperationalModel">
+        select * from user_operational where action=#{action} and type=#{type} and created_user_id=#{userId} and target_id=#{targetId} order by created_time desc
+    </select>
+    <select id="updateTime">
+        update user_operational set created_time=#{time} where id=#{id}
+    </select>
     <delete id="deleteByTargetId">
         delete from user_operational where action=#{action} and type=#{type} and created_user_id=#{userId} and target_id=#{targetId}
     </delete>

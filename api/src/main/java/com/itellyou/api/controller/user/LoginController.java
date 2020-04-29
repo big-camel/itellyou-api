@@ -2,26 +2,22 @@ package com.itellyou.api.controller.user;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.itellyou.service.user.UserLoginService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.annotation.MultiRequestBody;
 import com.itellyou.api.handler.response.Result;
 import com.itellyou.model.ali.SmsLogModel;
 import com.itellyou.model.geetest.GeetestResultModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.model.user.UserLoginLogModel;
 import com.itellyou.service.ali.SmsLogService;
 import com.itellyou.service.geetest.GeetestService;
-import com.itellyou.service.user.UserInfoService;
 import com.itellyou.service.user.UserLoginLogService;
 import com.itellyou.util.CookieUtils;
-import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.validation.Mobile;
 import com.itellyou.util.validation.MobileValidator;
 import com.itellyou.util.StringUtils;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,31 +35,17 @@ import java.util.Map;
 @RequestMapping("/user/login")
 public class LoginController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     private final UserSearchService userSearchService;
     private final GeetestService geetestService;
-    private final UserLoginLogService userLoginLogService;
+    private final UserLoginService loginService;
     private final SmsLogService smsLogService;
 
     @Autowired
-    public LoginController(UserSearchService userSearchService,GeetestService geetestService,UserLoginLogService userLoginLogService,SmsLogService smsLogService){
+    public LoginController(UserSearchService userSearchService, GeetestService geetestService, UserLoginService loginService, SmsLogService smsLogService){
         this.userSearchService = userSearchService;
         this.geetestService = geetestService;
-        this.userLoginLogService = userLoginLogService;
+        this.loginService = loginService;
         this.smsLogService = smsLogService;
-    }
-
-    private String createLoginLog(String ip,Long userId){
-        String token = StringUtils.createToken(userId.toString());
-
-        UserLoginLogModel userLoginLogModel = new UserLoginLogModel(token,false,"web",DateUtils.getTimestamp(),userId,IPUtils.toLong(ip));
-        int resultRows = userLoginLogService.insert(userLoginLogModel);
-        if(resultRows != 1){
-            logger.error("登录日志写入出错，受影响行数:" + resultRows);
-            return null;
-        }
-        return token;
     }
 
     @PostMapping("/account")
@@ -99,11 +81,11 @@ public class LoginController {
                 return new Result(1006,"账户已锁定");
             }
             String clientIp = IPUtils.getClientIp(request);
-            String token = createLoginLog(clientIp,userInfoModel.getId());
+            String token = loginService.createToken(userInfoModel.getId(),IPUtils.toLong(clientIp));
             if(!StringUtils.isNotEmpty(token)){
                 return new Result(1007,"登录出错啦");
             }
-            CookieUtils.setCookie(response,"token",token,"/",86400 * 360);
+            loginService.sendToken(response,token);
             return new Result(userInfoModel,"base");
         }
         return new Result(1005,"密码错误");
@@ -132,11 +114,11 @@ public class LoginController {
             return new Result(1003,"账户已锁定");
         }
         String clientIp = IPUtils.getClientIp(request);
-        String token = createLoginLog(clientIp,userInfoModel.getId());
+        String token = loginService.createToken(userInfoModel.getId(),IPUtils.toLong(clientIp));
         if(!StringUtils.isNotEmpty(token)){
             return new Result(1004,"登录出错啦");
         }
-        CookieUtils.setCookie(response,"token",token,"/",86400 * 360);
+        loginService.sendToken(response,token);
         return new Result(userInfoModel,"base");
     }
 }

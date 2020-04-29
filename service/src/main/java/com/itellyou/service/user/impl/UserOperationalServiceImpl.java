@@ -56,6 +56,13 @@ public class UserOperationalServiceImpl implements UserOperationalService {
 
     @Override
     public int insert(UserOperationalModel model) {
+        // 用户 关注/收藏 操作，在已经 关注/收藏 后，取消 关注/收藏 不再写入新的操作记录，直接更新之前的操作时间
+        if(model.getAction().equals(UserOperationalAction.FOLLOW)){
+            List<UserOperationalModel> list = operationalDao.findByTargetId(model.getAction(),model.getType(),model.getCreatedUserId(),model.getTargetId());
+            if(list != null && list.size() > 0){
+                return operationalDao.updateTime(list.get(0).getId(),model.getCreatedTime());
+            }
+        }
         return operationalDao.insert(model);
     }
 

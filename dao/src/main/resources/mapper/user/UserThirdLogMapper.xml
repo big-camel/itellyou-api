@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserThirdLogDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}type ${prefix}type,
+        ${alias}action ${prefix}action,
+        ${alias}is_verify ${prefix}is_verify,
+        ${alias}redirect_uri ${prefix}redirect_uri,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+    </sql>
+    <insert id="insert">
+        insert into user_third_log (id,type,action,is_verify,redirect_uri,created_user_id,created_time,created_ip) values
+        (#{id},#{type},#{action},#{isVerify},#{redirectUri},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="delete">
+        delete from user_third_log where id=#{id}
+    </delete>
+    <update id="updateVerify">
+        update user_third_log set is_verify=#{isVerify} where id=#{id}
+    </update>
+    <select id="find" resultType="UserThirdLogModel">
+        select * from user_third_log where id = #{id}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="type != null">
+                and ${alias}type = #{type}
+            </if>
+            <if test="action != null">
+                and ${alias}action = #{action}
+            </if>
+            <if test="isVerify != null">
+                and ${alias}is_verify = #{isVerify}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="UserThirdAccountModel">
+        select
+        <include refid="columns">
+            <property name="alias" value="l."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_third_log l
+        <include refid="where">
+            <property name="alias" value="l."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>l.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from user_third_log l
+        <include refid="where">
+            <property name="alias" value="t."/>
+        </include>
+    </select>
+</mapper>

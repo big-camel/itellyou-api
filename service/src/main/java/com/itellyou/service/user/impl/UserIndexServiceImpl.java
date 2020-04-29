@@ -103,7 +103,7 @@ public class UserIndexServiceImpl implements UserIndexService {
         doc.add(new IntPoint("question_count",infoModel.getQuestionCount()));
         doc.add(new IntPoint("answer_count",infoModel.getAnswerCount()));
         doc.add(new TextField("name", infoModel.getName(), Field.Store.YES));
-        doc.add(new TextField("description", infoModel.getDescription(), Field.Store.YES));
+        doc.add(new TextField("description", StringUtils.isNotEmpty(infoModel.getDescription()) ? "" : infoModel.getDescription(), Field.Store.YES));
         double score = 1.0;
         score += infoModel.getFollowerCount() / 10.0;
         score += infoModel.getAnswerCount() / 20.0;

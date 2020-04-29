@@ -190,4 +190,15 @@ public class ValidationController {
         String clientIp = IPUtils.getClientIp(request);
         return sendEmailCode("replace",email,clientIp);
     }
+
+    @PostMapping("/login/oauth/code")
+    public Result loginOauth(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+        boolean result = geetestService.verify(geetestResultModel);
+        if(!result){
+            return new Result(1001,"Geetest 验证失败");
+        }
+
+        String clientIp = IPUtils.getClientIp(request);
+        return sendMobileCode("verify",mobile,clientIp);
+    }
 }

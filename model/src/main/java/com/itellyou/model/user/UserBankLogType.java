@@ -6,7 +6,9 @@ public enum UserBankLogType implements BaseEnum<UserBankLogType,Integer> {
     DEFAULT(0,"default"),
     QUESTION_ASK(1,"question_ask"),
     QUESTION_ANSWER(2,"question_answer"),
-    PAY(3,"pay");
+    PAY(3,"pay"),
+    WITHDRAW(4,"withdraw"),
+    FEE(5,"fee");
 
     private int value;
     private String name;

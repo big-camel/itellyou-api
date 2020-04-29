@@ -47,13 +47,13 @@ public class UserNotificationBatchServiceImpl implements UserNotificationBatchSe
     @Override
     @Async
     public void start(Long userId, BiConsumer callback) {
+        sendCount(userId,callback);
         if(!aliveMap.containsKey(userId) || !aliveMap.get(userId)){
             try {
                 aliveMap.put(userId,true);
                 threadMap.put(userId,Thread.currentThread());
                 while (aliveMap.containsKey(userId) && aliveMap.get(userId)) {
-                    this.doStart(userId);
-                    sendCount(userId,callback);
+                    this.doStart(userId,callback);
                     Thread.sleep(300000);
                 }
                 threadMap.remove(userId);
@@ -61,8 +61,6 @@ public class UserNotificationBatchServiceImpl implements UserNotificationBatchSe
             }catch (Exception e){
                 //e.printStackTrace();
             }
-        }else{
-            sendCount(userId,callback);
         }
     }
 
@@ -83,7 +81,7 @@ public class UserNotificationBatchServiceImpl implements UserNotificationBatchSe
     @Override
     @Async
     @Transactional
-    public void doStart(Long userId) {
+    public void doStart(Long userId, BiConsumer callback) {
         UserNotificationMarkModel markModel = markService.findByUserId(userId);
         Long beginTime = markModel == null ? null : markModel.getUpdatedTime();
         Map<UserOperationalAction, HashSet<EntityType>> actionsMap = new LinkedHashMap<>();
@@ -124,6 +122,7 @@ public class UserNotificationBatchServiceImpl implements UserNotificationBatchSe
             if(result < 1) throw new Exception("写入消息通知错误");
             markService.insertOrUpdate(new UserNotificationMarkModel(userId, DateUtils.getTimestamp()));
             if(result < 1) throw new Exception("记录mark失败");
+            sendCount(userId,callback);
         }catch (Exception e){
             e.printStackTrace();
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

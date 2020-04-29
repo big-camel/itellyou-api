@@ -53,6 +53,8 @@ public class CookieUtils {
             String springProfilesActive = SpringContextUtils.getActiveProfile();
             if(StringUtils.isNotEmpty(springProfilesActive) && "prod".equals(springProfilesActive)){
                 cookie.setDomain("itellyou.com");
+            }else{
+                cookie.setDomain("localhost");
             }
         } catch (UnsupportedEncodingException exception) {
             exception.printStackTrace();

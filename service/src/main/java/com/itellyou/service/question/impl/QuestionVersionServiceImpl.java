@@ -202,8 +202,8 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
                 throw new Exception("更新版本号失败");
             }
             if(versionModel.getRewardAdd() > 0){
-                result = bankService.update(-versionModel.getRewardAdd(), UserBankType.valueOf(versionModel.getRewardType().getValue()),versionModel.getCreatedUserId(),"提问[" + versionModel.getTitle() + "]悬赏", UserBankLogType.QUESTION_ASK,versionModel.getQuestionId().toString(),versionModel.getCreatedIp());
-                if(result != 1){
+                UserBankLogModel logModel = bankService.update(-versionModel.getRewardAdd(), UserBankType.valueOf(versionModel.getRewardType().getValue()),versionModel.getCreatedUserId(),"提问[" + versionModel.getTitle() + "]悬赏", UserBankLogType.QUESTION_ASK,versionModel.getQuestionId().toString(),versionModel.getCreatedIp());
+                if(logModel == null){
                     throw new Exception("赏金扣除失败");
                 }
             }
