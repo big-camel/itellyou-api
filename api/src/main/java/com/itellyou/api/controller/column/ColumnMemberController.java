@@ -1,7 +1,7 @@
 package com.itellyou.api.controller.column;
 
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.column.ColumnMemberDetailModel;
 import com.itellyou.model.user.UserInfoModel;
@@ -28,10 +28,10 @@ public class ColumnMemberController {
     }
 
     @GetMapping("")
-    public Result member(UserInfoModel userModel,@RequestParam @NotNull Long id){
+    public ResultModel member(UserInfoModel userModel, @RequestParam @NotNull Long id){
         Long searchUserId = userModel == null ? null : userModel.getId();
         PageModel<ColumnMemberDetailModel> pageModel = memberService.page(id,null,searchUserId,null,null,null,null,null,null);
-        return new Result(pageModel);
+        return new ResultModel(pageModel);
     }
 
 }

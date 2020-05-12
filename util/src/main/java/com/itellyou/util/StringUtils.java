@@ -5,7 +5,6 @@ import lombok.Getter;
 import sun.misc.BASE64Encoder;
 
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -24,7 +23,9 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         String randomStr = randomString(10);
         String uuid = createUUID();
         String token = System.currentTimeMillis() + randomStr + key + uuid;
-        return md5(token);
+        token = md5(token);
+        BASE64Encoder encoder = new BASE64Encoder();
+        return encoder.encode(token.getBytes());
     }
 
     public static String md5(String str){

@@ -11,6 +11,9 @@
             #{createdTime}
         )
     </insert>
+    <select id="find" resultType="UserLoginLogModel">
+        select * from user_login_log where token=#{token}
+    </select>
     <update id="setDisabled">
         update user_login_log set is_disabled = #{status} where token = #{token}
     </update>

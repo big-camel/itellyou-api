@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.common.NotificationQueueDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}action ${prefix}action,
+        ${alias}type ${prefix}type,
+        ${alias}target_id ${prefix}target_id,
+        ${alias}target_user_id ${prefix}target_user_id,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into user_notification_queue (action,type,target_id,target_user_id,created_user_id,created_time,created_ip) values (#{action},#{type},#{targetId},#{targetUserId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <resultMap id="searchMap" type="NotificationQueueModel" autoMapping="true">
+        <id property="id" column="id" />
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="targetUserId != null">
+                and ${alias}target_user_id = #{targetUserId}
+            </if>
+            <if test="actionsMap != null">
+                and <foreach collection="actionsMap" index="key"  item="value" open="(" separator="OR" close=")">
+                    (${alias}action=#{key} and ${alias}type in
+                    <foreach collection = "value" item="type" separator="," open="(" close=")">
+                        #{type}
+                    </foreach>
+                    )
+                </foreach>
+            </if>
+            and ${alias}target_user_id != ${alias}created_user_id
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_notification_queue n
+        <include refid="where">
+            <property name="alias" value="n."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from user_notification_queue
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="find" resultType="NotificationQueueModel">
+        select * from user_notification_queue where action=#{action} and type=#{type} and created_user_id=#{userId} and target_id=#{targetId} order by created_time desc
+    </select>
+    <update id="update">
+        update user_notification_queue set created_time=#{createdTime},created_ip=#{createdIp} where id=#{id}
+    </update>
+    <select id="searchFollowUser" resultType="NotificationQueueModel">
+        select
+        <include refid="columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_notification_queue n
+        <where>
+            n.target_id=#{userId}
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.action = 1 and n.type = 1
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="searchPublishAnswer" resultType="NotificationQueueModel">
+        select
+        <include refid="columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_notification_queue n
+        inner join question_answer a on a.id = n.target_id
+        inner join question_info q on q.id = a.question_id
+        left join question_star s on s.question_id = q.id
+        <where>
+            (q.created_user_id = #{userId} or s.created_user_id=#{userId})
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.created_user_id != #{userId}
+            and n.action = 4 and n.type = 3
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="searchPublishArticle" resultType="NotificationQueueModel">
+        select
+        <include refid="columns">
+            <property name="alias" value="n."/>
+            <property name="prefix" value=""/>
+        </include>
+        from user_notification_queue n
+        inner join article_info a on a.id = n.target_id
+        inner join article_version v on v.article_id=a.id and v.version=a.version
+        left join column_star s on s.column_id = v.column_id
+        <where>
+            s.created_user_id=#{userId}
+            <if test="beginTime != null">
+                and n.created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and n.created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and n.created_ip = #{ip}
+            </if>
+            and n.created_user_id != #{userId}
+            and n.action = 4 and n.type = 4
+        </where>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>n.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+</mapper>

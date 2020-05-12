@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysPermissionDao">
+    <sql id="columns">
+        ${alias}name ${prefix}name,
+        ${alias}platform ${prefix}platform,
+        ${alias}type ${prefix}type,
+        ${alias}method ${prefix}method,
+        ${alias}data ${prefix}data,
+        ${alias}remark ${prefix}remark
+    </sql>
+    <insert id="insert">
+        insert into sys_permission (name,platform,type,method,data,remark) values (#{name},#{platform},#{type},#{method},#{data},#{remark})
+    </insert>
+    <delete id="delete">
+        delete from sys_permission where name=#{name}
+    </delete>
+    <select id="findByName" resultType="SysPermissionModel">
+        select * from sys_permission where name=#{name}
+    </select>
+    <update id="updateByName">
+        update sys_permission
+        <set>
+            <if test="platform != null">
+                platform = #{platform},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="method != null">
+                method = #{method},
+            </if>
+            <if test="data != null">
+                data = #{data},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+        </set>
+        where `name`=#{name}
+    </update>
+    <sql id="where">
+        <where>
+            <if test="platform != null">
+                and ${alias}platform=#{platform}
+            </if>
+            <if test="type != null">
+                and ${alias}type=#{type}
+            </if>
+            <if test="method != null">
+                and ${alias}method=#{method}
+            </if>
+            <if test="name != null">
+                <bind name="bindName" value="'%' + name + '%'"/>
+                and ${alias}name like #{bindName}
+            </if>
+            <if test="userId != null">
+                and ${userAlias}user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysPermissionModel">
+        select distinct <include refid="columns">
+        <property name="alias" value="p."/>
+        <property name="prefix" value=""/>
+        </include> from sys_permission p
+        <if test="userId != null">
+        inner join sys_role_permission rp on p.name = rp.permission_name
+        inner join user_role ur on ur.role_id = rp.role_id
+        </if>
+        <include refid="where">
+            <property name="alias" value="p."/>
+            <property name="userAlias" value="ur."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(distinct p.name) from sys_permission p
+        <if test="userId != null">
+            inner join sys_role_permission rp on p.name = rp.permission_name
+            inner join user_role ur on ur.role_id = rp.role_id
+        </if>
+        <include refid="where">
+            <property name="alias" value="p."/>
+            <property name="userAlias" value="ur."/>
+        </include>
+    </select>
+</mapper>

@@ -1,18 +1,22 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagStarDao;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.TagEvent;
 import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.tag.TagStarDetailModel;
 import com.itellyou.model.tag.TagStarModel;
-import com.itellyou.model.user.UserOperationalAction;
-import com.itellyou.model.user.UserOperationalModel;
-import com.itellyou.model.sys.EntityType;
-import com.itellyou.service.tag.TagIndexService;
+import com.itellyou.service.common.StarService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.tag.TagInfoService;
-import com.itellyou.service.tag.TagStarService;
-import com.itellyou.service.user.UserOperationalService;
+import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.util.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -20,54 +24,62 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "tag")
 @Service
-public class TagStarServiceImpl implements TagStarService {
+public class TagStarServiceImpl implements StarService<TagStarModel> {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final TagStarDao starDao;
     private final TagInfoService infoService;
-    private final TagIndexService indexService;
-    private final UserOperationalService operationalService;
+    private final TagSearchService searchService;
+
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public TagStarServiceImpl(TagStarDao starDao,TagInfoService infoService,TagIndexService indexService,UserOperationalService operationalService){
+    public TagStarServiceImpl(TagStarDao starDao, TagInfoService infoService, TagSearchService searchService, OperationalPublisher operationalPublisher){
         this.starDao = starDao;
         this.infoService = infoService;
-        this.indexService = indexService;
-        this.operationalService = operationalService;
+        this.searchService = searchService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     @Transactional
+    @CacheEvict(key = "#model.tagId")
     public int insert(TagStarModel model) throws Exception {
+        TagInfoModel infoModel = searchService.findById(model.getTagId());
         try{
+            if(infoModel == null) throw new Exception("错误的标签ID");
             int result = starDao.insert(model);
             if(result != 1) throw new Exception("写入关注记录失败");
             result = infoService.updateStarCountById(model.getTagId(),1);
             if(result != 1) throw new Exception("更新关注数失败");
+            operationalPublisher.publish(new TagEvent(this, EntityAction.FOLLOW,model.getTagId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
-        }
-        indexService.updateIndex(model.getTagId());
-        operationalService.insertAsync(new UserOperationalModel(UserOperationalAction.FOLLOW, EntityType.TAG,model.getTagId(),model.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
-        return 1;
+        }return 1;
     }
 
     @Override
     @Transactional
-    public int delete(Long tagId, Long userId) throws Exception {
+    @CacheEvict(key = "#tagId")
+    public int delete(Long tagId, Long userId,Long ip) throws Exception {
+        TagInfoModel infoModel = searchService.findById(tagId);
         try{
+            if(infoModel == null) throw new Exception("错误的标签ID");
             int result = starDao.delete(tagId,userId);
             if(result != 1) throw new Exception("删除关注记录失败");
             result = infoService.updateStarCountById(tagId,-1);
             if(result != 1) throw new Exception("更新关注数失败");
-
+            operationalPublisher.publish(new TagEvent(this, EntityAction.UNFOLLOW,tagId,infoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        indexService.updateIndex(tagId);
-        operationalService.deleteByTargetIdAsync(UserOperationalAction.FOLLOW, EntityType.TAG,userId,tagId);
         return 1;
     }
 

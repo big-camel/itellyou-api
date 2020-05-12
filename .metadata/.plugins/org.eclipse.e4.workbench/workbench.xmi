@@ -1747,9 +1747,9 @@
     <tags>View</tags>
     <tags>categoryTag:Data Management</tags>
   </descriptors>
-  <descriptors xmi:id="_SjIK0BjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.result.resultView" label="SQL Results" iconURI="platform:/plugin/org.eclipse.datatools.sqltools.result.ui/icons/sqlresult.gif" tooltip="" category="Data Management" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
-    <persistedState key="originalCompatibilityViewClass" value="org.eclipse.datatools.sqltools.result.internal.ui.view.ResultsView"/>
-    <persistedState key="originalCompatibilityViewBundle" value="org.eclipse.datatools.sqltools.result.ui"/>
+  <descriptors xmi:id="_SjIK0BjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.resultModel.resultView" label="SQL Results" iconURI="platform:/plugin/org.eclipse.datatools.sqltools.resultModel.ui/icons/sqlresult.gif" tooltip="" category="Data Management" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
+    <persistedState key="originalCompatibilityViewClass" value="org.eclipse.datatools.sqltools.resultModel.internal.ui.view.ResultsView"/>
+    <persistedState key="originalCompatibilityViewBundle" value="org.eclipse.datatools.sqltools.resultModel.ui"/>
     <tags>View</tags>
     <tags>categoryTag:Data Management</tags>
   </descriptors>
@@ -1895,7 +1895,7 @@
   <commands xmi:id="_ScpIZRjMEeqB5N4fGV5QWw" elementId="org.eclipse.e4.ui.importer.openDirectory" commandName="Open Projects from File System..." category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpIZhjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.sse.ui.structure.select.previous" commandName="Select Previous Element" description="Expand selection to include previous sibling" category="_SckP0BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpIZxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jst.ws.jaxws.ui.configure.handlers" commandName="Configure Handlers" category="_Sck26hjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScpIaBjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScpIaBjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpIaRjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.debug.ui.commands.AddExceptionBreakpoint" commandName="Add Java Exception Breakpoint" description="Add a Java exception breakpoint" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpIahjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.open.call.hierarchy" commandName="Open Call Hierarchy" description="Open a call hierarchy on the selected element" category="_Sck28xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpIaxjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.RepositoriesViewClearCredentials" commandName="Clear Credentials" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
@@ -1929,7 +1929,7 @@
   <commands xmi:id="_ScpvcBjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.change.type" commandName="Generalize Declared Type" description="Change the declaration of a selected variable to a more general type consistent with usage" category="_Sck26xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpvcRjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.create.getter.setter" commandName="Generate Getters and Setters" description="Generate Getter and Setter methods for type's fields" category="_Sck3ARjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpvchjMEeqB5N4fGV5QWw" elementId="org.eclipse.pde.ui.edit.text.format" commandName="Format Source" description="Format a PDE Source Page" category="_Sck25xjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScpvcxjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.result.terminate" commandName="Terminate Result" category="_SckP3hjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScpvcxjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.resultModel.terminate" commandName="Terminate Result" category="_SckP3hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpvdBjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.select.next" commandName="Select Next Element" description="Expand selection to include next sibling" category="_SckP0BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpvdRjMEeqB5N4fGV5QWw" elementId="org.eclipse.mylyn.builds.ui.command.ShowBuildOutput" commandName="Show Build Output" category="_SckP0xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScpvdhjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.RepositoriesViewNewRemote" commandName="Create Remote..." category="_Sck2_BjMEeqB5N4fGV5QWw"/>
@@ -2033,7 +2033,7 @@
   <commands xmi:id="_Scq9sBjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.correction.convertAnonymousToLocal.assist" commandName="Quick Assist - Convert anonymous to local class" description="Invokes quick assist and selects 'Convert anonymous to local class'" category="_SckP1hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_Scq9sRjMEeqB5N4fGV5QWw" elementId="org.eclipse.pdt.ui.edit.text.select.previous" commandName="Select Previous Element" description="Expands selection to include previous sibling" category="_SckP0BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_Scq9shjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.team.stash.apply" commandName="Apply Stashed Changes" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_Scq9sxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_Scq9sxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_Scq9tBjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.edit.text.goto.columnNext" commandName="Next Column" description="Go to the next column" category="_SckP1BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_Scq9tRjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.history.Squash" commandName="Squash Commits" category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_Scq9thjMEeqB5N4fGV5QWw" elementId="org.eclipse.search.ui.performTextSearchWorkingSet" commandName="Find Text in Working Set" description="Searches the files in the working set for specific text." category="_Sck2-xjMEeqB5N4fGV5QWw"/>
@@ -2115,7 +2115,7 @@
   <commands xmi:id="_ScsLqxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jpt.jpa.eclipselink.ui.upgradeToEclipseLinkMappingFile" commandName="Upgrade to EclipseLink Mapping File" category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScsLrBjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.server.ui.phpServerShortcut.run" commandName="Run PHP Web Application" description="Run PHP Web Application" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScsLrRjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant" commandName="Extract Constant" description="Extracts a constant into a new static var and uses the new static var" category="_Sck26xjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScsLrhjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.result.removeAllInstances" commandName="Remove All Visible Results" category="_SckP3hjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScsLrhjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.resultModel.removeAllInstances" commandName="Remove All Visible Results" category="_SckP3hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScsLrxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.search.implement.occurrences" commandName="Search Implement Occurrences in File" description="Search for implement occurrences of a selected type" category="_Sck2-xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScsLsBjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.history.DeleteBranch" commandName="Delete Branch..." category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScsLsRjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.edit.text.contentAssist.contextInformation" commandName="Context Information" description="Show Context Information" category="_SckP0BjMEeqB5N4fGV5QWw"/>
@@ -2270,7 +2270,7 @@
   <commands xmi:id="_SctZ1BjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.team.ShowHistory" commandName="Show in History" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_SctZ1RjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.surround.with.quickMenu" commandName="Surround With Quick Menu" description="Shows the Surround With quick menu" category="_SckP1hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_SctZ1hjMEeqB5N4fGV5QWw" elementId="org.eclipse.m2e.core.ui.command.updateProject" commandName="Update Project" description="Update Maven Project configuration and dependencies" category="_SckP3BjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_SctZ1xjMEeqB5N4fGV5QWw" elementId="org.eclipse.dltk.debug.ui.commands.ScriptInspect" commandName="Inspect" description="Inspect result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_SctZ1xjMEeqB5N4fGV5QWw" elementId="org.eclipse.dltk.debug.ui.commands.ScriptInspect" commandName="Inspect" description="Inspect resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_SctZ2BjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.team.SimplePush" commandName="Push to Upstream" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_SctZ2RjMEeqB5N4fGV5QWw" elementId="org.eclipse.debug.ui.commands.addMemoryMonitor" commandName="Add Memory Block" description="Add memory block" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_SctZ2hjMEeqB5N4fGV5QWw" elementId="org.eclipse.pde.ui.organizeManifest" commandName="Organize Manifests" description="Cleans up plug-in manifest files" category="_Sck26hjMEeqB5N4fGV5QWw"/>
@@ -2753,7 +2753,7 @@
   <commands xmi:id="_ScwdKBjMEeqB5N4fGV5QWw" elementId="org.eclipse.pde.ui.junitWorkbenchShortcut.debug" commandName="Debug JUnit Plug-in Test" description="Debug JUnit Plug-in Test" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScwdKRjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.correction.extractLocalNotReplaceOccurrences.assist" commandName="Quick Assist - Extract local variable" description="Invokes quick assist and selects 'Extract local variable'" category="_Sck3ARjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScwdKhjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.sqleditor.attachProfileAction" commandName="Set Connection Information" category="_Sck2_RjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScwdKxjMEeqB5N4fGV5QWw" elementId="org.eclipse.dltk.debug.ui.commands.ScriptDisplay" commandName="Display" description="Display result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScwdKxjMEeqB5N4fGV5QWw" elementId="org.eclipse.dltk.debug.ui.commands.ScriptDisplay" commandName="Display" description="Display resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScwdLBjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.RepositoriesToggleBranchHierarchy" commandName="Toggle Branch Representation" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScwdLRjMEeqB5N4fGV5QWw" elementId="org.eclipse.ltk.ui.refactoring.commands.deleteResources" commandName="Delete Resources" description="Delete the selected resources and notify LTK participants." category="_Sck2_xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScwdLhjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.file.print" commandName="Print" description="Print" category="_SckP2xjMEeqB5N4fGV5QWw"/>
@@ -2835,7 +2835,7 @@
     <parameters xmi:id="_ScxEIBjMEeqB5N4fGV5QWw" elementId="elementRef" name="Java element reference" typeId="org.eclipse.jdt.ui.commands.javaElementReference" optional="false"/>
   </commands>
   <commands xmi:id="_ScxEIRjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.uncomment" commandName="Uncomment" description="Uncomment the selected JavaScript comment lines" category="_SckP1hjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScxEIhjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.result.removeInstance" commandName="Remove Result" category="_SckP3hjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScxEIhjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.resultModel.removeInstance" commandName="Remove Result" category="_SckP3hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEIxjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.team.AddToIndex" commandName="Add to Index" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEJBjMEeqB5N4fGV5QWw" elementId="org.eclipse.mylyn.discovery.ui.discoveryWizardCommand" commandName="Discovery Wizard" description="shows the connector discovery wizard" category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEJRjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.search.read.access.in.working.set" commandName="Read Access in Working Set" description="Search for read references to the selected element in a working set" category="_Sck2-xjMEeqB5N4fGV5QWw"/>
@@ -2877,7 +2877,7 @@
   <commands xmi:id="_ScxESRjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.debug.ui.addExceptionBreakpoint" commandName="Add PHP Exception Breakpoint" description="Add PHP Exception Breakpoint" category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEShjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.ui.edit.text.java.promote.local.variable" commandName="Convert Local Variable to Var" description="Convert a local variable to a var" category="_Sck26xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxESxjMEeqB5N4fGV5QWw" elementId="org.eclipse.pde.ui.imagebrowser.saveToWorkspace" commandName="Save Image" description="Save the selected image into a project in the workspace" category="_Sck26hjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScxETBjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.debug.ui.commands.Display" commandName="Display" description="Display result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScxETBjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.debug.ui.commands.Display" commandName="Display" description="Display resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxETRjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.search.exception.occurrences" commandName="Search Exception Occurrences in File" description="Search for exception occurrences of a selected exception type" category="_Sck2-xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEThjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.team.ShowBlame" commandName="Show Revision Information" category="_Sck2_BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxETxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.correction.assignToField.assist" commandName="Quick Assist - Assign to field" description="Invokes quick assist and selects 'Assign to field'" category="_Sck3ARjMEeqB5N4fGV5QWw"/>
@@ -2885,7 +2885,7 @@
   <commands xmi:id="_ScxEURjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.edit.text.java.extract.method" commandName="Extract Method" description="Extract a set of statements or an expression into a new method and use the new method" category="_Sck29xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEUhjMEeqB5N4fGV5QWw" elementId="org.eclipse.mylyn.tasks.ui.command.openRemoteTask" commandName="Open Remote Task" category="_Sck28xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEUxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jpt.jpa.eclipselink.ui.newEclipseLinkMappingFile" commandName="EclipseLink ORM Mapping File" category="_Sck26hjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScxEVBjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.debug.ui.commands.InspectDelegate" commandName="Inspect" description="Inspect result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScxEVBjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.debug.ui.commands.InspectDelegate" commandName="Inspect" description="Inspect resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEVRjMEeqB5N4fGV5QWw" elementId="org.eclipse.debug.ui.commands.nextMemoryBlock" commandName="Next Memory Monitor" description="Show renderings from next memory monitor." category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEVhjMEeqB5N4fGV5QWw" elementId="org.eclipse.egit.ui.internal.reflog.OpenInCommitViewerCommand" commandName="Open in Commit Viewer" category="_Sck26hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEVxjMEeqB5N4fGV5QWw" elementId="org.eclipse.mylyn.context.ui.commands.task.retrieveContext" commandName="Retrieve Context" category="_SckP1RjMEeqB5N4fGV5QWw"/>
@@ -2894,7 +2894,7 @@
   <commands xmi:id="_ScxEWhjMEeqB5N4fGV5QWw" elementId="org.eclipse.pde.ui.junitWorkbenchShortcut.run" commandName="Run JUnit Plug-in Test" description="Run JUnit Plug-in Test" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEWxjMEeqB5N4fGV5QWw" elementId="org.eclipse.jdt.ui.navigate.gotopackage" commandName="Go to Package" description="Go to Package" category="_Sck28xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEXBjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.window.togglestatusbar" commandName="Toggle Statusbar" description="Toggle the visibility of the bottom status bar" category="_SckP3BjMEeqB5N4fGV5QWw"/>
-  <commands xmi:id="_ScxEXRjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.chromium.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect result of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
+  <commands xmi:id="_ScxEXRjMEeqB5N4fGV5QWw" elementId="org.eclipse.wst.jsdt.chromium.debug.ui.commands.Inspect" commandName="Inspect" description="Inspect resultModel of evaluating selected text" category="_SckP4BjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEXhjMEeqB5N4fGV5QWw" elementId="org.eclipse.mylyn.task.ui.editor.QuickOutline" commandName="Quick Outline" description="Show the quick outline for the editor input" category="_SckP1xjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEXxjMEeqB5N4fGV5QWw" elementId="org.eclipse.dltk.ui.edit.text.script.add.javadoc.comment" commandName="Add Javadoc Comment" description="Add a Scriptdoc comment stub to the member element" category="_Sck27hjMEeqB5N4fGV5QWw"/>
   <commands xmi:id="_ScxEYBjMEeqB5N4fGV5QWw" elementId="org.eclipse.buildship.ui.commands.addbuildshipnature" commandName="Add Gradle Nature" description="Adds the Gradle nature and synchronizes this project as if the Gradle Import wizard had been run on its location." category="_SckP0hjMEeqB5N4fGV5QWw"/>
@@ -3206,7 +3206,7 @@
   <categories xmi:id="_SckP2xjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.category.file" name="File"/>
   <categories xmi:id="_SckP3BjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.category.window" name="Window"/>
   <categories xmi:id="_SckP3RjMEeqB5N4fGV5QWw" elementId="org.eclipse.php.ui.category.refactoring" name="Refactor - PHP" description="PHP Refactoring Actions"/>
-  <categories xmi:id="_SckP3hjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.result.category" name="SQL Results View"/>
+  <categories xmi:id="_SckP3hjMEeqB5N4fGV5QWw" elementId="org.eclipse.datatools.sqltools.resultModel.category" name="SQL Results View"/>
   <categories xmi:id="_SckP3xjMEeqB5N4fGV5QWw" elementId="net.sf.eclipsecs.ui" name="Checkstyle"/>
   <categories xmi:id="_SckP4BjMEeqB5N4fGV5QWw" elementId="org.eclipse.debug.ui.category.run" name="Run/Debug" description="Run/Debug command category"/>
   <categories xmi:id="_SckP4RjMEeqB5N4fGV5QWw" elementId="org.eclipse.ui.category.dialogs" name="Dialogs" description="Commands for opening dialogs"/>

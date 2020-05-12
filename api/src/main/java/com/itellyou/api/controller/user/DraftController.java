@@ -1,6 +1,6 @@
 package com.itellyou.api.controller.user;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDraftDetailModel;
@@ -27,20 +27,17 @@ public class DraftController {
     }
 
     @GetMapping("")
-    public Result draft(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel draft(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         Map<String,String> order = new HashMap<>();
         order.put("created_time","desc");
         PageModel<UserDraftDetailModel> pageData = draftService.page(null,null,null,userModel.getId(),null,null,null,order,offset,limit);
-        return new Result(pageData);
+        return new ResultModel(pageData);
     }
 
     @DeleteMapping("")
-    public Result draft(UserInfoModel userModel, @MultiRequestBody @NotBlank String type, @MultiRequestBody @NotNull Long key){
-        if(userModel == null) return new Result(401,"未登陆");
-
+    public ResultModel draft(UserInfoModel userModel, @MultiRequestBody @NotBlank String type, @MultiRequestBody @NotNull Long key){
         int result = draftService.delete(userModel.getId(), EntityType.valueOf(type.toUpperCase()),key);
-        if(result == 1) return new Result();
-        return new Result(0,"删除错误");
+        if(result == 1) return new ResultModel();
+        return new ResultModel(0,"删除错误");
     }
 }

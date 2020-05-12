@@ -1,8 +1,8 @@
 package com.itellyou.api.config;
 
-import com.itellyou.service.uid.WorkerIdAssigner;
-import com.itellyou.service.uid.impl.CachedUidGenerator;
-import com.itellyou.service.uid.impl.DefaultUidGenerator;
+import com.itellyou.service.sys.uid.WorkerIdAssigner;
+import com.itellyou.service.sys.uid.impl.CachedUidGenerator;
+import com.itellyou.service.sys.uid.impl.DefaultUidGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

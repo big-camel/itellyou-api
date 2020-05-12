@@ -23,7 +23,13 @@ public class UserLoginServiceImpl implements UserLoginService {
     public String createToken(Long userId, Long ip) {
         String token = StringUtils.createToken(userId.toString());
 
-        UserLoginLogModel logModel = new UserLoginLogModel(token,false,"web", DateUtils.getTimestamp(),userId, ip);
+        UserLoginLogModel logModel = new UserLoginLogModel();
+        logModel.setToken(token);
+        logModel.setDisabled(false);
+        logModel.setClientType("web");
+        logModel.setCreatedUserId(userId);
+        logModel.setCreatedIp(ip);
+        logModel.setCreatedTime(DateUtils.getTimestamp());
         int result = logService.insert(logModel);
         if(result != 1){
             return null;

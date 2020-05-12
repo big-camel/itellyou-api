@@ -3,26 +3,32 @@ package com.itellyou.service.question.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.itellyou.dao.question.QuestionInfoDao;
 import com.itellyou.dao.question.QuestionVersionDao;
-import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.event.QuestionEvent;
+import com.itellyou.model.event.TagIndexEvent;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.question.QuestionVersionModel;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.model.user.*;
-import com.itellyou.service.question.QuestionIndexService;
+import com.itellyou.model.user.UserBankLogModel;
+import com.itellyou.model.user.UserBankType;
+import com.itellyou.model.user.UserDraftModel;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.question.QuestionVersionService;
-import com.itellyou.service.tag.TagIndexService;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.user.UserBankService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserOperationalService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -32,6 +38,8 @@ import java.util.*;
 @Service
 public class QuestionVersionServiceImpl implements QuestionVersionService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final QuestionVersionDao versionDao;
     private final QuestionInfoDao infoDao;
     private final UserInfoService userService;
@@ -39,29 +47,26 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     private final TagInfoService tagService;
 
-    private final TagIndexService tagIndexService;
-
     private final UserDraftService draftService;
     private final QuestionSearchService searchService;
-    private final QuestionIndexService indexerService;
-    private final UserOperationalService operationalService;
+
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao,QuestionInfoDao infoDao,UserInfoService userService,UserBankService bankService, TagInfoService tagService,TagIndexService tagIndexService, UserDraftService draftService,QuestionSearchService searchService, QuestionIndexService indexerService,UserOperationalService operationalService){
+    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao, QuestionInfoDao infoDao, UserInfoService userService, UserBankService bankService, TagInfoService tagService, UserDraftService draftService, QuestionSearchService searchService, OperationalPublisher operationalPublisher){
         this.versionDao = questionVersionDao;
         this.infoDao = infoDao;
         this.userService = userService;
         this.bankService = bankService;
         this.tagService = tagService;
-        this.tagIndexService = tagIndexService;
         this.draftService = draftService;
         this.searchService = searchService;
-        this.indexerService = indexerService;
-        this.operationalService = operationalService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "question",key = "#questionVersionModel.questionId")
     public int insert(QuestionVersionModel questionVersionModel) {
         try{
             int rows = versionDao.insert(questionVersionModel);
@@ -87,6 +92,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "question",key = "#versionModel.questionId")
     public int update(QuestionVersionModel versionModel) {
         try{
             int rows = versionDao.update(versionModel);
@@ -110,7 +116,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             }
             return 1;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -182,6 +188,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
     }
 
     @Override
+    @CacheEvict(value = "question",key = "#questionId")
     public int updateVersion(Long questionId, Integer version, Integer draft,Boolean isPublished, Long time, Long ip, Long user) {
         return infoDao.updateVersion(questionId,version,draft,isPublished,time,ip,user);
     }
@@ -201,15 +208,16 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             {
                 throw new Exception("更新版本号失败");
             }
-            if(versionModel.getRewardAdd() > 0){
-                UserBankLogModel logModel = bankService.update(-versionModel.getRewardAdd(), UserBankType.valueOf(versionModel.getRewardType().getValue()),versionModel.getCreatedUserId(),"提问[" + versionModel.getTitle() + "]悬赏", UserBankLogType.QUESTION_ASK,versionModel.getQuestionId().toString(),versionModel.getCreatedIp());
+            if(versionModel.isPublished() && versionModel.getRewardAdd() > 0 && !versionModel.getRewardType().equals(RewardType.DEFAULT)){
+                UserBankLogModel logModel = bankService.update(-versionModel.getRewardAdd(), UserBankType.valueOf(versionModel.getRewardType().getValue())
+                        ,EntityAction.PUBLISH,EntityType.ANSWER,versionModel.getQuestionId().toString(),versionModel.getCreatedUserId(),"问题悬赏",versionModel.getCreatedIp());
                 if(logModel == null){
                     throw new Exception("赏金扣除失败");
                 }
             }
             return result;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -241,7 +249,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             }
             return result;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -269,6 +277,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "question",key = "#id")
     public QuestionVersionModel addVersion(Long id, Long userId, String title, String content, String html, String description, RewardType rewardType, Double rewardValue, Double rewardAdd, List<TagInfoModel> tags, String remark, Integer version, String save_type, Long ip, Boolean isPublish, Boolean force) throws Exception {
         try {
             QuestionVersionModel versionModel = new QuestionVersionModel();
@@ -353,7 +362,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
                 int rows = isPublish == true ? updateVersion(versionModel) : updateDraft(versionModel);
                 if (rows != 1)
                     throw new Exception("新增版本失败");
-                //第一次发布，更新用户的文章数量
+                //第一次发布，更新用户的问题数量
                 if(isPublish == true && detailModel.isPublished() == false){
                     int result = userService.updateQuestionCount(detailModel.getCreatedUserId(),1);
                     if(result != 1) throw new Exception("更新用户问题数量失败");
@@ -367,10 +376,12 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
             if(isPublish){
                 if(!detailModel.isPublished()){
-                    operationalService.insertAsync(new UserOperationalModel(UserOperationalAction.PUBLISH, EntityType.QUESTION,detailModel.getId(),detailModel.getCreatedUserId(),userId,DateUtils.getTimestamp(),ip));
+                    operationalPublisher.publish(new QuestionEvent(this, EntityAction.PUBLISH,
+                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                }else{
+                    operationalPublisher.publish(new QuestionEvent(this, EntityAction.UPDATE,
+                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
                 }
-                detailModel = searchService.getDetail(detailModel.getId());
-                indexerService.updateIndex(detailModel);
                 HashSet<Long> tagIds = new HashSet<>();
                 if(addTags != null && addTags.size() > 0){
                     for(Long i : addTags){
@@ -382,11 +393,14 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
                         if(!tagIds.contains(i)) tagIds.add(i);
                     }
                 }
-                if(tagIds.size() > 0) tagIndexService.updateIndex(tagIds);
+
+                if(tagIds.size() > 0){
+                    operationalPublisher.publish(new TagIndexEvent(this,tagIds));
+                }
             }
             return versionModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }

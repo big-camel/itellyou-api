@@ -1,10 +1,15 @@
 package com.itellyou.service.user.impl;
 
+import com.itellyou.dao.user.UserActivityDao;
+import com.itellyou.model.common.OperationalDetailModel;
+import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.user.*;
+import com.itellyou.model.user.UserActivityDetailModel;
+import com.itellyou.model.user.UserActivityModel;
+import com.itellyou.service.common.OperationalService;
 import com.itellyou.service.user.UserActivityService;
-import com.itellyou.service.user.UserOperationalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,60 +18,58 @@ import java.util.*;
 @Service
 public class UserActivityServiceImpl implements UserActivityService {
 
-    private final UserOperationalService operationalService;
-    private final Map<UserOperationalAction, HashSet<EntityType>> actionsMap = new LinkedHashMap<>();
+    private final UserActivityDao activityDao;
+    private final OperationalService operationalService;
 
     @Autowired
-    public UserActivityServiceImpl(UserOperationalService operationalService){
+    public UserActivityServiceImpl(UserActivityDao activityDao, OperationalService operationalService){
+        this.activityDao = activityDao;
         this.operationalService = operationalService;
-        actionsMap.put(UserOperationalAction.FOLLOW,new LinkedHashSet<EntityType>(){{
-            //add(UserOperationalType.USER);
-            add(EntityType.QUESTION);//关注提问
-            add(EntityType.ANSWER);//收藏回答
-            add(EntityType.ARTICLE);//收藏文章
-            add(EntityType.COLUMN);//关注专栏
-            add(EntityType.TAG);//关注标签
-        }});
-        actionsMap.put(UserOperationalAction.LIKE,new LinkedHashSet<EntityType>(){{
-            add(EntityType.ANSWER);//赞同回答
-            add(EntityType.ARTICLE);//赞同文章
-        }});
-        actionsMap.put(UserOperationalAction.PUBLISH,new LinkedHashSet<EntityType>(){{
-            add(EntityType.QUESTION);//发布提问
-            add(EntityType.ANSWER);//发布回答
-            add(EntityType.ARTICLE);//发布文章
-        }});
     }
 
-    private Map<UserOperationalAction, HashSet<EntityType>> filterActionsMap(UserOperationalAction action, EntityType type){
-        Map<UserOperationalAction, HashSet<EntityType>> map = new LinkedHashMap<>();
-        for (Map.Entry<UserOperationalAction,HashSet<EntityType>> entry:actionsMap.entrySet()) {
-            HashSet<EntityType> hashSet = new LinkedHashSet<>();
-            for (EntityType val:entry.getValue()) {
-                if(type == null || val.equals(type)) hashSet.add(val);
-            }
-            if((action == null || entry.getKey().equals(action)) && !hashSet.isEmpty()) map.put(entry.getKey(),hashSet);
+    @Override
+    public int insert(UserActivityModel model) {
+        return activityDao.insert(model);
+    }
+
+    @Override
+    public List<UserActivityDetailModel> search(Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        List<UserActivityModel> list = activityDao.search(actionsMap,targetUserId,userId,beginTime,endTime,ip,order,offset,limit);
+        List<UserActivityDetailModel> activityDetailModels = new LinkedList<>();
+        List<OperationalModel> operationModes = new LinkedList<>();
+        for (UserActivityModel activityModel:list) {
+            operationModes.add(new OperationalModel(activityModel.getAction(),activityModel.getType(),activityModel.getTargetId(),activityModel.getTargetUserId(),activityModel.getCreatedUserId(),activityModel.getCreatedTime(),activityModel.getCreatedIp()));
         }
-        return map;
+        List<OperationalDetailModel> detailModels = operationalService.toDetail(operationModes,searchUserId);
+        for (OperationalDetailModel detailModel : detailModels){
+            for (UserActivityModel activityModel : list){
+                if(detailModel.getAction().equals(activityModel.getAction()) &&
+                detailModel.getType().equals(activityModel.getType()) &&
+                detailModel.getTargetId().equals(activityModel.getTargetId()) &&
+                detailModel.getCreatedUserId().equals(activityModel.getCreatedUserId())){
+                    activityDetailModels.add(new UserActivityDetailModel(activityModel,detailModel.getTarget()));
+                }
+            }
+        }
+        return activityDetailModels;
     }
 
     @Override
-    public List<UserOperationalDetailModel> search(Long id, UserOperationalAction action, EntityType type, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-
-        return operationalService.searchDetail(id,filterActionsMap(action,type),null,userId,null,beginTime,endTime,ip,order,offset,limit);
+    public int count(Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
+        return activityDao.count(actionsMap,targetUserId,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public int count(Long id, UserOperationalAction action, EntityType type, Long userId, Long beginTime, Long endTime, Long ip) {
-        return operationalService.count(id,filterActionsMap(action,type),null,userId,null,beginTime,endTime,ip);
-    }
-
-    @Override
-    public PageModel<UserOperationalDetailModel> page(UserOperationalAction action, EntityType type, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<UserActivityDetailModel> page(Map<EntityAction, HashSet<EntityType>> actionsMap,Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
-        List<UserOperationalDetailModel> data = search(null,action,type,userId,beginTime,endTime,ip,order,offset,limit);
-        Integer total = count(null,action,type,userId,beginTime,endTime,ip);
-        return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
+        List<UserActivityDetailModel> data = search(actionsMap,targetUserId,userId,searchUserId,beginTime,endTime,ip,order,offset,limit);
+        Integer total = count(actionsMap,targetUserId,userId,beginTime,endTime,ip);
+        return new PageModel<>(offset,limit,total,data);
+    }
+
+    @Override
+    public int delete(EntityAction action, EntityType type, Long targetId, Long userId) {
+        return activityDao.delete(action,type,targetId,userId);
     }
 }

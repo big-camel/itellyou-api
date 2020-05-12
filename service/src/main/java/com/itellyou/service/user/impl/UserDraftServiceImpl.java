@@ -1,11 +1,14 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserDraftDao;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.common.OperationalDetailModel;
+import com.itellyou.model.common.OperationalModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.*;
 import com.itellyou.service.user.UserDraftService;
-import com.itellyou.service.user.UserOperationalService;
+import com.itellyou.service.common.OperationalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +20,10 @@ import java.util.Map;
 public class UserDraftServiceImpl implements UserDraftService {
 
     private final UserDraftDao draftDao;
-    private final UserOperationalService operationalService;
+    private final OperationalService operationalService;
 
     @Autowired
-    public UserDraftServiceImpl(UserDraftDao draftDao, UserOperationalService operationalService){
+    public UserDraftServiceImpl(UserDraftDao draftDao, OperationalService operationalService){
         this.draftDao = draftDao;
         this.operationalService = operationalService;
     }
@@ -48,11 +51,11 @@ public class UserDraftServiceImpl implements UserDraftService {
     @Override
     public List<UserDraftDetailModel> search(Long authorId, EntityType dataType, Long dataKey,Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<UserDraftDetailModel> dataList = draftDao.search(authorId,dataType,dataKey,userId,beginTime,endTime,ip,order,offset,limit);
-        List<UserOperationalModel> operationalModels = new ArrayList<>();
+        List<OperationalModel> operationalModels = new ArrayList<>();
         for (UserDraftDetailModel model : dataList){
-            operationalModels.add(new UserOperationalModel(UserOperationalAction.DEFAULT,model.getDataType(),model.getDataKey(),null,null,null,null));
+            operationalModels.add(new OperationalModel(EntityAction.DEFAULT,model.getDataType(),model.getDataKey(),null,null,null,null));
         }
-        List<UserOperationalDetailModel> resultModels = operationalService.toDetail(operationalModels,userId);
+        List<OperationalDetailModel> resultModels = operationalService.toDetail(operationalModels,userId);
         for (int i = 0; i < resultModels.size(); i++) {
             dataList.get(i).setTarget(resultModels.get(i).getTarget());
         }

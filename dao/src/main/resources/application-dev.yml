@@ -11,7 +11,7 @@ spring:
       connection-init-sqls: SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
 mybatis:
   type-aliases-package: com.itellyou.model
-  mapper-locations: classpath:mapper/*Mapper.xml,classpath:mapper/**/*Mapper.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml,classpath*:mapper/**/*Mapper.xml
   configuration:
     default-enum-type-handler: com.itellyou.dao.handler.EnumTypeHandler
     map-underscore-to-camel-case: true

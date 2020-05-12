@@ -1,8 +1,9 @@
 package com.itellyou.service.user;
 
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserBankLogModel;
-import com.itellyou.model.user.UserBankLogType;
 import com.itellyou.model.user.UserBankType;
 
 import java.util.List;
@@ -11,9 +12,11 @@ import java.util.Map;
 public interface UserBankLogService {
     int insert(UserBankLogModel userBankLogModel);
 
-    List<UserBankLogModel> search(String id,
+    List<UserBankLogModel> search(Long id,
                                   UserBankType type,
-                                  UserBankLogType dataType,
+                                  EntityAction action,
+                                  EntityType dataType,
+                                  String dataKey,
                                   Long userId,
                                   Long beginTime,Long endTime,
                                   Long ip,
@@ -21,16 +24,28 @@ public interface UserBankLogService {
                                   Integer offset,
                                   Integer limit);
 
-    int count(String id,
+    int count(Long id,
               UserBankType type,
-              UserBankLogType dataType,
+              EntityAction action,
+              EntityType dataType,
+              String dataKey,
               Long userId,
               Long beginTime,Long endTime,
               Long ip);
 
-    PageModel<UserBankLogModel> page(String id,
+    double total(Long id,
+              UserBankType type,
+              EntityAction action,
+              EntityType dataType, String dataKey,
+              Long userId,
+              Long beginTime,Long endTime,
+              Long ip);
+
+    PageModel<UserBankLogModel> page(Long id,
                                      UserBankType type,
-                                     UserBankLogType dataType,
+                                     EntityAction action,
+                                     EntityType dataType,
+                                     String dataKey,
                                      Long userId,
                                      Long beginTime,Long endTime,
                                      Long ip,

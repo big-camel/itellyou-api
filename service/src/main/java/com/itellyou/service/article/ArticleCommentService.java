@@ -1,16 +1,14 @@
 package com.itellyou.service.article;
 
-import com.itellyou.model.sys.VoteType;
 import com.itellyou.model.article.ArticleCommentModel;
-
-import java.util.Map;
+import com.itellyou.model.sys.VoteType;
 
 public interface ArticleCommentService {
-    ArticleCommentModel insert(Long articleId, Long parentId, Long replyId, String content, String html, Long userId, String ip) throws Exception;
+    ArticleCommentModel insert(Long articleId, Long parentId, Long replyId, String content, String html, Long userId, Long ip,Boolean sendEvent) throws Exception;
 
-    int updateDeleted(Long id, Boolean isDeleted);
+    int updateDeleted(Long id, Boolean isDeleted,Long userId,Long ip);
 
     int updateComments(Long id, Integer value);
 
-    Map<String,Object> updateVote(VoteType type, Long id, Long userId, String ip);
+    int updateVote(VoteType type,Integer value,Long id);
 }

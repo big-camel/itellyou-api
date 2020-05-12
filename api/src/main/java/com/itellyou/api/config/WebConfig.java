@@ -3,7 +3,6 @@ package com.itellyou.api.config;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
-import com.itellyou.api.handler.*;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.argument.MultiRequestBodyArgumentResolver;
 import com.itellyou.util.argument.UserArgumentResolver;
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.charset.StandardCharsets;
@@ -23,19 +21,11 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-
-    private final HandlerMethodInterceptor handlerMethodInterceptor;
     private final MultiRequestBodyArgumentResolver multiRequestBodyArgumentResolver;
 
     @Autowired
-    public WebConfig(HandlerMethodInterceptor handlerMethodInterceptor,MultiRequestBodyArgumentResolver multiRequestBodyArgumentResolver){
-        this.handlerMethodInterceptor = handlerMethodInterceptor;
+    public WebConfig( MultiRequestBodyArgumentResolver multiRequestBodyArgumentResolver){
         this.multiRequestBodyArgumentResolver = multiRequestBodyArgumentResolver;
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(handlerMethodInterceptor);
     }
 
     @Override

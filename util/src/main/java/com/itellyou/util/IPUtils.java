@@ -4,9 +4,20 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 
 public class IPUtils {
-    public static Long toLong(String ipv4_string) {
+    public static Long toLong(HttpServletRequest request){
+        return toLong(request,0l);
+    }
+    public static Long toLong(HttpServletRequest request,Long defaultValue){
+        String ip = getClientIp(request);
+        return toLong(ip,defaultValue);
+    }
+
+    public static Long toLong(String ipv4_string){
+        return toLong(ipv4_string,0l);
+    }
+    public static Long toLong(String ipv4_string,Long defaultValue) {
         if(!StringUtils.isNotEmpty(ipv4_string) || ipv4_string == "unknow"){
-            return 0L;
+            return defaultValue;
         }
         // 取 ip 的各段
         String[] ipSlices = ipv4_string.split("\\.");

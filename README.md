@@ -16,3 +16,69 @@ https://www.itellyou.com 后端服务API
     * util - 工具模块
  6. 配置数据库连接 dao/src/main/resources/application-dev.yml 默认本地开发地址，生产环境下添加 application-prod.yml 配置数据库链接
  7. 使用 idea 配置Main Class: com.itellyou.api.Application 就可以启动了，默认端口为 8082 ，配置在 api/src/main/resources/application.yml 中
+ 
+ ### 事件驱动
+ 
+用户在 com.itellyou.model.sys.EntityAction com.itellyou.model.sys.EntityType 中的所有操作都会通过
+com.itellyou.service.event.OperationalPublisher 发布基于 OperationalEvent 的事件
+
+OperationalModel 操作 Model 
+```
+new OperationalModel(EntityAction action, EntityType type, Long targetId, Long targetUserId, Long createdUserId, Long createdTime, Long createdIp);
+```
+action:操作
+type:操作类型
+targetId:操作对象的唯一id
+targetUserId:操作对象的创作者
+createdUserId:创建操作的用户
+createdTime:创建操作的时间
+createdIp:创建操作的ip
+
+发布操作
+```
+operationalPublisher.publish(new OperationalEvent(this, operationalModel));
+``` 
+监听事件：
+```
+...
+
+@EventListener
+@Async
+public void globalEvent(OperationalEvent event){
+    OperationalModel model = event.getOperationalModel();
+    // 更新积分
+    bankService.updateByOperational(UserBankType.CREDIT,model);
+    // 更新权限分
+    bankService.updateByOperational(UserBankType.SCORE,model);
+    // 设置消息
+    notificationManagerService.put(model);
+}
+```
+### 权限
+sys_permission 权限表
+sys_role 角色表
+sys_role_permission 角色权限对应表
+
+user_role 用户角色表对应对应 sys_role 角色
+user_rank 用户等级表
+user_rank_role 用户等级对应 sys_role 角色
+
+默认系统内置角色
+root 超级管理员
+guest 游客
+user 登录用户
+
+首次设置超级权限需要在 user_role 中添加root角色
+```
+insert into user_role(user_id,role_id,created_user_id,created_time,created_ip) values(用户编号,3,0,0,0)
+```
+
+相关初始化数据在 itellyou-data.sql 中
+
+### redis 缓存
+reids 官网下载安装
+```
+https://redis.io/
+```
+在 api/src/main/resources/application.yml 中配置 redis 相关参数
+在 api/src/main/java/com.itellyou.api/config/RedisConfig 中可以调节相关缓存参数

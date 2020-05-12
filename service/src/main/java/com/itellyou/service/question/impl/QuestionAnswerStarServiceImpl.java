@@ -1,21 +1,23 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerStarDao;
-import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.AnswerEvent;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.question.QuestionAnswerStarDetailModel;
 import com.itellyou.model.question.QuestionAnswerStarModel;
-import com.itellyou.model.user.UserOperationalAction;
-import com.itellyou.model.user.UserOperationalModel;
-import com.itellyou.model.sys.EntityType;
-import com.itellyou.service.question.QuestionAnswerIndexService;
+import com.itellyou.model.sys.PageModel;
+import com.itellyou.service.common.StarService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerService;
-import com.itellyou.service.question.QuestionAnswerStarService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserOperationalService;
 import com.itellyou.util.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -23,28 +25,31 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "question_answer")
 @Service
-public class QuestionAnswerStarServiceImpl implements QuestionAnswerStarService {
+public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswerStarModel> {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionAnswerStarDao starDao;
     private final QuestionAnswerService infoService;
     private final QuestionAnswerSearchService answerSearchService;
-    private final QuestionAnswerIndexService answerIndexService;
-    private final UserOperationalService operationalService;
     private final UserInfoService userService;
 
+    private final OperationalPublisher operationalPublisher;
+
     @Autowired
-    public QuestionAnswerStarServiceImpl(QuestionAnswerStarDao starDao, QuestionAnswerService infoService,QuestionAnswerSearchService answerSearchService,QuestionAnswerIndexService answerIndexService, UserOperationalService operationalService,UserInfoService userService){
+    public QuestionAnswerStarServiceImpl(QuestionAnswerStarDao starDao, QuestionAnswerService infoService, QuestionAnswerSearchService answerSearchService, UserInfoService userService, OperationalPublisher operationalPublisher){
         this.starDao = starDao;
         this.infoService = infoService;
         this.answerSearchService = answerSearchService;
-        this.answerIndexService = answerIndexService;
-        this.operationalService = operationalService;
         this.userService = userService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     @Transactional
+    @CacheEvict(key = "#model.answerId")
     public int insert(QuestionAnswerStarModel model) throws Exception {
         QuestionAnswerModel infoModel = answerSearchService.findById(model.getAnswerId());
         try{
@@ -55,31 +60,35 @@ public class QuestionAnswerStarServiceImpl implements QuestionAnswerStarService 
             if(result != 1) throw new Exception("更新收藏数失败");
             result = userService.updateCollectionCount(model.getCreatedUserId(),1);
             if(result != 1) throw new Exception("更新用户收藏数失败");
+            operationalPublisher.publish(new AnswerEvent(this, EntityAction.FOLLOW,model.getAnswerId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
+
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        answerIndexService.updateIndex(model.getAnswerId());
-        operationalService.insertAsync(new UserOperationalModel(UserOperationalAction.FOLLOW, EntityType.ANSWER,model.getAnswerId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
         return 1;
     }
 
     @Override
     @Transactional
-    public int delete(Long answerId, Long userId) throws Exception {
+    @CacheEvict(key = "#answerId")
+    public int delete(Long answerId, Long userId,Long ip) throws Exception {
+        QuestionAnswerModel infoModel = answerSearchService.findById(answerId);
         try{
+            if(infoModel == null) throw new Exception("错误的回答ID");
             int result = starDao.delete(answerId,userId);
             if(result != 1) throw new Exception("删除收藏记录失败");
             result = infoService.updateStarCountById(answerId,-1);
             if(result != 1) throw new Exception("更新收藏数失败");
             result = userService.updateCollectionCount(userId,-1);
             if(result != 1) throw new Exception("更新用户收藏数失败");
+            operationalPublisher.publish(new AnswerEvent(this, EntityAction.UNFOLLOW,infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getCreatedUserId(), DateUtils.getTimestamp(),infoModel.getCreatedIp()));
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        answerIndexService.updateIndex(answerId);
-        operationalService.deleteByTargetIdAsync(UserOperationalAction.FOLLOW, EntityType.ANSWER,userId,answerId);
         return 1;
     }
 

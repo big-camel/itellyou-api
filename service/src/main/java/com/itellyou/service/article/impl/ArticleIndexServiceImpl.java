@@ -4,131 +4,34 @@ import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleIndexModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.service.article.ArticleIndexService;
 import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.common.IndexService;
-import com.itellyou.util.DateUtils;
+import com.itellyou.service.common.impl.IndexServiceImpl;
 import com.itellyou.util.StringUtils;
-import com.itellyou.util.ansj.AnsjAnalyzer;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.LockObtainFailedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 @Service
-public class ArticleIndexServiceImpl implements ArticleIndexService {
-    private final String direct = "./.indexer/article";
+public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel> {
 
-    private final IndexService indexService;
     private final ArticleSearchService searchService;
 
-    @Autowired
-    public ArticleIndexServiceImpl(IndexService indexService,ArticleSearchService searchService){
-        this.indexService = indexService;
+    public ArticleIndexServiceImpl(ArticleSearchService searchService){
+        super("./.indexer/article");
         this.searchService = searchService;
     }
 
     @Override
-    @Async
-    public void create(ArticleDetailModel detailModel) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            indexWriter.addDocument(getDocument(detailModel));
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void create(IndexWriter indexWriter, ArticleDetailModel detailModel) {
-        try {
-            indexWriter.addDocument(getDocument(detailModel));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    @Async
-    public void delete(Long id) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            delete(indexWriter,id);
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void delete(IndexWriter indexWriter , Long id) {
-        try {
-            indexWriter.deleteDocuments(LongPoint.newExactQuery("id",id));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    @Async
-    public void update(ArticleDetailModel detailModel) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            if(detailModel.getId() != null) delete(indexWriter,detailModel.getId());
-            create(indexWriter,detailModel);
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public IndexWriter getIndexWriter() {
-        return indexService.getIndexWriter(direct);
-    }
-
-    @Override
-    public IndexReader getIndexReader() {
-        return indexService.getIndexReader(direct);
-    }
-
-    @Override
-    public Document getDocument(Long id) throws IOException {
-        IndexReader indexReader = getIndexReader();
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs docs = searcher.search(LongPoint.newExactQuery("id",id),1);
-        if(docs != null && docs.scoreDocs.length > 0) return searcher.doc(docs.scoreDocs[0].doc);
-        return null;
-    }
-
-    @Override
     public Document getDocument(ArticleDetailModel detailModel) {
-        // 创建一个存储对象
-        Document doc = new Document();
+
+        Document doc = super.getDocument(detailModel);
+        if(doc == null) return doc;
+
         String html = detailModel.getHtml();
-        Long id = detailModel.getId();
-        if(id == null) return  null;
         doc.add(new StoredField("type","article"));
-        doc.add(new LongPoint("id",id ));
-        doc.add(new StoredField("id",id));
         doc.add(new TextField("title", detailModel.getTitle(), Field.Store.YES));
         doc.add(new TextField("content", StringUtils.removeHtmlTags(html), Field.Store.YES));
         doc.add(new IntPoint("source_type",detailModel.getSourceType().getValue()));
@@ -165,10 +68,8 @@ public class ArticleIndexServiceImpl implements ArticleIndexService {
 
     @Override
     public ArticleIndexModel getModel(Document document) {
-        ArticleIndexModel model = new ArticleIndexModel();
-
-        String id = document.get("id");
-        model.setId(StringUtils.isNotEmpty(id) ? Long.parseLong(id) : 0);
+        ArticleIndexModel model =  new ArticleIndexModel();
+        model.setId(super.getModel(document).getId());
         model.setTitle(document.get("title"));
         model.setContent(document.get("content"));
         String userId = document.get("created_user_id");
@@ -186,19 +87,14 @@ public class ArticleIndexServiceImpl implements ArticleIndexService {
 
     @Override
     @Async
-    public void createIndex(ArticleDetailModel detailModel) {
-        create(detailModel);
-    }
-
-    @Override
-    @Async
     public void updateIndex(Long id) {
         update(searchService.getDetail(id));
     }
 
     @Override
     @Async
-    public void updateIndex(ArticleDetailModel detailModel) {
-        update(detailModel);
+    public void updateIndex(HashSet<Long> ids) {
+        update(searchService.search(ids,null,null,null,null
+        ,null,true,null,null,null,null,null));
     }
 }

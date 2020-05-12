@@ -1,7 +1,6 @@
 package com.itellyou.service.column;
 
 import com.itellyou.model.column.ColumnInfoModel;
-import org.apache.ibatis.annotations.Param;
 
 public interface ColumnInfoService {
 
@@ -19,5 +18,5 @@ public interface ColumnInfoService {
 
     int update(ColumnInfoModel model,String path) throws Exception;
 
-    int updateDeleted(boolean deleted,Long id,Long userId);
+    int updateDeleted(boolean deleted, Long id,Long userId,Long ip);
 }

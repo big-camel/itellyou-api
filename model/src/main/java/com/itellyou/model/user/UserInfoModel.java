@@ -1,12 +1,10 @@
 package com.itellyou.model.user;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.annotation.JSONType;
+import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.EmailSerializer;
-import com.itellyou.util.serialize.IpLongSerializer;
-import com.itellyou.util.serialize.MobileSerializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.annotation.Privacy;
+import com.itellyou.util.serialize.*;
 import com.itellyou.util.validation.Mobile;
 import com.itellyou.util.validation.Name;
 import com.itellyou.util.validation.Password;
@@ -22,7 +20,12 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @JSONDefault(includes = "base")
-public class UserInfoModel implements Serializable {
+public class UserInfoModel implements Serializable , CacheEntity {
+
+    @Override
+    public String cacheKey() {
+        return String.valueOf(this.id);
+    }
 
     public interface RegisterAction {}
 
@@ -52,7 +55,8 @@ public class UserInfoModel implements Serializable {
 
     @NotBlank(groups = RegisterAction.class)
     @Mobile(groups = RegisterAction.class)
-    @JSONField(label = "account" , serializeUsing = MobileSerializer.class)
+    @Privacy
+    @JSONField(label = "account")
     private String mobile;
 
     @JSONField(label = "mobile.status")
@@ -60,7 +64,8 @@ public class UserInfoModel implements Serializable {
 
     @NotBlank
     @Email
-    @JSONField(label = "account" , serializeUsing = EmailSerializer.class)
+    @Privacy
+    @JSONField(label = "account")
     private String email;
 
     @JSONField(label = "email.status")
@@ -98,15 +103,15 @@ public class UserInfoModel implements Serializable {
     @JSONField(label = "base")
     private Integer collectionCount=0;
 
-    @JSONField(serializeUsing = TimestampSerializer.class)
+    @JSONField(label = "time",serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long createdTime=0l;
     private Long createdUserId=0l;
-    @JSONField(serializeUsing = IpLongSerializer.class)
+    @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp=0l;
-    @JSONField(serializeUsing = TimestampSerializer.class)
+    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long updatedTime=0l;
     private Long updatedUserId=0l;
-    @JSONField(serializeUsing = IpLongSerializer.class)
+    @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp=0l;
 
     public UserInfoModel(Long id,String loginName,String name,String loginPassword,String payPassword,Integer gender,Long birthday,String mobile,boolean mobileStatus,String email,boolean emailStatus,

@@ -1,14 +1,17 @@
 package com.itellyou.service.user.impl;
 
-import com.alipay.api.AlipayClient;
-import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.itellyou.dao.user.UserPaymentDao;
+import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.event.OperationalEvent;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.*;
-import com.itellyou.service.ali.AlipayService;
-import com.itellyou.service.uid.UidGenerator;
+import com.itellyou.service.event.OperationalPublisher;
+import com.itellyou.service.thirdparty.AlipayService;
+import com.itellyou.service.sys.uid.UidGenerator;
 import com.itellyou.service.user.UserBankService;
 import com.itellyou.service.user.UserPaymentService;
 import com.itellyou.util.DateUtils;
@@ -26,12 +29,14 @@ public class UserPaymentServiceImpl implements UserPaymentService {
     private final UserBankService bankService;
     private final AlipayService alipayService;
     private final UidGenerator cachedUidGenerator;
+    private final OperationalPublisher operationalPublisher;
 
-    public UserPaymentServiceImpl(UserPaymentDao paymentDao, UserBankService bankService, AlipayService alipayService, UidGenerator cachedUidGenerator) {
+    public UserPaymentServiceImpl(UserPaymentDao paymentDao, UserBankService bankService, AlipayService alipayService, UidGenerator cachedUidGenerator, OperationalPublisher operationalPublisher) {
         this.paymentDao = paymentDao;
         this.bankService = bankService;
         this.alipayService = alipayService;
         this.cachedUidGenerator = cachedUidGenerator;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
@@ -74,8 +79,11 @@ public class UserPaymentServiceImpl implements UserPaymentService {
                 String type =  "";
                 if(paymentModel.getType().equals(UserPaymentType.ALIPAY)) type = "支付宝";
                 if(paymentModel.getType().equals(UserPaymentType.WECHAT)) type = "微信";
-                UserBankLogModel logModel = bankService.update(paymentModel.getAmount(), UserBankType.CASH,updatedUserId,type + "充值成功",UserBankLogType.PAY,id,updatedIp);
+                UserBankLogModel logModel = bankService.update(paymentModel.getAmount(), UserBankType.CASH, EntityAction.PAYMENT,EntityType.PAYMENT,id,updatedUserId,type + "充值成功",updatedIp);
                 if(logModel == null) throw new Exception("更新余额失败");
+
+                OperationalModel operationalModel = new OperationalModel(EntityAction.PAYMENT, EntityType.PAYMENT,logModel.getId(),updatedUserId,updatedUserId,DateUtils.getTimestamp(), updatedIp);
+                operationalPublisher.publish(new OperationalEvent(this,operationalModel));
             }
             return result;
         }catch (Exception e){

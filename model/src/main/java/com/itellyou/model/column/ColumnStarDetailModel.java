@@ -9,7 +9,6 @@ import lombok.*;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
 @NoArgsConstructor
 @JSONDefault(includes = "base")
 public class ColumnStarDetailModel extends ColumnStarModel {

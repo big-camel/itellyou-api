@@ -1,13 +1,16 @@
 package com.itellyou.model.question;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.itellyou.model.common.IndexModel;
+import com.itellyou.util.annotation.JSONDefault;
+import lombok.*;
 
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionIndexModel {
+@JSONDefault(includes = "base")
+public class QuestionIndexModel extends IndexModel {
     private Long id;
     private String title;
     private String content;

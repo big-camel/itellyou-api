@@ -1,13 +1,15 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.common.impl.IndexFactory;
+import com.itellyou.service.common.IndexService;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserBankService;
-import com.itellyou.service.user.UserIndexService;
 import com.itellyou.service.user.UserRegisterService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
@@ -22,14 +24,14 @@ public class UserRegisterServiceImpl implements UserRegisterService {
 
     private final UserInfoDao infoDao;
     private final UserBankService bankService;
-    private final UserIndexService indexService;
+    private final IndexService<UserInfoModel> indexService;
     private final SysPathService pathService;
 
     @Autowired
-    public UserRegisterServiceImpl(UserInfoDao infoDao,UserBankService bankService,UserIndexService indexService,SysPathService pathService){
+    public UserRegisterServiceImpl(UserInfoDao infoDao,UserBankService bankService,SysPathService pathService,IndexFactory indexFactory){
         this.infoDao = infoDao;
         this.bankService = bankService;
-        this.indexService = indexService;
+        this.indexService = indexFactory.create(EntityType.USER);
         this.pathService = pathService;
     }
 
@@ -58,7 +60,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             }
             result = pathService.insert(new SysPathModel(path, SysPath.USER,userInfoModel.getId()));
             if(result != 1) throw new Exception("创建用户路径失败");
-            UserBankModel bankModel = new UserBankModel(userInfoModel.getId(),0,0.0);
+            UserBankModel bankModel = new UserBankModel(userInfoModel.getId(),0,0.0,0);
             result = bankService.insert(bankModel);
             if(result != 1){
                 throw new Exception("创建用户余额失败");

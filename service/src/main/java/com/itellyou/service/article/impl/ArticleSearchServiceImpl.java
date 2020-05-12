@@ -1,14 +1,22 @@
 package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleInfoDao;
+import com.itellyou.model.article.ArticleDetailModel;
+import com.itellyou.model.article.ArticleInfoModel;
+import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.article.*;
-import com.itellyou.service.article.*;
+import com.itellyou.service.article.ArticleSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
+@CacheConfig(cacheNames = "article")
 @Service
 public class ArticleSearchServiceImpl implements ArticleSearchService {
 
@@ -117,6 +125,7 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
     }
 
     @Override
+    @Cacheable
     public ArticleInfoModel findById(Long id) {
         return articleInfoDao.findById(id);
     }

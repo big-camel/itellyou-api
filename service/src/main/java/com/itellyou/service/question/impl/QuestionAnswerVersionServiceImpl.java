@@ -3,16 +3,27 @@ package com.itellyou.service.question.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.itellyou.dao.question.QuestionAnswerDao;
 import com.itellyou.dao.question.QuestionAnswerVersionDao;
+import com.itellyou.model.event.AnswerEvent;
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionAnswerVersionModel;
+import com.itellyou.model.question.QuestionDetailModel;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.question.*;
-import com.itellyou.model.user.*;
-import com.itellyou.service.question.*;
+import com.itellyou.model.user.UserDraftModel;
+import com.itellyou.service.event.OperationalPublisher;
+import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionAnswerVersionService;
+import com.itellyou.service.question.QuestionInfoService;
+import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserOperationalService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -24,32 +35,32 @@ import java.util.Map;
 @Service
 public class QuestionAnswerVersionServiceImpl implements QuestionAnswerVersionService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final QuestionAnswerVersionDao versionDao;
     private final QuestionAnswerDao answerDao;
-    private final QuestionAnswerIndexService answerIndexService;
     private final QuestionSearchService questionSearchService;
     private final QuestionInfoService questionInfoService;
-    private final QuestionIndexService questionIndexService;
     private final QuestionAnswerSearchService answerSearchService;
     private final UserInfoService userService;
     private final UserDraftService draftService;
-    private final UserOperationalService operationalService;
+
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionAnswerVersionServiceImpl(QuestionAnswerVersionDao versionDao,QuestionAnswerDao answerDao,QuestionAnswerIndexService answerIndexService,QuestionSearchService questionSearchService,QuestionInfoService questionInfoService,QuestionIndexService questionIndexService,QuestionAnswerSearchService answerSearchService,UserInfoService userService,UserDraftService draftService,UserOperationalService operationalService){
+    public QuestionAnswerVersionServiceImpl(QuestionAnswerVersionDao versionDao, QuestionAnswerDao answerDao, QuestionSearchService questionSearchService, QuestionInfoService questionInfoService, QuestionAnswerSearchService answerSearchService, UserInfoService userService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.versionDao = versionDao;
         this.answerDao = answerDao;
-        this.answerIndexService = answerIndexService;
         this.questionSearchService = questionSearchService;
         this.questionInfoService = questionInfoService;
-        this.questionIndexService = questionIndexService;
         this.answerSearchService = answerSearchService;
         this.userService = userService;
         this.draftService = draftService;
-        this.operationalService = operationalService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
+    @CacheEvict(value = "question_answer",key = "#versionModel.answerId")
     public int insert(QuestionAnswerVersionModel versionModel) {
         int rows = versionDao.insert(versionModel);
         if(rows != 1){
@@ -117,6 +128,7 @@ public class QuestionAnswerVersionServiceImpl implements QuestionAnswerVersionSe
     }
 
     @Override
+    @CacheEvict(value = "question_answer",key = "#id")
     public int updateVersion(Long id, Integer version, Integer draft, Boolean isPublished, Boolean isDisabled,Boolean isDeleted, Long time, Long ip, Long user) {
         return answerDao.updateVersion(id,version,draft,isPublished,isDisabled,isDeleted,time,ip,user);
     }
@@ -179,6 +191,7 @@ public class QuestionAnswerVersionServiceImpl implements QuestionAnswerVersionSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "question_answer",key = "#id")
     public QuestionAnswerVersionModel addVersion(Long id,Long questionId, Long userId, String content, String html,String description,String remark,Integer version, String save_type, Long ip,Boolean isPublish,Boolean force) throws Exception {
         try {
             QuestionDetailModel questionModel = questionSearchService.getDetail(questionId);
@@ -240,23 +253,23 @@ public class QuestionAnswerVersionServiceImpl implements QuestionAnswerVersionSe
 
             if(isPublish){
                 if(!answerModel.isPublished()){
-                    questionIndexService.updateIndex(questionId);
-                    operationalService.insertAsync(new UserOperationalModel(UserOperationalAction.PUBLISH, EntityType.ANSWER,answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                    operationalPublisher.publish(new AnswerEvent(this, EntityAction.PUBLISH,
+                            answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                }else{
+                    operationalPublisher.publish(new AnswerEvent(this, EntityAction.UPDATE,
+                            answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
                 }
-
-                QuestionAnswerDetailModel detailModel = answerSearchService.getDetail(id);
-                answerIndexService.updateIndex(detailModel);
-
             }
             return versionModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
     }
 
     @Override
+    @CacheEvict(value = "question_answer",key = "#id")
     public QuestionAnswerVersionModel addVersion(Long id, Long questionId, Long userId, String content, String html,String description, String remark, String save_type, Long ip, Boolean isPublish, Boolean force) throws Exception {
         return addVersion(id,questionId,userId,content,html,description,remark,null,save_type,ip,isPublish,force);
     }

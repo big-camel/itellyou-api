@@ -3,7 +3,7 @@ package com.itellyou.service.question;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.RewardType;
 
 import java.util.HashSet;
 import java.util.List;

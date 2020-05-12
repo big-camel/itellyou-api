@@ -1,10 +1,10 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.report.ReportAction;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.sys.ReportAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.report.ReportService;
+import com.itellyou.service.sys.ReportService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +30,8 @@ public class ReportController {
     }
 
     @PostMapping("/post")
-    public Result post(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody @NotBlank String action, @MultiRequestBody @NotBlank String type,@MultiRequestBody @NotBlank String description, @MultiRequestBody @NotNull Long id){
-        if(userModel == null)return new Result(403,"未登陆");
+    public ResultModel post(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody @NotBlank String action, @MultiRequestBody @NotBlank String type, @MultiRequestBody @NotBlank String description, @MultiRequestBody @NotNull Long id){
+        if(userModel == null)return new ResultModel(403,"未登陆");
         String clientIp = IPUtils.getClientIp(request);
         ReportAction reportAction = null;
         EntityType entityType = null;
@@ -39,14 +39,14 @@ public class ReportController {
             reportAction = ReportAction.valueOf(action.toUpperCase());
             entityType = EntityType.valueOf(type.toUpperCase());
         }catch (Exception e){
-            return new Result("非法的参数");
+            return new ResultModel("非法的参数");
         }
         try{
             int result = reportService.insert(reportAction,entityType,id,description,userModel.getId(),IPUtils.toLong(clientIp));
-            if(result != 1) return new Result(0,"举报失败");
-            return new Result();
+            if(result != 1) return new ResultModel(0,"举报失败");
+            return new ResultModel();
         }catch (Exception e){
-            return new Result(500,e.getMessage());
+            return new ResultModel(500,e.getMessage());
         }
 
     }

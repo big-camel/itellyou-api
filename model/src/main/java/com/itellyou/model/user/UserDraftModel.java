@@ -3,7 +3,9 @@ package com.itellyou.model.user;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpLongSerializer;
+import com.itellyou.util.serialize.IpDeserializer;
+import com.itellyou.util.serialize.IpSerializer;
+import com.itellyou.util.serialize.TimestampDeserializer;
 import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,9 +28,9 @@ public class UserDraftModel {
     private EntityType dataType;
     @JSONField(label = "base")
     private Long dataKey;
-    @JSONField(serializeUsing = TimestampSerializer.class , label = "base")
+    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class , label = "base")
     private Long createdTime;
-    @JSONField(serializeUsing = IpLongSerializer.class)
+    @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp;
     private Long createdUserId=0l;
 }

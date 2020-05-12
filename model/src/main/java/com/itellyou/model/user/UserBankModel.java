@@ -11,4 +11,5 @@ public class UserBankModel {
     private Long userId;
     private Integer credit;
     private Double cash;
+    private Integer score;
 }

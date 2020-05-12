@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.RewardLogDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}bank_type ${prefix}bank_type,
+        ${alias}data_type ${prefix}data_type,
+        ${alias}data_key ${prefix}data_key,
+        ${alias}amount ${prefix}amount,
+        ${alias}user_id ${prefix}user_id,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into reward_log (bank_type,data_type,data_key,amount,user_id,created_user_id,created_time,created_ip) values
+        (#{bankType},#{dataType},#{dataKey},#{amount},#{userId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <resultMap id="searchMap" type="RewardLogModel" autoMapping="true">
+        <id property="id" column="id" />
+    </resultMap>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="bankType != null">
+                and ${alias}bank_type = #{bankType}
+            </if>
+            <if test="dataType != null">
+                and ${alias}data_type = #{dataType}
+            </if>
+            <if test="dataKey != null">
+                and ${alias}data_key = #{dataKey}
+            </if>
+            <if test="userId != null">
+                and ${alias}user_id = #{userId}
+            </if>
+            <if test="createdUserId != null">
+                and ${alias}created_user_id = #{createdUserId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select
+        <include refid="columns">
+            <property name="alias" value="l."/>
+            <property name="prefix" value=""/>
+        </include>
+        from reward_log l
+        <include refid="where">
+            <property name="alias" value="l."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>l.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from reward_log
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

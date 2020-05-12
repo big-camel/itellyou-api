@@ -1,6 +1,6 @@
 package com.itellyou.api.controller.user;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.user.UserInfoModel;
@@ -27,11 +27,11 @@ public class UserAnswerController {
     }
 
     @GetMapping("")
-    public Result list(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         Map<String,String> order = new HashMap<>();
         order.put("created_time","desc");
         PageModel<QuestionAnswerDetailModel> pageData = answerSearchService.page(null,userModel.getId(),userModel.getId(),true,null,false,null,false,null,null,order,offset,limit);
-        return new Result(pageData,new Labels.LabelModel(QuestionAnswerDetailModel.class,"base","question"));
+        return new ResultModel(pageData,new Labels.LabelModel(QuestionAnswerDetailModel.class,"base","question"));
     }
 }

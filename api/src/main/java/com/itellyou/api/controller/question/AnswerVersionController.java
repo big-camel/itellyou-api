@@ -1,16 +1,12 @@
 package com.itellyou.api.controller.question;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.question.QuestionAnswerVersionModel;
-import com.itellyou.model.question.QuestionVersionModel;
-import com.itellyou.model.reward.RewardType;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.question.QuestionAnswerVersionService;
-import com.itellyou.service.question.QuestionVersionService;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -50,33 +46,33 @@ public class AnswerVersionController {
     }
 
     @GetMapping(value = {"/{answerId:\\d+}/version","/version"})
-    public Result list(UserInfoModel userModel , @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
+    public ResultModel list(UserInfoModel userModel , @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         if(answerId == null){
             // 获取用户的回答
             answerId = getUserAnswerId(userModel,questionId);
             if(answerId == null){
-                return new Result(404,"Not find");
+                return new ResultModel(404,"Not find");
             }
         }
 
         List<QuestionAnswerVersionModel> listVersion = versionService.searchByAnswerId(answerId,questionId);
-        return new Result(listVersion,new Labels.LabelModel(UserInfoModel.class,"base"));
+        return new ResultModel(listVersion,new Labels.LabelModel(UserInfoModel.class,"base"));
     }
 
     @GetMapping(value = {"/{answerId:\\d+}/version/{versionId:\\d+}","/version/{versionId:\\d+}"})
-    public Result find(UserInfoModel userModel ,@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long questionId,@PathVariable(required = false) Long answerId){
+    public ResultModel find(UserInfoModel userModel , @PathVariable @NotNull Long versionId, @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         if(answerId == null){
             // 获取用户的回答
             answerId = getUserAnswerId(userModel,questionId);
             if(answerId == null){
-                return new Result(404,"Not find");
+                return new ResultModel(404,"Not find");
             }
         }
         QuestionAnswerVersionModel versionModel = versionService.findByAnswerIdAndId(versionId,answerId,questionId);
         if(versionModel == null){
-            return new Result(0,"错误的编号");
+            return new ResultModel(0,"错误的编号");
         }
-        return new Result(versionModel,new Labels.LabelModel(UserInfoModel.class,"base"));
+        return new ResultModel(versionModel,new Labels.LabelModel(UserInfoModel.class,"base"));
     }
 
     private String getVersionHtml(QuestionAnswerVersionModel versionModel){
@@ -86,28 +82,28 @@ public class AnswerVersionController {
     }
 
     @GetMapping(value = {"/{answerId:\\d+}/version/{current:\\d+}...{target:\\d+}","/version/{current:\\d+}...{target:\\d+}"})
-    public Result compare(UserInfoModel userModel ,@PathVariable @NotNull Long current,@PathVariable @NotNull Long target,@PathVariable @NotNull Long questionId,@PathVariable(required = false) Long answerId){
+    public ResultModel compare(UserInfoModel userModel , @PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         if(answerId == null){
             // 获取用户的回答
             answerId = getUserAnswerId(userModel,questionId);
             if(answerId == null){
-                return new Result(404,"Not find");
+                return new ResultModel(404,"Not find");
             }
         }
         QuestionAnswerVersionModel currentVersion = versionService.findByAnswerIdAndId(current,answerId,questionId);
         if(currentVersion == null){
-            return new Result(0,"错误的当前编号");
+            return new ResultModel(0,"错误的当前编号");
         }
 
         QuestionAnswerVersionModel targetVersion = versionService.findByAnswerIdAndId(target,answerId,questionId);
         if(targetVersion == null){
-            return new Result(0,"错误的目标编号");
+            return new ResultModel(0,"错误的目标编号");
         }
 
         Map<String,String> htmlData = new HashMap<>();
         htmlData.put("current",getVersionHtml(currentVersion));
         htmlData.put("target",getVersionHtml(targetVersion));
 
-        return new Result(htmlData);
+        return new ResultModel(htmlData);
     }
 }

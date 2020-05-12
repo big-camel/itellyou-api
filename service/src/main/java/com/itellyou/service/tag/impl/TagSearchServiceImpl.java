@@ -6,12 +6,15 @@ import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.tag.TagSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "tag")
 @Service
 public class TagSearchServiceImpl implements TagSearchService {
 
@@ -84,6 +87,7 @@ public class TagSearchServiceImpl implements TagSearchService {
     }
 
     @Override
+    @Cacheable(key = "#id")
     public TagInfoModel findById(Long id) {
         return tagInfoDao.findById(id);
     }

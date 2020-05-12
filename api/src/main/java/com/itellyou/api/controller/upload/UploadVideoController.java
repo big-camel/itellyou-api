@@ -1,8 +1,7 @@
 package com.itellyou.api.controller.upload;
 
 import com.aliyuncs.vod.model.v20170321.GetPlayInfoResponse;
-import com.aliyuncs.vod.model.v20170321.RefreshUploadVideoResponse;
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.upload.UploadFileModel;
 import com.itellyou.model.upload.UploadSource;
 import com.itellyou.model.user.UserInfoModel;
@@ -35,12 +34,12 @@ public class UploadVideoController {
     }
 
     @GetMapping("/upload/video")
-    public Result upload(HttpServletRequest request, UserInfoModel userModel,
-                         @RequestParam("filename") @NotNull String filename,@RequestParam("filesize") @NotNull Long filesize, @RequestParam(required = false, name = "type") String type)
+    public ResultModel upload(HttpServletRequest request, UserInfoModel userModel,
+                              @RequestParam("filename") @NotNull String filename, @RequestParam("filesize") @NotNull Long filesize, @RequestParam(required = false, name = "type") String type)
     {
-        if(userModel == null) return new Result(401,"未登陆");
+        if(userModel == null) return new ResultModel(401,"未登陆");
         if(StringUtils.isEmpty(filename)){
-            return new Result(500,"请选择文件");
+            return new ResultModel(500,"请选择文件");
         }
         try {
             if(StringUtils.isEmpty(type))
@@ -52,18 +51,18 @@ public class UploadVideoController {
                 uploadSource = UploadSource.DEFAULT;
             }
             Map<String,Object> response = vodService.createUploadVideo(filename,filesize,1000084160l,"e80b1dea8dce91ac76aa51e018ff5f65",userModel.getId(), uploadSource, IPUtils.getClientIp(request));
-            if(response == null) return new Result(0,"上传视频失败");
-            return new Result(response);
+            if(response == null) return new ResultModel(0,"上传视频失败");
+            return new ResultModel(response);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @GetMapping("/upload/video/query")
-    public Result query(@RequestParam("video_id") @NotNull String videoId, UserInfoModel userModel){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel query(@RequestParam("video_id") @NotNull String videoId, UserInfoModel userModel){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         GetPlayInfoResponse response = vodService.getPlayInfo(videoId);
-        if(response == null) return new Result(0,"获取视频播放信息失败");
+        if(response == null) return new ResultModel(0,"获取视频播放信息失败");
         Map<String,Object> data = new HashMap<>();
         GetPlayInfoResponse.VideoBase videoBase = response.getVideoBase();
         data.put("video_id",videoBase.getVideoId());
@@ -80,12 +79,12 @@ public class UploadVideoController {
             playList.add(playData);
         }
         data.put("play_list",playList);
-        return new Result(data);
+        return new ResultModel(data);
     }
 
     @PostMapping("/upload/video/save")
-    public Result save(HttpServletRequest request, UserInfoModel userModel,@RequestParam("key") @NotNull String key,@RequestParam("filename") @NotNull String filename,@RequestParam("filesize") @NotNull Long filesize, @RequestParam(required = false, name = "type") String type){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel save(HttpServletRequest request, UserInfoModel userModel, @RequestParam("key") @NotNull String key, @RequestParam("filename") @NotNull String filename, @RequestParam("filesize") @NotNull Long filesize, @RequestParam(required = false, name = "type") String type){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         if(StringUtils.isEmpty(type))
             type = UploadSource.DEFAULT.getName();
         UploadSource uploadSource;
@@ -95,7 +94,7 @@ public class UploadVideoController {
             uploadSource = UploadSource.DEFAULT;
         }
         UploadFileModel fileModel = vodService.saveUploadVideo(key,filename,filesize,userModel.getId(),uploadSource,IPUtils.getClientIp(request));
-        if(fileModel == null) return new Result(0,"上传视频失败");
-        return new Result(fileModel);
+        if(fileModel == null) return new ResultModel(0,"上传视频失败");
+        return new ResultModel(fileModel);
     }
 }

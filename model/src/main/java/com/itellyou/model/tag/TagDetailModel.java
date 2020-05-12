@@ -2,12 +2,9 @@ package com.itellyou.model.tag;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.reward.RewardType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
-
-import java.util.List;
 
 @Data
 @ToString(callSuper = true)

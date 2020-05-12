@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysRoleDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}name ${prefix}name,
+        ${alias}description ${prefix}description,
+        ${alias}disabled ${prefix}disabled,
+        ${alias}system ${prefix}system,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_role (name,system,description,disabled,created_user_id,created_time,created_ip) values
+        (#{name},#{system},#{description},#{disabled},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <select id="findByName" resultType="SysRoleModel">
+        select * from sys_role where name=#{name} and created_user_id=#{userId}
+    </select>
+    <select id="findById" resultType="SysRoleModel">
+        select * from sys_role where id=#{id}
+    </select>
+    <delete id="delete">
+        delete from sys_role where id=#{id} and created_user_id=#{userId} and system=0
+    </delete>
+    <update id="update">
+        update sys_role
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="disabled != null">
+                disabled = #{disabled},
+            </if>
+        </set>
+        where id=#{id} and system=0
+    </update>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="system != null">
+                and ${alias}system=#{system}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="name != null">
+                <bind name="bindName" value="'%' + name + '%'"/>
+                and ${alias}name like #{bindName}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="disabled != null">
+                and ${alias}disabled = #{disabled}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysRoleModel">
+        select * from sys_role <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_role <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

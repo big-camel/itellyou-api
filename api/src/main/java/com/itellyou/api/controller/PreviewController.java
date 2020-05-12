@@ -1,9 +1,9 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.upload.UploadFileConfigModel;
 import com.itellyou.model.upload.UploadFileModel;
-import com.itellyou.service.ali.OfficePreviewService;
+import com.itellyou.service.thirdparty.OfficePreviewService;
 import com.itellyou.service.upload.UploadFileConfigService;
 import com.itellyou.service.upload.UploadFileService;
 import org.springframework.validation.annotation.Validated;
@@ -28,13 +28,13 @@ public class PreviewController {
     }
 
     @GetMapping("/preview")
-    public Result preview(@RequestParam @NotNull String key){
+    public ResultModel preview(@RequestParam @NotNull String key){
         try {
             UploadFileModel fileModel = fileService.findByKey(key);
             UploadFileConfigModel fileConfigModel = fileConfigService.findConfig(fileModel.getExtname(),null,null,null,null);
-            return new Result(fileModel).extend("preview",fileConfigModel.isDoc() ? officePreviewService.GetPreviewURL(key) : null).extend("config",fileConfigModel);
+            return new ResultModel(fileModel).extend("preview",fileConfigModel.isDoc() ? officePreviewService.GetPreviewURL(key) : null).extend("config",fileConfigModel);
         }catch (Exception e){
-            return new Result(0,e.getLocalizedMessage());
+            return new ResultModel(0,e.getLocalizedMessage());
         }
     }
 }

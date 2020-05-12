@@ -1,11 +1,12 @@
 package com.itellyou.model.user;
 
+import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.util.BaseEnum;
-import com.itellyou.model.reward.RewardType;
 
-public enum UserBankType implements BaseEnum<UserBankType,Integer> {
+public enum UserBankType implements BaseEnum<UserBankType,Integer> , CacheEntity {
     CREDIT(1,"credit"),
-    CASH(2,"cash");
+    CASH(2,"cash"),
+    SCORE(3,"score");
 
     private int value;
     private String name;
@@ -20,6 +21,8 @@ public enum UserBankType implements BaseEnum<UserBankType,Integer> {
                 return CREDIT;
             case 2:
                 return CASH;
+            case 3:
+                return SCORE;
             default:
                 return null;
         }
@@ -36,5 +39,10 @@ public enum UserBankType implements BaseEnum<UserBankType,Integer> {
 
     public String toString(){
         return getName();
+    }
+
+    @Override
+    public String cacheKey() {
+        return name;
     }
 }

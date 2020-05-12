@@ -5,12 +5,15 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.service.column.ColumnSearchService;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "column")
 @Service
 public class ColumnSearchServiceImpl implements ColumnSearchService {
 
@@ -37,7 +40,7 @@ public class ColumnSearchServiceImpl implements ColumnSearchService {
 
         List<ColumnDetailModel> data = search(ids,name,userId,memberId,searchUserId,isDisabled,isReviewed,isDeleted,tags,minArticles,maxArticles,minStars,maxStars,beginTime,endTime,ip,order,offset,limit);
         Integer total = count(ids,name,userId,memberId,isDisabled,isReviewed,isDeleted,tags,minArticles,maxArticles,minStars,maxStars,beginTime,endTime,ip);
-        return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
+        return new PageModel<>(offset,limit,total,data);
     }
 
     @Override
@@ -52,6 +55,7 @@ public class ColumnSearchServiceImpl implements ColumnSearchService {
     }
 
     @Override
+    @Cacheable
     public ColumnInfoModel findById(Long id) {
         return columnInfoDao.findById(id);
     }

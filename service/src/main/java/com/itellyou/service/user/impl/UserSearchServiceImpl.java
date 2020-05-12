@@ -2,12 +2,14 @@ package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
 import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.model.user.UserNotificationDetailModel;
+import com.itellyou.service.user.UserRankService;
 import com.itellyou.service.user.UserSearchService;
-import com.itellyou.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -15,28 +17,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "user_info")
 @Service
 public class UserSearchServiceImpl implements UserSearchService {
     private final UserInfoDao infoDao;
 
+    private final UserRankService rankService;
+
     @Autowired
-    public UserSearchServiceImpl(UserInfoDao infoDao){
+    public UserSearchServiceImpl(UserInfoDao infoDao, UserRankService rankService){
         this.infoDao = infoDao;
-    }
-
-    @Override
-    public UserInfoModel findByToken(String token , Long time) {
-        return infoDao.findByToken(token,time);
-    }
-
-    /**
-     * 根据在过去（86400 * 360）秒的有效期内的token获取用户信息
-     * @param token
-     * @return
-     */
-    public UserInfoModel findByToken(String token) {
-        Long time = DateUtils.getTimestamp() - 86400 * 360;
-        return findByToken(token,time);
+        this.rankService = rankService;
     }
 
     @Override
@@ -70,6 +61,7 @@ public class UserSearchServiceImpl implements UserSearchService {
     }
 
     @Override
+    @Cacheable
     public UserInfoModel findById(Long id) {
         return infoDao.findById(id);
     }
@@ -84,7 +76,14 @@ public class UserSearchServiceImpl implements UserSearchService {
                                         Map<String, String> order,
                                         Integer offset,
                                         Integer limit){
-        return infoDao.search(ids,searchUserId,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit);
+        List<UserDetailModel> detailModels = infoDao.search(ids,searchUserId,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit);
+        for (UserDetailModel detailModel : detailModels){
+            UserBankModel bankModel = detailModel.getBank();
+            if(bankModel != null){
+                detailModel.setRank(rankService.find(bankModel.getScore()));
+            }
+        }
+        return detailModels;
     }
 
     @Override

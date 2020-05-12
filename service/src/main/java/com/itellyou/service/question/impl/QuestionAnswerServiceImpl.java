@@ -1,82 +1,86 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerDao;
+import com.itellyou.model.event.AnswerEvent;
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionAnswerVersionModel;
+import com.itellyou.model.question.QuestionDetailModel;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.model.question.*;
-import com.itellyou.model.reward.RewardType;
-import com.itellyou.model.user.*;
-import com.itellyou.model.view.ViewInfoModel;
+import com.itellyou.model.user.UserBankLogModel;
+import com.itellyou.model.user.UserBankType;
+import com.itellyou.service.common.ViewService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserBankService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserOperationalService;
-import com.itellyou.service.view.ViewInfoService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Service
+@CacheConfig(cacheNames = "question_answer")
 public class QuestionAnswerServiceImpl implements QuestionAnswerService {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionAnswerDao answerDao;
     private final QuestionAnswerVersionService versionService;
     private final QuestionAnswerSearchService answerSearchService;
-    private final ViewInfoService viewService;
-    private final QuestionAnswerVoteService voteService;
+    private final ViewService viewService;
     private final QuestionInfoService questionService;
     private final QuestionSearchService questionSearchService;
-    private final QuestionIndexService questionIndexService;
     private final UserBankService bankService;
-    private final QuestionAnswerIndexService indexService;
-    private final UserOperationalService operationalService;
     private final UserInfoService userInfoService;
     private final UserDraftService draftService;
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionAnswerServiceImpl(QuestionAnswerDao answerDao, QuestionAnswerVersionService versionService, QuestionAnswerSearchService answerSearchService, ViewInfoService viewService, QuestionAnswerVoteService voteService, QuestionInfoService questionService, QuestionSearchService questionSearchService, QuestionIndexService questionIndexService, UserBankService bankService, QuestionAnswerIndexService indexService, UserOperationalService operationalService, UserInfoService userInfoService, UserDraftService draftService){
+    public QuestionAnswerServiceImpl(QuestionAnswerDao answerDao, QuestionAnswerVersionService versionService, QuestionAnswerSearchService answerSearchService, ViewService viewService, QuestionInfoService questionService, QuestionSearchService questionSearchService, UserBankService bankService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.answerDao = answerDao;
         this.viewService = viewService;
         this.versionService = versionService;
         this.answerSearchService = answerSearchService;
-        this.voteService = voteService;
         this.questionService = questionService;
         this.questionSearchService = questionSearchService;
-        this.questionIndexService = questionIndexService;
         this.bankService = bankService;
-        this.indexService = indexService;
-        this.operationalService = operationalService;
         this.userInfoService = userInfoService;
         this.draftService = draftService;
+        this.operationalPublisher = operationalPublisher;
     }
     @Override
     public int insert(QuestionAnswerModel answerModel) {
         return answerDao.insert(answerModel);
     }
 
-
     @Override
     @Transactional
+    @CacheEvict(key = "#id")
     public int updateView(Long userId,Long id,Long ip,String os,String browser) throws Exception {
         try{
+            QuestionAnswerModel answerModel = answerSearchService.findById(id);
+            if(answerModel == null) throw new Exception("错误的编号");
             long prevTime = viewService.insertOrUpdate(userId,EntityType.ANSWER,id,ip,os,browser);
 
             if(DateUtils.getTimestamp() - prevTime > 3600){
                 int result = answerDao.updateView(id,1);
                 if(result != 1){
-                    throw new Exception("更新浏览次数失败");
+                    throw new Exception("更新回答浏览次数失败");
                 }
-                indexService.updateIndex(id);
+                operationalPublisher.publish(new AnswerEvent(this,
+                        EntityAction.VIEW,answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
             }
-            indexService.updateIndex(id);
             return 1;
         }catch (Exception e){
             e.printStackTrace();
@@ -86,32 +90,38 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateComments(Long id, Integer value) {
         return answerDao.updateComments(id,value);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateDisabled(Boolean isDisabled, Long id) {
         return answerDao.updateDisabled(isDisabled,id);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateDeleted(Boolean isDeleted, Long id) {
         return answerDao.updateDeleted(isDeleted,id);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateAdopted(Boolean isAdopted, Long id) {
         return answerDao.updateAdopted(isAdopted,id);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateStarCountById(Long id, Integer step) {
         return answerDao.updateStarCountById(id,step);
     }
 
     @Override
     @Transactional
+    @CacheEvict(key = "#id")
     public QuestionDetailModel adopt(Long id, Long userId, String ip) throws Exception {
         try {
             QuestionAnswerModel answerModel = answerSearchService.findById(id);
@@ -128,16 +138,17 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
             result = updateAdopted(true,id);
             if(result != 1) throw new Exception("更新回答采纳状态失败");
             if(detailModel.getRewardType() != RewardType.DEFAULT && detailModel.getRewardValue() > 0){
-                UserBankLogModel logModel = bankService.update(detailModel.getRewardValue(),UserBankType.valueOf(detailModel.getRewardType().getValue()),answerModel.getCreatedUserId(),"回答[" + detailModel.getTitle() + "]被采纳", UserBankLogType.QUESTION_ANSWER,id.toString(), IPUtils.toLong(ip));
+                UserBankLogModel logModel = bankService.update(detailModel.getRewardValue(),UserBankType.valueOf(detailModel.getRewardType().getValue()),EntityAction.ADOPT,EntityType.ANSWER,id.toString(),answerModel.getCreatedUserId(),"回答被采纳", IPUtils.toLong(ip));
                 if(logModel == null){
                     throw new Exception("悬赏支付失败");
                 }
             }
             detailModel.setAdopted(true);
-            questionIndexService.updateIndex(detailModel);
+            operationalPublisher.publish(new AnswerEvent(this,
+                    EntityAction.ADOPT,answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),IPUtils.toLong(ip)));
             return detailModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
@@ -145,7 +156,8 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
 
     @Override
     @Transactional
-    public QuestionAnswerDetailModel delete(Long id,Long questionId, Long userId) throws Exception {
+    @CacheEvict(key = "#id")
+    public QuestionAnswerDetailModel delete(Long id,Long questionId, Long userId,Long ip) throws Exception {
         try{
             QuestionAnswerModel answerModel = answerSearchService.findById(id);
             if(answerModel == null || !answerModel.getCreatedUserId().equals(userId) || !answerModel.getQuestionId().equals(questionId)){
@@ -161,12 +173,16 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
             if(result != 1) throw new Exception("更新提问回答数量失败");
             result = userInfoService.updateAnswerCount(userId,-1);
             if(result != 1) throw new Exception("更新用户回答数量失败");
-            questionIndexService.updateIndex(questionId);
-            indexService.delete(id);
+
             draftService.delete(userId,EntityType.ANSWER,id);
-            return answerSearchService.getDetail(id,questionId,userId,userId,true);
+            QuestionAnswerDetailModel detailModel = answerSearchService.getDetail(id,questionId,userId,userId,true);
+
+            operationalPublisher.publish(new AnswerEvent(this,
+                    EntityAction.DELETE,id,answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+
+            return detailModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
@@ -174,7 +190,8 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
 
     @Override
     @Transactional
-    public QuestionAnswerDetailModel revokeDelete(Long id, Long questionId, Long userId) throws Exception {
+    @CacheEvict(key = "#id")
+    public QuestionAnswerDetailModel revokeDelete(Long id, Long questionId, Long userId,Long ip) throws Exception {
         try{
             QuestionAnswerModel answerModel = answerSearchService.findById(id);
             if(answerModel == null || !answerModel.getCreatedUserId().equals(userId) || !answerModel.getQuestionId().equals(questionId)){
@@ -190,10 +207,16 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
             if(result != 1) throw new Exception("更新提问回答数量失败");
             result = userInfoService.updateAnswerCount(userId,1);
             if(result != 1) throw new Exception("更新用户回答数量失败");
-            questionIndexService.updateIndex(questionId);
-            return answerSearchService.getDetail(id,questionId,userId,userId,true);
+
+            QuestionAnswerDetailModel detailModel = answerSearchService.getDetail(id,questionId,userId,userId,true);
+
+            operationalPublisher.publish(new AnswerEvent(this,
+                    EntityAction.REVERT,id,answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+
+            return detailModel;
+
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
@@ -218,52 +241,20 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
                 throw new Exception("写入版本失败");
             return answerModel.getId();
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return null;
         }
     }
 
     @Override
-    @Transactional
-    public Map<String,Object> updateVote(VoteType type, Long id, Long userId, String ip) {
-        try{
-            Map<String,Object> data = new HashMap<>();
-            QuestionAnswerVoteModel voteModel = voteService.findByAnswerIdAndUserId(id,userId);
-            if(voteModel != null){
-                int result = voteService.deleteByAnswerIdAndUserId(id,userId);
-                if(result != 1) throw new Exception("删除Vote失败");
-                result = answerDao.updateVote(voteModel.getType(),-1,id);
-                if(result != 1) throw new Exception("更新Vote失败");
-            }
-            if(voteModel == null || voteModel.getType() != type){
-                voteModel = new QuestionAnswerVoteModel(id,type,DateUtils.getTimestamp(),userId, IPUtils.toLong(ip));
-                int result = voteService.insert(voteModel);
-                if(result != 1) throw new Exception("写入Vote失败");
-                result = answerDao.updateVote(type,1,id);
-                if(result != 1) throw new Exception("更新Vote失败");
-            }
-
-            QuestionAnswerModel answerModel = answerSearchService.findById(id);
-            if(answerModel == null) throw new Exception("获取回答失败");
-            if(type.equals(VoteType.SUPPORT)){
-                operationalService.insertAsync(new UserOperationalModel(UserOperationalAction.LIKE, EntityType.ANSWER,answerModel.getId(),answerModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),IPUtils.toLong(ip)));
-            }else{
-                operationalService.deleteByTargetIdAsync(UserOperationalAction.LIKE, EntityType.ANSWER,userId,answerModel.getId());
-            }
-            indexService.updateIndex(id);
-            data.put("id",answerModel.getId());
-            data.put("support",answerModel.getSupport());
-            data.put("oppose",answerModel.getOppose());
-            return data;
-        }catch (Exception e){
-            e.printStackTrace();
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return null;
-        }
+    @CacheEvict(key = "#id")
+    public int updateVote(VoteType type, Integer value, Long id) {
+        return answerDao.updateVote(type,value,id);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateMetas(Long id, String cover) {
         return answerDao.updateMetas(id,cover);
     }

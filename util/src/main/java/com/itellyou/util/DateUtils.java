@@ -32,6 +32,16 @@ public class DateUtils {
         return format(timestamp,zoneId,defaultFormat);
     }
 
+    public static LocalDateTime formatToDateTime(String datetime,String format){
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(format);
+        return LocalDateTime.parse(datetime,dateTimeFormatter);
+    }
+
+    public static LocalDateTime formatToDateTime(String datetime){
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(defaultFormat);
+        return LocalDateTime.parse(datetime,dateTimeFormatter);
+    }
+
     public static String format(long timestamp){
         return format(timestamp,defaultFormat);
     }
@@ -65,6 +75,15 @@ public class DateUtils {
 
     public static Long getTimestamp(){
         return LocalDateTime.now().toEpochSecond((ZoneOffset) getZoneId());
+    }
+
+    public static Long getTimestamp(LocalDateTime dateTime){
+        return dateTime.toEpochSecond((ZoneOffset) getZoneId());
+    }
+
+    public static Long getTimestamp(String datetime){
+        if(datetime == null) return null;
+        return getTimestamp(formatToDateTime(datetime));
     }
 
     public static LocalDateTime toLocalDateTime(long timestamp,ZoneId zoneId){

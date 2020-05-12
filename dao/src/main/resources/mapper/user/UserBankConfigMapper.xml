@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserBankConfigDao">
+    <sql id="columns">
+        ${alias}`bank_type` ${prefix}bank_type,
+        ${alias}`action` ${prefix}action,
+        ${alias}`type` ${prefix}type,
+        ${alias}`targeter_step` ${prefix}targeter_step,
+        ${alias}`creater_step` ${prefix}creater_step,
+        ${alias}`creater_min_score` ${prefix}creater_min_score,
+        ${alias}`targeter_count_of_day` ${prefix}targeter_count_of_day,
+        ${alias}`targeter_total_of_day` ${prefix}targeter_total_of_day,
+        ${alias}`targeter_count_of_week` ${prefix}targeter_count_of_week,
+        ${alias}`targeter_total_of_week` ${prefix}targeter_total_of_week,
+        ${alias}`targeter_count_of_month` ${prefix}targeter_count_of_month,
+        ${alias}`targeter_total_of_month` ${prefix}targeter_total_of_month,
+        ${alias}`creater_count_of_day` ${prefix}creater_count_of_day,
+        ${alias}`creater_total_of_day` ${prefix}creater_total_of_day,
+        ${alias}`creater_count_of_week` ${prefix}creater_count_of_week,
+        ${alias}`creater_total_of_week` ${prefix}creater_total_of_week,
+        ${alias}`creater_count_of_month` ${prefix}creater_count_of_month,
+        ${alias}`creater_total_of_month` ${prefix}creater_total_of_month,
+        ${alias}`targeter_remark` ${prefix}targeter_remark,
+        ${alias}`creater_remark` ${prefix}creater_remark,
+        ${alias}`only_once` ${prefix}only_once
+    </sql>
+    <insert id="insert">
+        insert into user_bank_config (bank_type,action,type,targeter_step,creater_step,creater_min_score,
+                                      targeter_count_of_day,targeter_total_of_day,targeter_count_of_week,targeter_total_of_week,targeter_count_of_month,targeter_total_of_month,
+                                          creater_count_of_day,creater_total_of_day,creater_count_of_week,creater_total_of_week,creater_count_of_month,createrr_total_of_month,targeter_remark,creater_remark,only_once) values (
+                                    #{bankType},#{action},#{type},#{targeterStep},#{createrStep},#{createrMinScore},#{targeterCountOfDay},#{targeterTotalOfDay},#{targeterCountOfWeek},#{targeterTotalOfWeek},#{targeterCountOfMonth},#{targeterTotalOfMonth},
+                                    #{createrCountOfDay},#{createrTotalOfDay},#{createrCountOfWeek},#{createrTotalOfWeek},#{createrCountOfMonth},#{createrTotalOfMonth},#{targeterRemark},#{createrRemark},#{onlyOnce})
+        on duplicate key update targeter_step=#{targeterStep},creater_step=#{createrStep},creater_min_score=#{createrMinScore},
+        targeter_count_of_day=#{targeterCountOfDay},targeter_total_of_day=#{targeterTotalOfDay},targeter_count_of_week=#{targeterCountOfWeek},targeter_total_of_week=#{targeterTotalOfWeek},targeter_count_of_month=#{targeterCountOfMonth},targeter_total_of_month=#{targeterTotalOfMonth},
+        creater_count_of_day=#{createrCountOfDay},creater_total_of_day=#{createrTotalOfDay},creater_count_of_week=#{createrCountOfWeek},creater_total_of_week=#{createrTotalOfWeek},creater_count_of_month=#{createrCountOfMonth},creater_total_of_month=#{createrTotalOfMonth},
+        targeter_remark=#{targeterRemark},creater_remark=#{createrRemark},only_once=#{onlyOnce}
+    </insert>
+    <update id="update">
+        update user_bank_config set targeter_step=#{targeterStep},creater_step=#{createrStep},creater_min_score=#{createrMinScore},
+                                      targeter_count_of_day=#{targeterCountOfDay},targeter_total_of_day=#{targeterTotalOfDay},targeter_count_of_week=#{targeterCountOfWeek},targeter_total_of_week=#{targeterTotalOfWeek},targeter_count_of_month=#{targeterCountOfMonth},targeter_total_of_month=#{targeterTotalOfMonth},
+                                      creater_count_of_day=#{createrCountOfDay},creater_total_of_day=#{createrTotalOfDay},creater_count_of_week=#{createrCountOfWeek},creater_total_of_week=#{createrTotalOfWeek},creater_count_of_month=#{createrCountOfMonth},creater_total_of_month=#{createrTotalOfMonth},
+                                    targeter_remark=#{targeterRemark},creater_remark=#{createrRemark},only_once=#{onlyOnce} where bank_type=#{bankType} and action=#{action} and type=#{type}
+    </update>
+    <select id="find" resultType="UserBankConfigModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from user_bank_config where bank_type=#{bankType} and action=#{action} and type=#{type}
+    </select>
+    <select id="findByType" resultType="UserBankConfigModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from user_bank_config where bank_type=#{bankType}
+    </select>
+</mapper>

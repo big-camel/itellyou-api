@@ -1,9 +1,8 @@
 package com.itellyou.model.sys;
 
-import com.itellyou.model.reward.RewardType;
 import com.itellyou.util.BaseEnum;
 
-public enum SysPath implements BaseEnum<RewardType,Integer> {
+public enum SysPath implements BaseEnum<RewardType,Integer> , CacheEntity {
     RETAIN(0,"retain"),
     USER(1,"user"),
     COLUMN(2,"column");
@@ -39,5 +38,10 @@ public enum SysPath implements BaseEnum<RewardType,Integer> {
 
     public String toString(){
         return getName();
+    }
+
+    @Override
+    public String cacheKey() {
+        return name;
     }
 }

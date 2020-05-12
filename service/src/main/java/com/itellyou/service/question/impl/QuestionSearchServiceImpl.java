@@ -4,13 +4,16 @@ import com.itellyou.dao.question.QuestionInfoDao;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.service.question.QuestionSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@CacheConfig(cacheNames = "question")
 @Service
 public class QuestionSearchServiceImpl implements QuestionSearchService {
 
@@ -123,6 +126,7 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
     }
 
     @Override
+    @Cacheable
     public QuestionInfoModel findById(Long id) {
         return questionInfoDao.findById(id);
     }

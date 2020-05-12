@@ -1,14 +1,17 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleIndexModel;
 import com.itellyou.model.tag.TagStarDetailModel;
+import com.itellyou.model.tag.TagStarModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.article.ArticleIndexService;
 import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.tag.TagStarService;
+import com.itellyou.service.article.impl.ArticleIndexServiceImpl;
+import com.itellyou.service.common.IndexService;
+import com.itellyou.service.common.StarService;
+import com.itellyou.service.tag.impl.TagStarServiceImpl;
 import com.itellyou.util.ansj.AnsjAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -22,8 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Validated
 @RestController
@@ -31,17 +32,17 @@ import java.util.regex.Pattern;
 public class ArticleSearchController {
 
     private final ArticleSearchService searchService;
-    private final ArticleIndexService articleIndexService;
-    private final TagStarService tagStarService;
+    private final IndexService<ArticleDetailModel> articleIndexService;
+    private final StarService<TagStarModel> tagStarService;
 
-    public ArticleSearchController(ArticleSearchService searchService, ArticleIndexService articleIndexService, TagStarService tagStarService) {
+    public ArticleSearchController(ArticleSearchService searchService, ArticleIndexServiceImpl articleIndexService, TagStarServiceImpl tagStarService) {
         this.searchService = searchService;
         this.articleIndexService = articleIndexService;
         this.tagStarService = tagStarService;
     }
 
     @GetMapping("/list")
-    public Result list(UserInfoModel userModel, @RequestParam(required = false,name = "user_id") Long userId, @RequestParam(required = false) String type, @RequestParam(required = false , name = "column_id") Long columnId,@RequestParam(required = false , name = "tag_id") Long tagId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false,name = "user_id") Long userId, @RequestParam(required = false) String type, @RequestParam(required = false , name = "column_id") Long columnId, @RequestParam(required = false , name = "tag_id") Long tagId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
         Long searchUserId = userModel == null ? null : userModel.getId();
         PageModel<ArticleDetailModel> data = null;
         if(type == null) type = "";
@@ -58,9 +59,9 @@ public class ArticleSearchController {
                         tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,50,null,2,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
             case "star":
-                if(userModel == null) return new Result(401,"未登陆");
-                List<TagStarDetailModel> listTag = tagStarService.search(null,userModel.getId(),null,null,null,null,null,null);
-                if(listTag.size() < 1) return new Result(404,"尚未关注标签");
+                if(userModel == null) return new ResultModel(401,"未登陆");
+                List<TagStarDetailModel> listTag = (List<TagStarDetailModel>) tagStarService.search(null,userModel.getId(),null,null,null,null,null,null);
+                if(listTag.size() < 1) return new ResultModel(404,"尚未关注标签");
                 List<Long> tags = new ArrayList<>();
                 for (TagStarDetailModel tagModel: listTag) {
                     tags.add(tagModel.getTagId());
@@ -81,24 +82,24 @@ public class ArticleSearchController {
                         null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
 
         }
-        return new Result(data);
+        return new ResultModel(data);
     }
 
     @GetMapping("/{id:\\d+}")
-    public Result detail(UserInfoModel userModel,@PathVariable Long id){
+    public ResultModel detail(UserInfoModel userModel, @PathVariable Long id){
         Long searchUserId = userModel == null ? null : userModel.getId();
         ArticleDetailModel detailModel = searchService.getDetail(id,(Long)null,searchUserId);
-        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return  new Result(404,"错误的编号");
-        return new Result(detailModel);
+        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return  new ResultModel(404,"错误的编号");
+        return new ResultModel(detailModel);
     }
 
     @GetMapping("/related")
-    public Result related(UserInfoModel userModel,@RequestParam @NotNull Long id, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel related(UserInfoModel userModel, @RequestParam @NotNull Long id, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         Long searchId = userModel == null ? null : userModel.getId();
         ArticleDetailModel detailModel = searchService.getDetail(id);
-        if(detailModel == null) return new Result(404,"未知的提问");
+        if(detailModel == null) return new ResultModel(404,"未知的提问");
         try {
             String[] fields = {"title", "content"};
             IndexSearcher searcher = new IndexSearcher(articleIndexService.getIndexReader());
@@ -122,7 +123,7 @@ public class ArticleSearchController {
                 if (index >= topDocs.scoreDocs.length) break;
                 ScoreDoc doc = topDocs.scoreDocs[index];
                 Document document = searcher.doc(doc.doc);
-                ArticleIndexModel docData = articleIndexService.getModel(document);
+                ArticleIndexModel docData = (ArticleIndexModel) articleIndexService.getModel(document);
                 ids.add(docData.getId());
             }
             Integer total = topDocs.scoreDocs.length;
@@ -132,9 +133,9 @@ public class ArticleSearchController {
                 listData = searchService.search(ids,null,null,null,searchId,null,null,null,null,null,null,null);
             }
             PageModel pageModel = new PageModel(offset,limit,total,listData);
-            return new Result(pageModel);
+            return new ResultModel(pageModel);
         }catch (Exception e){
-            return new Result(500,e.getMessage());
+            return new ResultModel(500,e.getMessage());
         }
     }
 }

@@ -1,9 +1,10 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserBankLogDao;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserBankLogModel;
-import com.itellyou.model.user.UserBankLogType;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.user.UserBankLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,21 +29,26 @@ public class UserBankLogServiceImpl implements UserBankLogService {
     }
 
     @Override
-    public List<UserBankLogModel> search(String id, UserBankType type, UserBankLogType dataType, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        return userBankLogDao.search(id,type,dataType,userId,beginTime,endTime,ip,order,offset,limit);
+    public List<UserBankLogModel> search(Long id,UserBankType type, EntityAction action,EntityType dataType,String dataKey, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        return userBankLogDao.search(id,type,action,dataType,dataKey,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    public int count(String id, UserBankType type, UserBankLogType dataType, Long userId, Long beginTime, Long endTime, Long ip) {
-        return userBankLogDao.count(id,type,dataType,userId,beginTime,endTime,ip);
+    public int count(Long id, UserBankType type, EntityAction action, EntityType dataType,String dataKey, Long userId, Long beginTime, Long endTime, Long ip) {
+        return userBankLogDao.count(id,type,action,dataType,dataKey,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<UserBankLogModel> page(String id, UserBankType type, UserBankLogType dataType, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public double total(Long id, UserBankType type, EntityAction action, EntityType dataType,String dataKey, Long userId, Long beginTime, Long endTime, Long ip) {
+        return userBankLogDao.total(id,type,action,dataType,dataKey,userId,beginTime,endTime,ip);
+    }
+
+    @Override
+    public PageModel<UserBankLogModel> page(Long id, UserBankType type, EntityAction action, EntityType dataType,String dataKey, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 20;
-        List<UserBankLogModel> data = search(id,type,dataType,userId,beginTime,endTime,ip,order,offset,limit);
-        Integer total = count(id,type,dataType,userId,beginTime,endTime,ip);
+        List<UserBankLogModel> data = search(id,type,action,dataType,dataKey,userId,beginTime,endTime,ip,order,offset,limit);
+        Integer total = count(id,type,action,dataType,dataKey,userId,beginTime,endTime,ip);
         return new PageModel<>(offset,limit,total,data);
     }
 }

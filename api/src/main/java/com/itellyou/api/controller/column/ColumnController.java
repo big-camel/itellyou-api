@@ -1,6 +1,6 @@
 package com.itellyou.api.controller.column;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
@@ -40,7 +40,7 @@ public class ColumnController {
     }
 
     @GetMapping("/list")
-    public Result list(UserInfoModel userModel,@RequestParam(required = false,name = "member_id") Long memberId,@RequestParam(required = false) String type,@RequestParam(required = false,name = "tag_id") Long tagId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false,name = "member_id") Long memberId, @RequestParam(required = false) String type, @RequestParam(required = false,name = "tag_id") Long tagId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         Long searchUserId = userModel == null ? null : userModel.getId();
         PageModel<ColumnDetailModel> data = null;
         if(type == null) type = "";
@@ -58,35 +58,35 @@ public class ColumnController {
                 data = searchService.page(null,null,null,memberId,searchUserId,false,true,false,
                         tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,null,null,null,null,null,order,offset,limit);
         }
-        return new Result(data);
+        return new ResultModel(data);
     }
 
     @GetMapping("/detail")
-    public Result detail(UserInfoModel userModel,@NotNull Long id){
+    public ResultModel detail(UserInfoModel userModel, @NotNull Long id){
         Long searchUserId = userModel == null ? null : userModel.getId();
         ColumnDetailModel detailModel = searchService.getDetail(id,null,searchUserId);
-        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled() ) return new Result(404,"Not Find");
-        return new Result(detailModel);
+        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled() ) return new ResultModel(404,"Not Find");
+        return new ResultModel(detailModel);
     }
 
     @PostMapping("/query/name")
-    public Result queryName(@MultiRequestBody @NotBlank String name){
+    public ResultModel queryName(@MultiRequestBody @NotBlank String name){
         ColumnInfoModel infoModel = searchService.findByName(name);
         if(infoModel != null){
-            return new Result(401,"名称不可用",name);
+            return new ResultModel(401,"名称不可用",name);
         }
-        return new Result(name);
+        return new ResultModel(name);
     }
 
     @PutMapping("/create")
-    public Result create(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank String name, @MultiRequestBody @NotBlank String description, @MultiRequestBody @NotNull Long[] tags) {
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel create(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank String name, @MultiRequestBody @NotBlank String description, @MultiRequestBody @NotNull Long[] tags) {
+        if(userModel == null) return new ResultModel(401,"未登陆");
         ColumnInfoModel infoModel = searchService.findByName(name);
-        if(infoModel != null) return new Result(1001,"专栏名称已存在");
+        if(infoModel != null) return new ResultModel(1001,"专栏名称已存在");
         if(tags.length > 0){
             int rows = tagSearchService.exists(tags);
             if(rows != tags.length){
-                return new Result(0,"标签数据错误");
+                return new ResultModel(0,"标签数据错误");
             }
         }
         infoModel = new ColumnInfoModel();
@@ -99,27 +99,27 @@ public class ColumnController {
         infoModel.setCreatedIp(IPUtils.toLong(IPUtils.getClientIp(request)));
         try {
             int result = infoService.insert(infoModel,tags);
-            if(result == 1) return new Result(infoModel);
-            return new Result(0,"创建失败");
+            if(result == 1) return new ResultModel(infoModel);
+            return new ResultModel(0,"创建失败");
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @PutMapping("/setting")
-    public Result setting(HttpServletRequest request,UserInfoModel userModel,@MultiRequestBody Long id,@MultiRequestBody(required = false) String avatar,
-                          @MultiRequestBody(required = false) String name,@MultiRequestBody(required = false) String description,
-                          @MultiRequestBody(required = false) String path){
+    public ResultModel setting(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody Long id, @MultiRequestBody(required = false) String avatar,
+                               @MultiRequestBody(required = false) String name, @MultiRequestBody(required = false) String description,
+                               @MultiRequestBody(required = false) String path){
         if(userModel == null){
-            return new Result(401,"未登录");
+            return new ResultModel(401,"未登录");
         }
         ColumnInfoModel infoModel = searchService.findById(id);
-        if(infoModel == null) return new Result(401,"不存在的专栏编号");
+        if(infoModel == null) return new ResultModel(401,"不存在的专栏编号");
         if(name != null){
-            if(!StringUtils.isNotEmpty(name)) return new Result(0,"名称格式不正确",name);
+            if(!StringUtils.isNotEmpty(name)) return new ResultModel(0,"名称格式不正确",name);
             ColumnInfoModel nameModel = searchService.findByName(name);
             if(nameModel != null && !nameModel.getId().equals(infoModel.getId())){
-                return new Result(1001,"名称不可用",name);
+                return new ResultModel(1001,"名称不可用",name);
             }
             name = name.trim();
         }
@@ -133,12 +133,12 @@ public class ColumnController {
         try {
             int result = path != null ? infoService.update(updateModel,path) : infoService.update(updateModel);
             if(result == 1){
-                return new Result(searchService.getDetail(id,null,userModel.getId()));
+                return new ResultModel(searchService.getDetail(id,null,userModel.getId()));
             }
         }catch (Exception e){
             e.printStackTrace();
         }
 
-        return new Result(0,"更新失败");
+        return new ResultModel(0,"更新失败");
     }
 }

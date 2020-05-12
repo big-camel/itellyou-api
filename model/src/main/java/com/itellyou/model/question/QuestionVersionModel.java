@@ -1,11 +1,12 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.reward.RewardType;
-import com.itellyou.model.tag.TagDetailModel;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.util.serialize.IpLongSerializer;
+import com.itellyou.util.serialize.IpDeserializer;
+import com.itellyou.util.serialize.IpSerializer;
+import com.itellyou.util.serialize.TimestampDeserializer;
 import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,17 +35,17 @@ public class QuestionVersionModel {
     private Double rewardValue=0.0;
     private Double rewardAdd=0.0;
     private String saveType;
-    @JSONField(serializeUsing = TimestampSerializer.class)
+    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long createdTime;
     @JSONField(serialize = false)
     private Long createdUserId;
     private UserInfoModel author;
-    @JSONField(serialize = false,serializeUsing = IpLongSerializer.class)
+    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp;
-    @JSONField(serializeUsing = TimestampSerializer.class)
+    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long updatedTime;
     @JSONField(serialize = false)
     private Long updatedUserId;
-    @JSONField(serialize = false,serializeUsing = IpLongSerializer.class)
+    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp;
 }

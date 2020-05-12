@@ -10,10 +10,6 @@ import java.util.Map;
 
 public interface UserSearchService {
 
-    UserInfoModel findByToken(String token, Long time);
-
-    UserInfoModel findByToken(String token);
-
     UserInfoModel findByName(String name);
 
     UserInfoModel findByLoginName(String loginName);

@@ -1,12 +1,15 @@
 package com.itellyou.api.controller.question;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.QuestionAnswerVoteModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.common.VoteService;
+import com.itellyou.service.common.impl.VoteFactory;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.user.UserDraftService;
@@ -26,19 +29,21 @@ import java.util.Map;
 @RequestMapping(value = {"/question/{questionId:\\d+}/answer"})
 public class AnswerController {
 
+    private final VoteService<QuestionAnswerVoteModel> voteService;
     private final QuestionAnswerService answerService;
     private final QuestionAnswerSearchService searchService;
     private final UserDraftService draftService;
 
     @Autowired
-    public AnswerController(QuestionAnswerService answerService,QuestionAnswerSearchService searchService,UserDraftService draftService){
+    public AnswerController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, UserDraftService draftService, VoteFactory voteFactory){
+        this.voteService = voteFactory.create(EntityType.ANSWER);
         this.answerService = answerService;
         this.searchService = searchService;
         this.draftService = draftService;
     }
 
     @GetMapping("/list")
-    public Result list(UserInfoModel userModel,@PathVariable Long questionId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel list(UserInfoModel userModel, @PathVariable Long questionId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
 
         Long searchUserId = userModel == null ? null : userModel.getId();
         if(offset == null || offset < 0) offset = 0;
@@ -77,21 +82,21 @@ public class AnswerController {
         Map<String,Object> extendData = new HashMap<>();
         extendData.put("adopts",adoptData.size());
         pageData.setExtend(extendData);
-        return new Result(pageData);
+        return new ResultModel(pageData);
     }
 
     @GetMapping(value = {"/{id:\\d+}"})
-    public Result detail(UserInfoModel userModel ,@PathVariable Long questionId, @PathVariable Long id){
+    public ResultModel detail(UserInfoModel userModel , @PathVariable Long questionId, @PathVariable Long id){
         Long searchUserId = userModel == null ? null : userModel.getId();
         QuestionAnswerDetailModel detailModel = searchService.getDetail(id,questionId,"version",searchUserId,null,true,null,false,true,false);
-        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return new Result(404,"无数据");
-        return new Result(detailModel);
+        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return new ResultModel(404,"无数据");
+        return new ResultModel(detailModel);
     }
 
     @GetMapping("/draft") //一个问答只能有一个非禁用回答
-    public Result find(UserInfoModel userModel, @PathVariable Long questionId){
+    public ResultModel find(UserInfoModel userModel, @PathVariable Long questionId){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
 
         QuestionAnswerModel answerModel = searchService.findByQuestionIdAndUserId(questionId,userModel.getId());
@@ -103,59 +108,59 @@ public class AnswerController {
             userAnswerMap.put("adopted",answerModel.isAdopted());
             userAnswerMap.put("id",answerModel.getId());
             userAnswerMap.put("draft",result);
-            return new Result(userAnswerMap);
+            return new ResultModel(userAnswerMap);
         }
-        return new Result(404,"Not find");
+        return new ResultModel(404,"Not find");
     }
 
     @DeleteMapping("/{id:\\d+}/draft")
-    public Result deleteDraft(UserInfoModel userModel, @PathVariable Long id){
+    public ResultModel deleteDraft(UserInfoModel userModel, @PathVariable Long id){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
         int result = draftService.delete(userModel.getId(), EntityType.ANSWER,id);
-        if(result != 1) return new Result(0,"删除失败");
-        return new Result();
+        if(result != 1) return new ResultModel(0,"删除失败");
+        return new ResultModel();
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public Result delete(UserInfoModel userModel,@PathVariable Long questionId, @PathVariable Long id){
+    public ResultModel delete(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long id){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
         try {
-            QuestionAnswerDetailModel answerModel = answerService.delete(id,questionId,userModel.getId());
-            if(answerModel == null) return new Result(0,"删除失败");
+            QuestionAnswerDetailModel answerModel = answerService.delete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
+            if(answerModel == null) return new ResultModel(0,"删除失败");
             draftService.delete(userModel.getId(), EntityType.ANSWER,id);
-            return new Result(answerModel);
+            return new ResultModel(answerModel);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @PostMapping("/{id:\\d+}/revoke")
-    public Result revokeDelete(UserInfoModel userModel,@PathVariable Long questionId, @PathVariable Long id){
+    public ResultModel revokeDelete(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long id){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
         try {
-            QuestionAnswerDetailModel answerModel = answerService.revokeDelete(id,questionId,userModel.getId());
-            if(answerModel == null) return new Result(0,"撤销删除失败");
-            return new Result(answerModel);
+            QuestionAnswerDetailModel answerModel = answerService.revokeDelete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
+            if(answerModel == null) return new ResultModel(0,"撤销删除失败");
+            return new ResultModel(answerModel);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @PostMapping(value = { "/{id:\\d+}/{type:support}","/{id:\\d+}/{type:oppose}"})
-    public Result vote(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @PathVariable String type){
+    public ResultModel vote(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @PathVariable String type){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
-        Map<String,Object> data = answerService.updateVote(VoteType.valueOf(type.toUpperCase()),id,userModel.getId(), IPUtils.getClientIp(request));
+        Map<String,Object> data = voteService.doVote(VoteType.valueOf(type.toUpperCase()),id,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
         if(data == null){
-            return new Result(0,"更新失败");
+            return new ResultModel(0,"更新失败");
         }
-        return new Result(data);
+        return new ResultModel(data);
     }
 }

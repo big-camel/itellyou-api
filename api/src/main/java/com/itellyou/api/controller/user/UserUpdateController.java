@@ -2,14 +2,19 @@ package com.itellyou.api.controller.user;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.ali.DmLogModel;
-import com.itellyou.model.ali.SmsLogModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.event.OperationalEvent;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.thirdparty.DmLogModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.ali.DmLogService;
-import com.itellyou.service.ali.SmsLogService;
+import com.itellyou.service.event.OperationalPublisher;
+import com.itellyou.service.thirdparty.DmLogService;
+import com.itellyou.service.thirdparty.SmsLogService;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.service.user.UserSearchService;
@@ -42,18 +47,20 @@ public class UserUpdateController {
     private final SmsLogService smsLogService;
     private final DmLogService dmLogService;
     private final SysPathService pathService;
+    private final OperationalPublisher operationalPublisher;
 
-    public UserUpdateController(UserInfoService userInfoService,UserSearchService userSearchService,SmsLogService smsLogService,DmLogService dmLogService,SysPathService pathService){
+    public UserUpdateController(UserInfoService userInfoService, UserSearchService userSearchService, SmsLogService smsLogService, DmLogService dmLogService, SysPathService pathService, OperationalPublisher operationalPublisher){
         this.userInfoService = userInfoService;
         this.userSearchService = userSearchService;
         this.smsLogService = smsLogService;
         this.dmLogService = dmLogService;
         this.pathService = pathService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @PutMapping("/mobile")
-    public Result mobile(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Mobile String mobile, @MultiRequestBody @NotBlank String code){
-        if(userModel == null) return new Result(403,"未登陆");
+    public ResultModel mobile(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Mobile String mobile, @MultiRequestBody @NotBlank String code){
+        if(userModel == null) return new ResultModel(403,"未登陆");
         List<SmsLogModel> listLog = smsLogService.searchByTemplateAndMobile("replace",mobile);
         SmsLogModel checkLog = null;
         for(SmsLogModel smsLogModel : listLog){
@@ -65,21 +72,21 @@ public class UserUpdateController {
         }
 
         if(checkLog == null){
-            return new Result(1001,"验证码错误或已过期");
+            return new ResultModel(1001,"验证码错误或已过期");
         }
 
         int resultRows = smsLogService.updateStatus(3,checkLog.getId());
         if(resultRows == 0){
-            return new Result(0,"更新验证码状态失败");
+            return new ResultModel(0,"更新验证码状态失败");
         }
 
         UserInfoModel mobileUser = userSearchService.findByMobile(mobile);
         if(mobileUser != null || userModel.getMobile() == mobile){
-            return new Result(1002,"手机号已被占用",mobile);
+            return new ResultModel(1002,"手机号已被占用",mobile);
         }
 
         if(userModel.isDisabled()){
-            return new Result(1003,"账户已锁定");
+            return new ResultModel(1003,"账户已锁定");
         }
 
         String ip = IPUtils.getClientIp(request);
@@ -91,14 +98,16 @@ public class UserUpdateController {
 
         int result = userInfoService.updateByUserId(updateModel);
         if(result == 1){
-            return new Result(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account"));
+            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.MOBILE,userModel.getId(),userModel.getCreatedUserId(),userModel.getUpdatedUserId(),DateUtils.getTimestamp(),IPUtils.toLong(ip));
+            operationalPublisher.publish(new OperationalEvent(this,operationalModel));
+            return new ResultModel(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account"));
         }
-        return new Result(0,"更新失败");
+        return new ResultModel(0,"更新失败");
     }
 
     @PutMapping("/email")
-    public Result email(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Email String email, @MultiRequestBody @NotBlank String code){
-        if(userModel == null) return new Result(403,"未登陆");
+    public ResultModel email(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Email String email, @MultiRequestBody @NotBlank String code){
+        if(userModel == null) return new ResultModel(403,"未登陆");
         List<DmLogModel> listLog = dmLogService.searchByTemplateAndEmail("replace",email);
         DmLogModel checkLog = null;
         for(DmLogModel logModel : listLog){
@@ -110,21 +119,21 @@ public class UserUpdateController {
         }
 
         if(checkLog == null){
-            return new Result(1001,"验证码错误或已过期");
+            return new ResultModel(1001,"验证码错误或已过期");
         }
 
         int resultRows = dmLogService.updateStatus(3,checkLog.getId());
         if(resultRows == 0){
-            return new Result(0,"更新验证码状态失败");
+            return new ResultModel(0,"更新验证码状态失败");
         }
 
         UserInfoModel mobileUser = userSearchService.findByMobile(email);
         if(mobileUser != null || userModel.getEmail() == email){
-            return new Result(1002,"邮箱已被占用",email);
+            return new ResultModel(1002,"邮箱已被占用",email);
         }
 
         if(userModel.isDisabled()){
-            return new Result(1003,"账户已锁定");
+            return new ResultModel(1003,"账户已锁定");
         }
 
         String ip = IPUtils.getClientIp(request);
@@ -137,20 +146,22 @@ public class UserUpdateController {
 
         int result = userInfoService.updateByUserId(updateModel);
         if(result == 1){
-            return new Result(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account"));
+            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.EMAIL,userModel.getId(),userModel.getCreatedUserId(),userModel.getUpdatedUserId(),DateUtils.getTimestamp(),IPUtils.toLong(ip));
+            operationalPublisher.publish(new OperationalEvent(this,operationalModel));
+            return new ResultModel(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account"));
         }
-        return new Result(0,"更新失败");
+        return new ResultModel(0,"更新失败");
     }
 
     @PutMapping("/password")
-    public Result password(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Password String password, @MultiRequestBody @NotBlank String confirm){
-        if(userModel == null) return new Result(403,"未登陆");
+    public ResultModel password(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotBlank @Password String password, @MultiRequestBody @NotBlank String confirm){
+        if(userModel == null) return new ResultModel(403,"未登陆");
 
         if(!password.equals(confirm))
-            return new Result(1001,"两次密码输入不一致");
+            return new ResultModel(1001,"两次密码输入不一致");
 
         if(userModel.isDisabled()){
-            return new Result(1002,"账户已锁定");
+            return new ResultModel(1002,"账户已锁定");
         }
 
         String ip = IPUtils.getClientIp(request);
@@ -163,14 +174,14 @@ public class UserUpdateController {
 
         int result = userInfoService.updateByUserId(updateModel);
         if(result == 1){
-            return new Result(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account")).extend("is_set_pwd",true);
+            return new ResultModel(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account")).extend("is_set_pwd",true);
         }
-        return new Result(0,"更新失败");
+        return new ResultModel(0,"更新失败");
     }
 
     @PutMapping("/path")
-    public Result path(UserInfoModel userModel, @MultiRequestBody @NotBlank @Path String path){
-        if(userModel == null) return new Result(403,"未登陆");
+    public ResultModel path(UserInfoModel userModel, @MultiRequestBody @NotBlank @Path String path){
+        if(userModel == null) return new ResultModel(403,"未登陆");
         path = path.toLowerCase();
         SysPathModel pathModel = pathService.findByTypeAndId(SysPath.USER,userModel.getId());
         boolean isSame = false;
@@ -178,7 +189,7 @@ public class UserUpdateController {
             isSame = true;}
         SysPathModel model = new SysPathModel(path,SysPath.USER,userModel.getId());
         int result = isSame ? 1 : (pathModel == null ? pathService.insert(model) : pathService.updateByTypeAndId(model));
-        if(result == 1) return new Result(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account")).extend("path",path);
-        return new Result(0,"更新失败");
+        if(result == 1) return new ResultModel(userSearchService.findById(userModel.getId()),new Labels.LabelModel(UserInfoModel.class,"base","account")).extend("path",path);
+        return new ResultModel(0,"更新失败");
     }
 }

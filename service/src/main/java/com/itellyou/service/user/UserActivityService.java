@@ -1,37 +1,43 @@
 package com.itellyou.service.user;
 
-import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.user.UserOperationalAction;
-import com.itellyou.model.user.UserOperationalDetailModel;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.user.UserActivityDetailModel;
+import com.itellyou.model.user.UserActivityModel;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public interface UserActivityService {
 
-    List<UserOperationalDetailModel> search(Long id,
-                                            UserOperationalAction action,
-                                            EntityType type,
-                                            Long userId,
-                                            Long beginTime, Long endTime,
-                                            Long ip,
-                                            Map<String, String> order,
-                                            Integer offset,
-                                            Integer limit);
-    int count(Long id,
-              UserOperationalAction action,
-              EntityType type,
+    int insert(UserActivityModel model);
+
+    List<UserActivityDetailModel> search(Map<EntityAction, HashSet<EntityType>> actionsMap,
+                                         Long targetUserId,
+                                        Long userId,
+                                         Long searchUserId,
+                                        Long beginTime, Long endTime,
+                                        Long ip,
+                                        Map<String, String> order,
+                                        Integer offset,
+                                        Integer limit);
+    int count(Map<EntityAction, HashSet<EntityType>> actionsMap,
+              Long targetUserId,
               Long userId,
               Long beginTime,Long endTime,
               Long ip);
 
-    PageModel<UserOperationalDetailModel> page(UserOperationalAction action,
-                                            EntityType type,
-                                            Long userId,
-                                            Long beginTime,Long endTime,
-                                            Long ip,
-                                            Map<String, String> order,
-                                            Integer offset,
-                                            Integer limit);
+    PageModel<UserActivityDetailModel> page(Map<EntityAction, HashSet<EntityType>> actionsMap,
+                                            Long targetUserId,
+                                           Long userId,
+                                           Long searchUserId,
+                                           Long beginTime, Long endTime,
+                                           Long ip,
+                                           Map<String, String> order,
+                                           Integer offset,
+                                           Integer limit);
+
+    int delete(EntityAction action, EntityType type,Long targetId,Long userId);
 }

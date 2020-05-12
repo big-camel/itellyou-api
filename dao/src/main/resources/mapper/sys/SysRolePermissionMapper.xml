@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysRolePermissionDao">
+    <sql id="columns">
+        ${alias}role_id ${prefix}role_id,
+        ${alias}permission_name ${prefix}permission_name,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert">
+        insert into sys_role_permission (role_id,permission_name,created_user_id,created_time,created_ip) values
+        (#{roleId},#{permissionName},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="delete">
+        delete from sys_role_permission where role_id=#{roleId} and permission_name=#{permissionName} and created_user_id=#{userId}
+    </delete>
+    <delete id="deleteByRoleId">
+        delete from sys_role_permission where role_id=#{roleId} and created_user_id=#{userId}
+    </delete>
+    <select id="findRoleByName" resultType="SysRoleModel">
+        select <include refid="com.itellyou.dao.sys.SysRoleDao.columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+        </include> from sys_role where id in (select role_id from sys_role_permission where permission_name=#{permissionName}) and disabled=0
+    </select>
+    <select id="findByRoleId" resultType="SysRolePermissionModel">
+        select * from sys_role_permission where role_id=#{roleId}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="roleId != null">
+                and ${alias}role_id = #{roleId}
+            </if>
+            <if test="permissionName != null">
+                and ${alias}permission_name = #{permissionName}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{disabled}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysRoleModel">
+        select * from sys_role_permission <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_role_permission <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

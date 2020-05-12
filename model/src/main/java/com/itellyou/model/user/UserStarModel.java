@@ -1,22 +1,22 @@
 package com.itellyou.model.user;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.itellyou.model.common.StarModel;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpLongSerializer;
-import com.itellyou.util.serialize.TimestampSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @JSONDefault(includes = "base")
-public class UserStarModel {
+public class UserStarModel extends StarModel {
     private Long userId;
-    @JSONField(serializeUsing = TimestampSerializer.class,label = "base")
-    private Long createdTime=0l;
-    private Long createdUserId=0l;
-    @JSONField(serializeUsing = IpLongSerializer.class)
-    private Long createdIp;
+
+    public UserStarModel(Long id, Long createdTime, Long userId, Long ip) {
+        super();
+        this.userId = id;
+        this.setCreatedUserId(userId);
+        this.setCreatedTime(createdTime);
+        this.setCreatedIp(ip);
+    }
 }

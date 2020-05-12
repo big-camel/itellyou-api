@@ -7,11 +7,14 @@ import com.itellyou.model.user.*;
 import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
+@CacheConfig(cacheNames = "question_answer")
 public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchService {
 
     private final QuestionAnswerDao answerDao;
@@ -29,6 +32,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     }
 
     @Override
+    @Cacheable
     public QuestionAnswerModel findById(Long id) {
         return answerDao.findById(id);
     }

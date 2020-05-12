@@ -1,0 +1,23 @@
+CREATE TABLE `user_bank_config` (
+                                    `bank_type` int(1) NOT NULL DEFAULT '0',
+                                    `action` int(2) NOT NULL DEFAULT '0' COMMENT '操作类型',
+                                    `type` int(2) NOT NULL DEFAULT '0' COMMENT '操作对象',
+                                    `targeter_step` int(11) NOT NULL DEFAULT '0' COMMENT '有操作对象的情况下，操作对象的用户所加的分数',
+                                    `creater_step` int(11) NOT NULL DEFAULT '0' COMMENT '操作者所加的分数',
+                                    `creater_min_score` int(11) DEFAULT '0' COMMENT '操作者最低需要多少分数触发操作后，才能让操作对象的用户获得积分',
+                                    `targeter_count_of_day` int(11) DEFAULT '0' COMMENT '操作者对象用户一天能获得几次积分',
+                                    `targeter_total_of_day` int(11) DEFAULT '0' COMMENT '操作者对象用户一天最多能获得多少积分',
+                                    `targeter_count_of_week` int(11) DEFAULT '0' COMMENT '操作者对象用户一周能获得几次积分',
+                                    `targeter_total_of_week` int(11) DEFAULT '0' COMMENT '操作者对象用户一周最多能获得多少积分',
+                                    `targeter_count_of_month` int(11) DEFAULT '0' COMMENT '操作者对象用户一个月能获得几次积分',
+                                    `targeter_total_of_month` int(11) DEFAULT '0' COMMENT '操作者对象用户一个月最多能获得多少积分',
+                                    `creater_count_of_day` int(11) DEFAULT '0' COMMENT '操作者一天能获得几次积分',
+                                    `creater_total_of_day` int(11) DEFAULT '0' COMMENT '操作者一天最多能获得多少积分',
+                                    `creater_count_of_week` int(11) DEFAULT '0' COMMENT '操作者一周能获得几次积分',
+                                    `creater_total_of_week` int(11) DEFAULT '0' COMMENT '操作者一周最多能获得多少积分',
+                                    `creater_count_of_month` int(11) DEFAULT '0' COMMENT '操作者一个月能获得几次积分',
+                                    `creater_total_of_month` int(11) DEFAULT '0' COMMENT '操作者一个月最多能获得多少积分',
+                                    `targeter_remark` varchar(500) DEFAULT '' COMMENT '备注说明',
+                                    `creater_remark` varchar(500) DEFAULT '' COMMENT '备注说明',
+                                    PRIMARY KEY (`bank_type`,`action`,`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,11 +1,9 @@
 package com.itellyou.service.upload.impl;
 
-import com.aliyuncs.CommonRequest;
 import com.aliyuncs.DefaultAcsClient;
-import com.aliyuncs.http.FormatType;
 import com.aliyuncs.vod.model.v20170321.*;
 import com.itellyou.model.upload.*;
-import com.itellyou.service.ali.AliService;
+import com.itellyou.service.thirdparty.AliService;
 import com.itellyou.service.upload.UploadConfigService;
 import com.itellyou.service.upload.UploadFileConfigService;
 import com.itellyou.service.upload.UploadFileService;

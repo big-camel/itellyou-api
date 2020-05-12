@@ -1,6 +1,6 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.util.CryptoUtils;
 import com.itellyou.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -15,14 +15,14 @@ import javax.validation.constraints.NotNull;
 public class CryptoController {
 
     @PostMapping("/crypto")
-    public Result crypto(@RequestParam @NotNull String action,@RequestParam @NotNull String text,@RequestParam @NotNull String pwd){
+    public ResultModel crypto(@RequestParam @NotNull String action, @RequestParam @NotNull String text, @RequestParam @NotNull String pwd){
         try {
-            if ("encrypt".equals(action)) return new Result(CryptoUtils.encrypt(text, StringUtils.md5(pwd)));
-            if ("decrypt".equals(action)) return new Result(CryptoUtils.decrypt(text, StringUtils.md5(pwd)));
-            return new Result(0,"错误的action");
+            if ("encrypt".equals(action)) return new ResultModel(CryptoUtils.encrypt(text, StringUtils.md5(pwd)));
+            if ("decrypt".equals(action)) return new ResultModel(CryptoUtils.decrypt(text, StringUtils.md5(pwd)));
+            return new ResultModel(0,"错误的action");
         }catch (Exception e){
             e.printStackTrace();
-            return new Result(0,"出错了");
+            return new ResultModel(0,"出错了");
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.service.sys.SysPathService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +22,12 @@ public class PathController {
     }
 
     @GetMapping("/find")
-    public Result query(@RequestParam @NotBlank String path){
+    public ResultModel query(@RequestParam @NotBlank String path){
         path = path.toLowerCase();
         SysPathModel pathModel = pathService.findByPath(path);
         if(pathModel != null){
-            return new Result(pathModel);
+            return new ResultModel(pathModel);
         }
-        return new Result(404,"Not Found",path);
+        return new ResultModel(404,"Not Found",path);
     }
 }

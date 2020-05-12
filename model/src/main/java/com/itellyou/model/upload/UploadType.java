@@ -1,8 +1,9 @@
 package com.itellyou.model.upload;
 
+import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.util.BaseEnum;
 
-public enum UploadType implements BaseEnum<UploadType,String> {
+public enum UploadType implements BaseEnum<UploadType,String> , CacheEntity {
     IMAGE("image","image"),
     FILE("file","file"),
     DOC("doc","doc"),
@@ -26,5 +27,10 @@ public enum UploadType implements BaseEnum<UploadType,String> {
 
     public String toString(){
         return getName();
+    }
+
+    @Override
+    public String cacheKey() {
+        return name;
     }
 }

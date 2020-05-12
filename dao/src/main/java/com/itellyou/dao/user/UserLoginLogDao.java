@@ -10,5 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface UserLoginLogDao {
     int insert(UserLoginLogModel userLoginLogModel);
 
+    UserLoginLogModel find(String token);
+
     int setDisabled(@Param("status") Boolean status, @Param("token") String token);
 }

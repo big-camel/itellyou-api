@@ -2,11 +2,10 @@ package com.itellyou.api.controller.user;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.ali.SmsLogModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.ali.SmsLogService;
-import com.itellyou.service.user.UserInfoService;
+import com.itellyou.service.thirdparty.SmsLogService;
 import com.itellyou.service.user.UserRegisterService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.IPUtils;
@@ -39,7 +38,7 @@ public class RegisterController {
     }
 
     @PostMapping("/user/register")
-    public Result register(HttpServletRequest request, @Validated(UserInfoModel.RegisterAction.class) @RequestBody UserInfoModel userInfoModel, @MultiRequestBody @NotBlank String code){
+    public ResultModel register(HttpServletRequest request, @Validated(UserInfoModel.RegisterAction.class) @RequestBody UserInfoModel userInfoModel, @MultiRequestBody @NotBlank String code){
         String mobile = userInfoModel.getMobile();
         List<SmsLogModel> listLog = smsLogService.searchByTemplateAndMobile("register",mobile);
         SmsLogModel checkLog = null;
@@ -51,30 +50,30 @@ public class RegisterController {
             }
         }
         if(checkLog == null){
-            return new Result(1001,"验证码错误或已过期");
+            return new ResultModel(1001,"验证码错误或已过期");
         }
 
         int resultRows = smsLogService.updateStatus(3,checkLog.getId());
         if(resultRows == 0){
-            return new Result(0,"更新验证码状态失败");
+            return new ResultModel(0,"更新验证码状态失败");
         }
 
         UserInfoModel user = userSearchService.findByMobile(mobile);
         if(user != null){
-            return new Result(1002,"手机号已被注册",mobile);
+            return new ResultModel(1002,"手机号已被注册",mobile);
         }
         String name = userInfoModel.getName().trim();
-        if(!StringUtils.isNotEmpty(name)) return new Result(1003,"昵称格式不正确",name);
+        if(!StringUtils.isNotEmpty(name)) return new ResultModel(1003,"昵称格式不正确",name);
         user = userSearchService.findByName(name);
         if(user != null){
-            return new Result(1003,"昵称不可用",name);
+            return new ResultModel(1003,"昵称不可用",name);
         }
 
         String clientIp = IPUtils.getClientIp(request);
         Long userId = userRegisterService.mobile(name,userInfoModel.getLoginPassword(),mobile,clientIp);
         if(userId != null && userId > 0){
-            return new Result(userId);
+            return new ResultModel(userId);
         }
-        return new Result(1004,"注册用户失败，请重试");
+        return new ResultModel(1004,"注册用户失败，请重试");
     }
 }

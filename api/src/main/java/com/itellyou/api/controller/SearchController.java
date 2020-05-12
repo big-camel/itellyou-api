@@ -1,27 +1,27 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.article.ArticleDetailModel;
+import com.itellyou.model.column.ColumnDetailModel;
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.article.ArticleIndexModel;
 import com.itellyou.model.column.ColumnIndexModel;
 import com.itellyou.model.question.QuestionAnswerIndexModel;
 import com.itellyou.model.question.QuestionIndexModel;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagIndexModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserIndexModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.article.ArticleIndexService;
-import com.itellyou.service.column.ColumnIndexService;
-import com.itellyou.service.question.QuestionAnswerIndexService;
-import com.itellyou.service.question.QuestionIndexService;
+import com.itellyou.service.common.impl.IndexFactory;
+import com.itellyou.service.common.IndexService;
 import com.itellyou.service.sys.EntityService;
-import com.itellyou.service.tag.TagIndexService;
-import com.itellyou.service.user.UserIndexService;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.ansj.AnsjAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -39,22 +39,22 @@ import java.util.*;
 @RestController
 public class SearchController {
 
-    private final QuestionIndexService questionIndexService;
-    private final QuestionAnswerIndexService answerIndexService;
-    private final ArticleIndexService articleIndexService;
-    private final ColumnIndexService columnIndexService;
-    private final TagIndexService tagIndexService;
-    private final UserIndexService userIndexService;
+    private final IndexService<QuestionDetailModel> questionIndexService;
+    private final IndexService<QuestionAnswerDetailModel> answerIndexService;
+    private final IndexService<ArticleDetailModel> articleIndexService;
+    private final IndexService<ColumnDetailModel> columnIndexService;
+    private final IndexService<TagDetailModel> tagIndexService;
+    private final IndexService<UserInfoModel> userIndexService;
     private final EntityService entityService;
 
     @Autowired
-    public SearchController(QuestionIndexService questionIndexService, QuestionAnswerIndexService answerIndexService, ArticleIndexService articleIndexService, ColumnIndexService columnIndexService, TagIndexService tagIndexService, UserIndexService userIndexService, EntityService entityService){
-        this.questionIndexService = questionIndexService;
-        this.answerIndexService = answerIndexService;
-        this.articleIndexService = articleIndexService;
-        this.columnIndexService = columnIndexService;
-        this.tagIndexService = tagIndexService;
-        this.userIndexService = userIndexService;
+    public SearchController( EntityService entityService){
+        this.questionIndexService = IndexFactory.create(EntityType.QUESTION);
+        this.answerIndexService = IndexFactory.create(EntityType.ANSWER);
+        this.articleIndexService = IndexFactory.create(EntityType.ARTICLE);
+        this.columnIndexService = IndexFactory.create(EntityType.COLUMN);
+        this.tagIndexService = IndexFactory.create(EntityType.TAG);
+        this.userIndexService = IndexFactory.create(EntityType.USER);
         this.entityService = entityService;
     }
 
@@ -65,14 +65,14 @@ public class SearchController {
     }
 
     @GetMapping("/search")
-    public Result search(UserInfoModel userModel , @RequestParam String q, @RequestParam(required = false) String t, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel search(UserInfoModel userModel , @RequestParam String q, @RequestParam(required = false) String t, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         try {
             if(offset == null) offset = 0;
             if(limit == null) limit = 10;
 
             Long searchId = userModel == null ? null : userModel.getId();
 
-            if(!StringUtils.isNotEmpty(q)) return new Result(0,"q is not Empty");
+            if(!StringUtils.isNotEmpty(q)) return new ResultModel(0,"q is not Empty");
             String[] fields = {"name","title", "content"};
             IndexSearcher searcher;
             if(StringUtils.isNotEmpty(t)){
@@ -96,7 +96,7 @@ public class SearchController {
                         searcher = new IndexSearcher(userIndexService.getIndexReader());
                         break;
                     default:
-                        return new Result(0,"Error Type");
+                        return new ResultModel(0,"Error Type");
                 }
             }else{
                 MultiReader multiReader = new MultiReader(questionIndexService.getIndexReader(),
@@ -132,7 +132,7 @@ public class SearchController {
                 if(!StringUtils.isNotEmpty(type)) type = "";
                 switch (EntityType.valueOf(type.toUpperCase())){
                     case QUESTION:
-                        QuestionIndexModel questionIndexModel = questionIndexService.getModel(document);
+                        QuestionIndexModel questionIndexModel = (QuestionIndexModel)questionIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.QUESTION)){
                             idsMap.get(EntityType.QUESTION).add(questionIndexModel.getId());
                         }else{
@@ -144,7 +144,7 @@ public class SearchController {
                         }});
                         break;
                     case ANSWER:
-                        QuestionAnswerIndexModel answerIndexModel = answerIndexService.getModel(document);
+                        QuestionAnswerIndexModel answerIndexModel = (QuestionAnswerIndexModel) answerIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.ANSWER)){
                             idsMap.get(EntityType.ANSWER).add(answerIndexModel.getId());
                         }else{
@@ -156,7 +156,7 @@ public class SearchController {
                         }});
                         break;
                     case ARTICLE:
-                        ArticleIndexModel articleIndexModel = articleIndexService.getModel(document);
+                        ArticleIndexModel articleIndexModel = (ArticleIndexModel) articleIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.ARTICLE)){
                             idsMap.get(EntityType.ARTICLE).add(articleIndexModel.getId());
                         }else{
@@ -168,7 +168,7 @@ public class SearchController {
                         }});
                         break;
                     case COLUMN:
-                        ColumnIndexModel columnIndexModel = columnIndexService.getModel(document);
+                        ColumnIndexModel columnIndexModel = (ColumnIndexModel) columnIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.COLUMN)){
                             idsMap.get(EntityType.COLUMN).add(columnIndexModel.getId());
                         }else{
@@ -180,7 +180,7 @@ public class SearchController {
                         }});
                         break;
                     case TAG:
-                        TagIndexModel tagIndexModel = tagIndexService.getModel(document);
+                        TagIndexModel tagIndexModel = (TagIndexModel) tagIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.TAG)){
                             idsMap.get(EntityType.TAG).add(tagIndexModel.getId());
                         }else{
@@ -192,7 +192,7 @@ public class SearchController {
                         }});
                         break;
                     case USER:
-                        UserIndexModel userIndexModel = userIndexService.getModel(document);
+                        UserIndexModel userIndexModel = (UserIndexModel) userIndexService.getModel(document);
                         if(idsMap.containsKey(EntityType.USER)){
                             idsMap.get(EntityType.USER).add(userIndexModel.getId());
                         }else{
@@ -227,9 +227,9 @@ public class SearchController {
             Map<String,Object> extendMap = new HashMap<>();
             extendMap.put("hits",topDocs.totalHits.value);
             pageModel.setExtend(extendMap);
-            return new Result(pageModel);
+            return new ResultModel(pageModel);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 }

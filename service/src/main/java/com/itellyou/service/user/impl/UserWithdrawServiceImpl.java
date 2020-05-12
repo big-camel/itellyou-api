@@ -3,12 +3,19 @@ package com.itellyou.service.user.impl;
 import com.alipay.api.response.AlipayFundTransUniTransferResponse;
 import com.itellyou.dao.user.UserWithdrawConfigDao;
 import com.itellyou.dao.user.UserWithdrawDao;
+import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.event.OperationalEvent;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.thirdparty.ThirdAccountModel;
+import com.itellyou.model.thirdparty.ThirdAccountType;
 import com.itellyou.model.user.*;
-import com.itellyou.service.ali.AlipayService;
-import com.itellyou.service.uid.UidGenerator;
+import com.itellyou.service.event.OperationalPublisher;
+import com.itellyou.service.sys.uid.UidGenerator;
+import com.itellyou.service.thirdparty.AlipayService;
+import com.itellyou.service.thirdparty.ThirdAccountService;
 import com.itellyou.service.user.UserBankService;
-import com.itellyou.service.user.UserThirdAccountService;
 import com.itellyou.service.user.UserWithdrawService;
 import com.itellyou.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -27,15 +34,17 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
     private final UserBankService bankService;
     private final UserWithdrawConfigDao configDao;
     private final AlipayService alipayService;
-    private final UserThirdAccountService accountService;
+    private final ThirdAccountService accountService;
+    private final OperationalPublisher operationalPublisher;
 
-    public UserWithdrawServiceImpl(UidGenerator cachedUidGenerator, UserWithdrawDao withdrawDao, UserBankService bankService, UserWithdrawConfigDao configDao, AlipayService alipayService, UserThirdAccountService accountService) {
+    public UserWithdrawServiceImpl(UidGenerator cachedUidGenerator, UserWithdrawDao withdrawDao, UserBankService bankService, UserWithdrawConfigDao configDao, AlipayService alipayService, ThirdAccountService accountService, OperationalPublisher operationalPublisher) {
         this.cachedUidGenerator = cachedUidGenerator;
         this.withdrawDao = withdrawDao;
         this.bankService = bankService;
         this.configDao = configDao;
         this.alipayService = alipayService;
         this.accountService = accountService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
@@ -82,8 +91,13 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
                 UserWithdrawModel withdrawModel = getDetail(id);
                 BigDecimal bigAmount = new BigDecimal(withdrawModel.getAmount());
                 bigAmount.add(new BigDecimal(withdrawModel.getCommissionCharge()));
-                UserBankLogModel logModel = bankService.update(bigAmount.doubleValue(), UserBankType.CASH,withdrawModel.getCreatedUserId(),  "提现失败，资金返还",UserBankLogType.WITHDRAW,id,updatedIp);
+                UserBankLogModel logModel = bankService.update(bigAmount.doubleValue(), UserBankType.CASH,
+                        EntityAction.WITHDRAW, EntityType.WITHDRAW,id,withdrawModel.getCreatedUserId(),  "提现失败，资金返还",updatedIp);
                 if(logModel == null) throw new Exception("更新余额失败");
+            }else if (result == 1 && status.equals(UserPaymentStatus.SUCCEED)){
+                OperationalModel operationalModel = new OperationalModel(EntityAction.WITHDRAW, EntityType.WITHDRAW,
+                        updatedUserId,updatedUserId,updatedUserId,DateUtils.getTimestamp(), updatedIp);
+                operationalPublisher.publish(new OperationalEvent(this,operationalModel));
             }
             return result;
         }catch (Exception e){
@@ -124,15 +138,16 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
             withdrawModel.setUpdatedUserId(userId);
             int result = this.insert(withdrawModel);
             if(result != 1) throw new Exception("提现失败");
-            UserBankLogModel logModel = bankService.update(-bigAmount.doubleValue(), UserBankType.CASH,userId,  "提现到支付宝",UserBankLogType.WITHDRAW,id,ip);
+            UserBankLogModel logModel = bankService.update(-bigAmount.doubleValue(), UserBankType.CASH,EntityAction.WITHDRAW,EntityType.WITHDRAW,id,userId,  "提现到支付宝",ip);
             if(logModel == null) throw new Exception("扣除余额失败");
-            UserBankLogModel feeLog = bankService.update(-commissionCharge.doubleValue(), UserBankType.CASH,userId,  "提现手续费",UserBankLogType.FEE,id,ip);
+            UserBankLogModel feeLog = bankService.update(-commissionCharge.doubleValue(), UserBankType.CASH,EntityAction.WITHDRAW,EntityType.FEE,id,userId,  "提现手续费",ip);
             if(feeLog == null) throw new Exception("手续费扣除失败");
 
             if(amount <= configModel.getAuto()){
                 result = this.doWithdraw(id,userId,ip);
                 if(result != 1) throw new Exception("提现失败");
             }
+
             return logModel;
         }catch (Exception e){
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -144,10 +159,10 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
     public int doWithdraw(String withdrawId, Long updatedUserId, Long updatedIp) throws Exception {
         UserWithdrawModel withdrawModel = getDetail(withdrawId);
         if(withdrawModel == null) throw new Exception("提现记录不存在");
-        Map<UserThirdAccountType,UserThirdAccountModel> accountModelMap = accountService.searchByUserId(withdrawModel.getCreatedUserId());
-        if(accountModelMap == null || !accountModelMap.containsKey(UserThirdAccountType.ALIPAY)) throw new Exception("支付宝账户未绑定");
+        Map<String, ThirdAccountModel> accountModelMap = accountService.searchByUserId(withdrawModel.getCreatedUserId());
+        if(accountModelMap == null || !accountModelMap.containsKey(ThirdAccountType.ALIPAY.getName())) throw new Exception("支付宝账户未绑定");
         if(withdrawModel.getStatus().equals(UserPaymentStatus.DEFAULT)){
-            AlipayFundTransUniTransferResponse response = alipayService.transfer(withdrawModel.getId(),accountModelMap.get(UserThirdAccountType.ALIPAY).getKey(),"支付宝提现",withdrawModel.getAmount());
+            AlipayFundTransUniTransferResponse response = alipayService.transfer(withdrawModel.getId(),accountModelMap.get(ThirdAccountType.ALIPAY.getName()).getKey(),"支付宝提现",withdrawModel.getAmount());
             return updateStatus(withdrawId,response.isSuccess() ? UserPaymentStatus.SUCCEED : UserPaymentStatus.FAILED,updatedUserId,DateUtils.getTimestamp(),updatedIp);
         }
         throw new Exception("订单状态不正确");

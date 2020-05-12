@@ -6,6 +6,7 @@
     </sql>
     <sql id="columns">
         ${alias}amount ${prefix}amount,
+        ${alias}action ${prefix}action,
         ${alias}type ${prefix}type,
         ${alias}balance ${prefix}balance,
         ${alias}remark ${prefix}remark,
@@ -16,8 +17,8 @@
         ${alias}created_ip ${prefix}created_ip
     </sql>
     <insert id="insert" parameterType="UserLoginLogModel">
-        insert into user_bank_log(amount,type,balance,remark,data_type,data_key,created_time,created_user_id,created_ip) values (
-            #{amount},#{type},#{balance},#{remark},#{dataType},#{dataKey},#{createdTime},#{createdUserId},#{createdIp}
+        insert into user_bank_log(amount,action,type,balance,remark,data_type,data_key,created_time,created_user_id,created_ip) values (
+            #{amount},#{action},#{type},#{balance},#{remark},#{dataType},#{dataKey},#{createdTime},#{createdUserId},#{createdIp}
         )
     </insert>
     <sql id="where">
@@ -34,11 +35,17 @@
             <if test="id != null">
                 and ${alias}id = #{id}
             </if>
+            <if test="action != null">
+                and ${alias}action = #{action}
+            </if>
             <if test="type != null">
                 and ${alias}type = #{type}
             </if>
             <if test="dataType != null">
                 and ${alias}data_type = #{dataType}
+            </if>
+            <if test="dataKey != null">
+                and ${alias}data_key = #{dataKey}
             </if>
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
@@ -81,7 +88,13 @@
         </if>
     </select>
     <select id="count" resultType="Integer">
-        select count(id) from user_bank_log
+        select IFNULL(count(id),0) from user_bank_log
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="total" resultType="double">
+        select IFNULL(sum(amount),0) from user_bank_log
         <include refid="where">
             <property name="alias" value=""/>
         </include>

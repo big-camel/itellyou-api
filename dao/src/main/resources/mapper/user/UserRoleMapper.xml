@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserRoleDao">
+    <sql id="columns">
+        ${alias}user_id ${prefix}user_id,
+        ${alias}role_id ${prefix}role_id,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert">
+        insert into user_role (user_id,role_id,created_user_id,created_time,created_ip) values
+        (#{userId},#{roleId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="delete">
+        delete from user_role where user_id=#{userId} and role_id=#{roleId}
+    </delete>
+    <delete id="deleteByRoleId">
+        delete from user_role where role_id=#{roleId}
+    </delete>
+    <select id="findRoleByUserId" resultType="SysRoleModel">
+        select <include refid="com.itellyou.dao.sys.SysRoleDao.columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include> from sys_role where id in (select role_id from user_role where user_id=#{userId}) and disabled=0
+    </select>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}user_id = #{userId}
+            </if>
+            <if test="roleId != null">
+                and ${alias}role_id = #{roleId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="UserRoleModel">
+        select * from user_role <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from user_role <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

@@ -3,10 +3,7 @@ package com.itellyou.model.question;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.user.UserDetailModel;
-import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpLongSerializer;
-import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.*;
 
 @Data
@@ -43,9 +40,9 @@ public class QuestionAnswerDetailModel extends QuestionAnswerModel {
     @JSONField(label = "base")
     private boolean allowOppose;
     @JSONField(label = "base")
-    private boolean allowReply=true;
+    private boolean allowReply=false;
     @JSONField(label = "base")
-    private boolean allowEdit=true;
+    private boolean allowEdit=false;
     @JSONField(label = "base")
     private boolean allowAdopt;
     @JSONField(label = "base")

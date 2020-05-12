@@ -1,8 +1,9 @@
 package com.itellyou.model.upload;
 
+import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.util.BaseEnum;
 
-public enum UploadSource implements BaseEnum<UploadSource,Integer> {
+public enum UploadSource implements BaseEnum<UploadSource,Integer> , CacheEntity {
     DEFAULT(0,"default"),
     AVATAR(1,"avatar"),
     ARTICLE(2,"article"),
@@ -42,5 +43,10 @@ public enum UploadSource implements BaseEnum<UploadSource,Integer> {
             default:
                 return DEFAULT;
         }
+    }
+
+    @Override
+    public String cacheKey() {
+        return name;
     }
 }

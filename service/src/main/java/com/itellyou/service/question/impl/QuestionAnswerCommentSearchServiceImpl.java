@@ -6,12 +6,15 @@ import com.itellyou.model.question.QuestionAnswerCommentDetailModel;
 import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.service.question.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "question_answer_comment")
 @Service
 public class QuestionAnswerCommentSearchServiceImpl implements QuestionAnswerCommentSearchService {
 
@@ -23,6 +26,7 @@ public class QuestionAnswerCommentSearchServiceImpl implements QuestionAnswerCom
     }
 
     @Override
+    @Cacheable
     public QuestionAnswerCommentModel findById(Long id) {
         return commentDao.findById(id);
     }

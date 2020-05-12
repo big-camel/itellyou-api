@@ -1,6 +1,6 @@
 package com.itellyou.api.controller.tag;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.service.tag.TagVersionService;
 import org.springframework.validation.annotation.Validated;
@@ -26,19 +26,19 @@ public class TagVersionController {
     }
 
     @GetMapping("")
-    public Result list(@PathVariable @NotNull Long tagId){
+    public ResultModel list(@PathVariable @NotNull Long tagId){
 
         List<TagVersionModel> listVersion = versionService.searchByTagId(tagId);
-        return new Result(listVersion);
+        return new ResultModel(listVersion);
     }
 
     @GetMapping("/{versionId:\\d+}")
-    public Result find(@PathVariable @NotNull Long versionId,@PathVariable @NotNull Long tagId){
+    public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long tagId){
         TagVersionModel versionModel = versionService.findByTagIdAndId(versionId,tagId);
         if(versionModel == null){
-            return new Result(0,"错误的编号");
+            return new ResultModel(0,"错误的编号");
         }
-        return new Result(versionModel);
+        return new ResultModel(versionModel);
     }
 
     private String getVersionHtml(TagVersionModel versionModel){
@@ -48,21 +48,21 @@ public class TagVersionController {
     }
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
-    public Result compare(@PathVariable @NotNull Long current,@PathVariable @NotNull Long target,@PathVariable @NotNull Long tagId){
+    public ResultModel compare(@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long tagId){
         TagVersionModel currentVersion = versionService.findByTagIdAndId(current,tagId);
         if(currentVersion == null){
-            return new Result(0,"错误的当前编号");
+            return new ResultModel(0,"错误的当前编号");
         }
 
         TagVersionModel targetVersion = versionService.findByTagIdAndId(target,tagId);
         if(targetVersion == null){
-            return new Result(0,"错误的目标编号");
+            return new ResultModel(0,"错误的目标编号");
         }
 
         Map<String,String> htmlData = new HashMap<>();
         htmlData.put("current",getVersionHtml(currentVersion));
         htmlData.put("target",getVersionHtml(targetVersion));
 
-        return new Result(htmlData);
+        return new ResultModel(htmlData);
     }
 }

@@ -2,9 +2,10 @@ package com.itellyou.service.upload.impl;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.itellyou.model.ali.AliConfigModel;
+import com.itellyou.model.thirdparty.AliConfigModel;
 import com.itellyou.model.upload.*;
-import com.itellyou.service.ali.AliConfigService;
+import com.itellyou.service.common.ConfigDefaultService;
+import com.itellyou.service.thirdparty.impl.AliConfigDefaultServiceImpl;
 import com.itellyou.service.upload.UploadConfigService;
 import com.itellyou.service.upload.UploadFileConfigService;
 import com.itellyou.service.upload.UploadFileService;
@@ -17,19 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.UUID;
 
 @Service
 public class UploadOssServiceImpl implements UploadOssService {
 
     private final UploadConfigService configService;
-    private final AliConfigService aliConfigService;
+    private final ConfigDefaultService<AliConfigModel> aliConfigService;
     private final UploadFileConfigService fileConfigService;
     private final UploadFileService fileService;
 
     @Autowired
-    public UploadOssServiceImpl(UploadConfigService configService,AliConfigService aliConfigService,UploadFileConfigService fileConfigService,UploadFileService fileService){
+    public UploadOssServiceImpl(UploadConfigService configService, AliConfigDefaultServiceImpl aliConfigService, UploadFileConfigService fileConfigService, UploadFileService fileService){
         this.configService = configService;
         this.aliConfigService = aliConfigService;
         this.fileConfigService = fileConfigService;
@@ -39,7 +39,7 @@ public class UploadOssServiceImpl implements UploadOssService {
     @Override
     @Transactional
     public UploadFileModel uploadFile(UploadType type,Long userId, String name, Long size, InputStream fileStream, UploadSource source, String ip) throws Exception {
-        AliConfigModel aliConfigModel = aliConfigService.get();
+        AliConfigModel aliConfigModel = aliConfigService.getDefault();
         if(aliConfigModel == null) throw new Exception("未配置aliyun参数");
         UploadConfigModel configModel = configService.get(type);
         if(configModel == null) throw new Exception("错误的上传配置参数");

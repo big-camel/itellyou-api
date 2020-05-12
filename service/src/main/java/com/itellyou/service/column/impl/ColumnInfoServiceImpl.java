@@ -3,38 +3,45 @@ package com.itellyou.service.column.impl;
 import com.itellyou.dao.column.ColumnInfoDao;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.column.ColumnMemberModel;
-import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.ColumnEvent;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
-import com.itellyou.service.column.ColumnIndexService;
 import com.itellyou.service.column.ColumnInfoService;
 import com.itellyou.service.column.ColumnMemberService;
 import com.itellyou.service.column.ColumnSearchService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.sys.SysPathService;
-import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+@CacheConfig(cacheNames = "column")
 @Service
 public class ColumnInfoServiceImpl implements ColumnInfoService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final ColumnInfoDao columnInfoDao;
     private final ColumnSearchService searchService;
-    private final ColumnIndexService indexService;
     private final ColumnMemberService memberService;
     private final UserInfoService userService;
     private final SysPathService pathService;
+    private final OperationalPublisher operationalPublisher;
 
-    public ColumnInfoServiceImpl(ColumnInfoDao columnInfoDao, ColumnSearchService searchService, ColumnIndexService indexService, ColumnMemberService memberService, UserInfoService userService, SysPathService pathService){
+    public ColumnInfoServiceImpl(ColumnInfoDao columnInfoDao, ColumnSearchService searchService, ColumnMemberService memberService, UserInfoService userService, SysPathService pathService, OperationalPublisher operationalPublisher){
         this.columnInfoDao = columnInfoDao;
         this.searchService = searchService;
-        this.indexService = indexService;
         this.memberService = memberService;
         this.userService = userService;
         this.pathService = pathService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
@@ -60,44 +67,53 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
             }
 
             if(infoModel.isReviewed()){
-                indexService.updateIndex(searchService.getDetail(infoModel.getId()));
                 result = userService.updateColumnCount(infoModel.getCreatedUserId(),1);
                 if(result != 1) throw new Exception("更新用户专栏数量失败");
+
+                operationalPublisher.publish(new ColumnEvent(this, EntityAction.PUBLISH,
+                        infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getCreatedUserId(), DateUtils.getTimestamp(),infoModel.getCreatedIp()));
             }
             return result;
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
     }
 
     @Override
+    @CacheEvict(key = "#columnId")
     public int insertTag(Long columnId, Long... tags) {
         return columnInfoDao.insertTag(columnId,tags);
     }
 
     @Override
+    @CacheEvict
     public int deleteTag(Long columnId) {
         return columnInfoDao.deleteTag(columnId);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateArticles(Long id, Integer value) {
         return columnInfoDao.updateArticles(id,value);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateStars(Long id, Integer value) {
         return columnInfoDao.updateStars(id,value);
     }
 
     @Override
+    @CacheEvict(key = "#model.id")
     public int update(ColumnInfoModel model) {
         return columnInfoDao.update(model);
     }
 
     @Override
     @Transactional
+    @CacheEvict(key = "#model.id")
     public int update(ColumnInfoModel model, String path) throws Exception {
         try{
             path = path.toLowerCase();
@@ -111,8 +127,13 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
             if(result != 1) throw new Exception("更新路径失败");
             result = update(model);
             if(result != 1) throw new Exception("更新专栏失败");
+
+            operationalPublisher.publish(new ColumnEvent(this, EntityAction.UPDATE,
+                    model.getId(),model.getCreatedUserId(),model.getUpdatedUserId(), DateUtils.getTimestamp(),model.getUpdatedIp()));
+
             return result;
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
@@ -120,21 +141,24 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
 
     @Override
     @Transactional
-    public int updateDeleted(boolean deleted, Long id,Long userId) {
+    @CacheEvict(key = "#id")
+    public int updateDeleted(boolean deleted, Long id,Long userId,Long ip) {
         try {
             ColumnInfoModel columnInfoModel = searchService.findById(id);
             if(columnInfoModel == null) throw new Exception("未找到专栏");
             if(!columnInfoModel.getCreatedUserId().equals(userId)) throw new Exception("无权限");
             int result = columnInfoDao.updateDeleted(deleted,id);
             if(result != 1)throw new Exception("删除失败");
-            if(deleted){
-                indexService.delete(id);
-            }else{
-                indexService.updateIndex(id);
-            }
-            userService.updateColumnCount(userId,deleted ? -1 : 1);
+
+            result = userService.updateColumnCount(userId,deleted ? -1 : 1);
+            if(result != 1)throw new Exception("更新用户专栏数量失败");
+
+            operationalPublisher.publish(new ColumnEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,
+                    id,columnInfoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+
             return result;
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }

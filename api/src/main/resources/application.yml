@@ -11,6 +11,17 @@ spring:
     multipart:
       max-file-size: -1
       max-request-size: -1
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+    timeout: 300
 logging:
   file:
     name: ../itellyou-logs/api.log

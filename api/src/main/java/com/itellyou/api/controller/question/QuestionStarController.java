@@ -1,13 +1,15 @@
 package com.itellyou.api.controller.question;
 
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.question.QuestionStarDetailModel;
 import com.itellyou.model.question.QuestionStarModel;
+import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.question.*;
-import com.itellyou.service.question.QuestionStarService;
+import com.itellyou.service.common.StarService;
+import com.itellyou.service.common.impl.StarFactory;
+import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -24,52 +26,54 @@ import java.util.Map;
 @RequestMapping("/question")
 public class QuestionStarController {
 
-    private final QuestionStarService starService;
+    private final StarService<QuestionStarModel> starService;
     private final QuestionSearchService questionSearchService;
 
-    public QuestionStarController(QuestionStarService starService, QuestionSearchService questionSearchService){
-        this.starService = starService;
+    public QuestionStarController(StarFactory starFactory, QuestionSearchService questionSearchService){
+        this.starService = starFactory.create(EntityType.QUESTION);
         this.questionSearchService = questionSearchService;
     }
 
     @GetMapping("/star")
-    public Result star(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel star(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         Map<String,String> order = new HashMap<>();
         order.put("created_time","desc");
-        PageModel<QuestionStarDetailModel> pageData = starService.page(null,userModel.getId(),null,null,null,order,offset,limit);
-        return new Result(pageData);
+        PageModel<QuestionStarDetailModel> pageData = (PageModel<QuestionStarDetailModel>) starService.page(null,userModel.getId(),null,null,null,order,offset,limit);
+        return new ResultModel(pageData);
     }
 
     @PostMapping("/star")
-    public Result star(HttpServletRequest request,UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel star(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         QuestionInfoModel infoModel = questionSearchService.findById(id);
-        if(infoModel == null) return new Result(404,"错误的id");
-        if(userModel.isDisabled()) return new Result(0,"错误的用户状态");
+        if(infoModel == null) return new ResultModel(404,"错误的id");
+        if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
         Long ip = IPUtils.toLong(clientIp);
         QuestionStarModel starModel = new QuestionStarModel(id, DateUtils.getTimestamp(),userModel.getId(),ip);
         try{
             int result = starService.insert(starModel);
             if(result != 1) throw new Exception("关注失败");
-            return new Result(infoModel.getStarCount() + 1);
+            return new ResultModel(infoModel.getStarCount() + 1);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @DeleteMapping("/star")
-    public Result delete(UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
-        if(userModel == null) return new Result(401,"未登陆");
-        if(userModel.isDisabled()) return new Result(0,"错误的用户状态");
+    public ResultModel delete(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody @NotNull Long id){
+        if(userModel == null) return new ResultModel(401,"未登陆");
+        if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         try{
-            int result = starService.delete(id,userModel.getId());
+            String clientIp = IPUtils.getClientIp(request);
+            Long ip = IPUtils.toLong(clientIp);
+            int result = starService.delete(id,userModel.getId(),ip);
             if(result != 1) throw new Exception("取消关注失败");
             QuestionInfoModel infoModel = questionSearchService.findById(id);
-            return new Result(infoModel.getStarCount());
+            return new ResultModel(infoModel.getStarCount());
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.itellyou.api.handler;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
@@ -21,12 +21,12 @@ public class ResultMethodReturnValueHandler implements HandlerMethodReturnValueH
 
     @Override
     public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-        if(returnValue instanceof Result){
-            Result result = (Result)returnValue;
-            delegate.handleReturnValue(result.toResultJson(),returnType,mavContainer,webRequest);
+        if(returnValue instanceof ResultModel){
+            ResultModel resultModel = (ResultModel)returnValue;
+            delegate.handleReturnValue(resultModel.toResultJson(),returnType,mavContainer,webRequest);
         }else{
-            Result result = new Result(returnValue);
-            delegate.handleReturnValue(result,returnType,mavContainer,webRequest);
+            ResultModel resultModel = new ResultModel(returnValue);
+            delegate.handleReturnValue(resultModel,returnType,mavContainer,webRequest);
         }
     }
 }

@@ -2,7 +2,7 @@ package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
 
-public enum VoteType implements BaseEnum<VoteType,Integer> {
+public enum VoteType implements BaseEnum<VoteType,Integer> , CacheEntity {
     SUPPORT(1,"support"),
     OPPOSE(0,"oppose");
 
@@ -35,5 +35,10 @@ public enum VoteType implements BaseEnum<VoteType,Integer> {
             default:
                 return null;
         }
+    }
+
+    @Override
+    public String cacheKey() {
+        return name;
     }
 }

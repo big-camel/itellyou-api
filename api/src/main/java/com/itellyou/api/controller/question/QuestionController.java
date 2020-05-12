@@ -1,17 +1,15 @@
 package com.itellyou.api.controller.question;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.model.view.ViewInfoModel;
 import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.BrowserUtils;
-import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.OsUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -43,41 +41,41 @@ public class QuestionController {
     }
 
     @GetMapping("/{id:\\d+}/view")
-    public Result view(HttpServletRequest request, UserInfoModel userInfo,@PathVariable Long id){
+    public ResultModel view(HttpServletRequest request, UserInfoModel userInfo, @PathVariable Long id){
         QuestionDetailModel detailModel = questionSearchService.getDetail(id);
         if(detailModel == null){
-            return new Result(404,"错误的编号");
+            return new ResultModel(404,"错误的编号");
         }
         String ip = IPUtils.getClientIp(request);
         Long longIp = IPUtils.toLong(ip);
         String os = OsUtils.getClientOs(request);
         String browser = BrowserUtils.getClientBrowser(request);
         if(browser == "Robot/Spider"){
-            return new Result(0,"Robot/Spider Error");
+            return new ResultModel(0,"Robot/Spider Error");
         }
         Long userId = userInfo == null ? 0 : userInfo.getId();
         int result = questionService.updateView(userId,id,longIp,os,browser);
-        if(result == 1) return new Result();
-        return new Result(0,"更新失败");
+        if(result == 1) return new ResultModel();
+        return new ResultModel(0,"更新失败");
     }
 
     @PostMapping("/{id:\\d+}/adopt")
-    public Result adopt(HttpServletRequest request, UserInfoModel userModel,@PathVariable Long id,@MultiRequestBody(value = "answer_id") @NotNull Long answerId){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel adopt(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @MultiRequestBody(value = "answer_id") @NotNull Long answerId){
+        if(userModel == null) return new ResultModel(401,"未登陆");
 
         try{
             QuestionDetailModel detailModel = answerService.adopt(answerId,userModel.getId(),IPUtils.getClientIp(request));
-            if(detailModel == null ) return new Result(0,"采纳失败");
-            return new Result(detailModel);
+            if(detailModel == null ) return new ResultModel(0,"采纳失败");
+            return new ResultModel(detailModel);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @GetMapping("/{id:\\d+}/user_draft")
-    public Result find(UserInfoModel userModel, @PathVariable Long id){
+    public ResultModel find(UserInfoModel userModel, @PathVariable Long id){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
 
         QuestionInfoModel infoModel = questionSearchService.findById(id);
@@ -89,28 +87,28 @@ public class QuestionController {
             userAnswerMap.put("adopted",infoModel.isAdopted());
             userAnswerMap.put("id",infoModel.getId());
             userAnswerMap.put("draft",result);
-            return new Result(userAnswerMap);
+            return new ResultModel(userAnswerMap);
         }
-        return new Result(404,"Not find");
+        return new ResultModel(404,"Not find");
     }
 
     @DeleteMapping("/{id:\\d+}/user_draft")
-    public Result deleteDraft(UserInfoModel userModel, @PathVariable Long id){
+    public ResultModel deleteDraft(UserInfoModel userModel, @PathVariable Long id){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
         int result = draftService.delete(userModel.getId(), EntityType.QUESTION,id);
-        if(result != 1) return new Result(0,"删除失败");
-        return new Result();
+        if(result != 1) return new ResultModel(0,"删除失败");
+        return new ResultModel();
     }
 
     @DeleteMapping("{id:\\d+}")
-    public Result delete(UserInfoModel userModel, @PathVariable Long id){
-        if(userModel == null) return new Result(401,"未登陆");
-        int result = questionService.updateDeleted(true,id,userModel.getId());
+    public ResultModel delete(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id){
+        if(userModel == null) return new ResultModel(401,"未登陆");
+        int result = questionService.updateDeleted(true,id,userModel.getId(),IPUtils.toLong(IPUtils.getClientIp(request)));
         if(result == 1) {
-            return new Result();
+            return new ResultModel();
         }
-        return new Result(0,"删除失败");
+        return new ResultModel(0,"删除失败");
     }
 }

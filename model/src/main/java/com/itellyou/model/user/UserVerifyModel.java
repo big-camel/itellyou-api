@@ -2,7 +2,9 @@ package com.itellyou.model.user;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpLongSerializer;
+import com.itellyou.util.serialize.IpDeserializer;
+import com.itellyou.util.serialize.IpSerializer;
+import com.itellyou.util.serialize.TimestampDeserializer;
 import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,9 +19,9 @@ public class UserVerifyModel {
     private String key;
     @JSONField(label = "base")
     private boolean isDisabled;
-    @JSONField(label = "base" , serializeUsing = TimestampSerializer.class)
+    @JSONField(label = "base" , serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long createdTime;
     private Long createdUserId=0l;
-    @JSONField(serializeUsing = IpLongSerializer.class)
+    @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp;
 }

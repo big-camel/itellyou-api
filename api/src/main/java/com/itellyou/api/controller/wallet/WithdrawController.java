@@ -1,6 +1,6 @@
 package com.itellyou.api.controller.wallet;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.user.UserWithdrawConfigService;
@@ -28,28 +28,28 @@ public class WithdrawController {
     }
 
     @PostMapping("")
-    public Result withdraw(HttpServletRequest request, @MultiRequestBody double amount, UserInfoModel userModel){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel withdraw(HttpServletRequest request, @MultiRequestBody double amount, UserInfoModel userModel){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         try {
             UserBankLogModel logModel = withdrawService.doWithdraw(userModel.getId(),amount,IPUtils.toLong(IPUtils.getClientIp(request)));
             if(logModel == null) throw new Exception("提现失败");
-            return new Result(logModel);
+            return new ResultModel(logModel);
         }catch (Exception e){
-            return new Result(500,e.getLocalizedMessage());
+            return new ResultModel(500,e.getLocalizedMessage());
         }
     }
 
     @GetMapping("/config")
-    public Result config(UserInfoModel userModel){
-        if(userModel == null) return new Result(401,"未登陆");
-        return new Result(configService.getDefault());
+    public ResultModel config(UserInfoModel userModel){
+        if(userModel == null) return new ResultModel(401,"未登陆");
+        return new ResultModel(configService.getDefault());
     }
 
     @GetMapping("/log")
-    public Result log(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel log(UserInfoModel userModel, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         Map<String,String > order = new HashMap<>();
         order.put("created_time","desc");
-        return new Result(withdrawService.page(null,null,userModel.getId(),null,null,null,order,offset,limit));
+        return new ResultModel(withdrawService.page(null,null,userModel.getId(),null,null,null,order,offset,limit));
     }
 }

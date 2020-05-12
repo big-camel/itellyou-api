@@ -1,15 +1,12 @@
 package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.column.ColumnInfoModel;
-import com.itellyou.model.question.QuestionAnswerDetailModel;
-import com.itellyou.model.reward.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.EnumSerializer;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -21,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JSONDefault(includes = "base")
-public class ArticleDetailModel extends ArticleInfoModel {
+public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity {
     @JSONField(label = "draft,base")
     private String title = "";
     @JSONField(label = "draft,base")
@@ -56,4 +53,9 @@ public class ArticleDetailModel extends ArticleInfoModel {
     private boolean allowOppose;
     @JSONField(label = "base")
     private boolean allowStar;
+
+    @Override
+    public String cacheKey() {
+        return String.valueOf(this.getId());
+    }
 }

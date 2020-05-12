@@ -2,8 +2,7 @@ package com.itellyou.dao.question;
 
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
-import com.itellyou.model.reward.RewardType;
-import com.itellyou.model.tag.TagInfoModel;
+import com.itellyou.model.sys.RewardType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;

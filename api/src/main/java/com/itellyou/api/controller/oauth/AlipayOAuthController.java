@@ -4,11 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alipay.api.response.AlipaySystemOauthTokenResponse;
 import com.alipay.api.response.AlipayUserInfoShareResponse;
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.ali.SmsLogModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.thirdparty.*;
 import com.itellyou.model.user.*;
-import com.itellyou.service.ali.AlipayService;
-import com.itellyou.service.ali.SmsLogService;
+import com.itellyou.service.thirdparty.AlipayService;
+import com.itellyou.service.thirdparty.SmsLogService;
+import com.itellyou.service.thirdparty.ThirdAccountService;
+import com.itellyou.service.thirdparty.ThirdLogService;
 import com.itellyou.service.user.*;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
@@ -34,8 +36,8 @@ import java.util.Map;
 @RequestMapping("/oauth/alipay")
 public class AlipayOAuthController {
 
-    private final UserThirdAccountService accountService;
-    private final UserThirdLogService logService;
+    private final ThirdAccountService accountService;
+    private final ThirdLogService logService;
     private final UserLoginService loginService;
     private final AlipayService alipayService;
     private final SmsLogService smsLogService;
@@ -43,7 +45,7 @@ public class AlipayOAuthController {
     private final UserRegisterService userRegisterService;
     private final static String ALIPAY_USER_SESSION_KEY = "alipay_user";
 
-    public AlipayOAuthController(UserThirdAccountService accountService, UserThirdLogService logService, UserLoginService loginService, AlipayService alipayService, SmsLogService smsLogService, UserSearchService userSearchService, UserRegisterService userRegisterService) {
+    public AlipayOAuthController(ThirdAccountService accountService, ThirdLogService logService, UserLoginService loginService, AlipayService alipayService, SmsLogService smsLogService, UserSearchService userSearchService, UserRegisterService userRegisterService) {
         this.accountService = accountService;
         this.logService = logService;
         this.loginService = loginService;
@@ -54,38 +56,38 @@ public class AlipayOAuthController {
     }
 
     @GetMapping("")
-    public Result alipay(HttpServletRequest request,HttpServletResponse response,UserInfoModel userModel, @RequestParam String action){
+    public ResultModel alipay(HttpServletRequest request, HttpServletResponse response, UserInfoModel userModel, @RequestParam String action){
         try {
             String referer = request.getHeader("Referer");
-            UserThirdAccountAction accountAction = UserThirdAccountAction.valueOf(action.toUpperCase());
-            if(userModel == null && accountAction.equals(UserThirdAccountAction.BIND)){
-                return new Result(401,"未登录");
+            ThirdAccountAction accountAction = ThirdAccountAction.valueOf(action.toUpperCase());
+            if(userModel == null && accountAction.equals(ThirdAccountAction.BIND)){
+                return new ResultModel(401,"未登录");
             }
             Long userId = userModel == null ? 0l : userModel.getId();
             String url = accountService.oauthAlipayURL(userId,accountAction,referer,IPUtils.toLong(IPUtils.getClientIp(request)));
-            if(accountAction.equals(UserThirdAccountAction.LOGIN)){
+            if(accountAction.equals(ThirdAccountAction.LOGIN)){
                 response.sendRedirect(url);
             }
-            return new Result(url);
+            return new ResultModel(url);
         }catch (Exception e){
-            return new Result(0,e.getLocalizedMessage());
+            return new ResultModel(0,e.getLocalizedMessage());
         }
     }
 
     @GetMapping("/callback")
     public void callback(HttpServletRequest request, HttpServletResponse response, HttpSession session, @RequestParam(name = "auth_code") String authCode, @RequestParam String state) throws IOException {
         try {
-            UserThirdLogModel logModel = logService.find(state);
+            ThirdLogModel logModel = logService.find(state);
             if(logModel == null || logModel.isVerify()) {
                 throw new Exception("错误的 state");
             }
             int result = logService.updateVerify(true,logModel.getId());
             if(result != 1) throw new Exception("验证异常");
             Long ip = IPUtils.toLong(IPUtils.getClientIp(request));
-            if(logModel.getAction().equals(UserThirdAccountAction.BIND)){
+            if(logModel.getAction().equals(ThirdAccountAction.BIND)){
                 result = accountService.bindAlipay(logModel.getCreatedUserId(),authCode,ip);
                 if(result != 1) throw new Exception("绑定失败");
-            }else if (logModel.getAction().equals(UserThirdAccountAction.LOGIN)){
+            }else if (logModel.getAction().equals(ThirdAccountAction.LOGIN)){
                 AlipaySystemOauthTokenResponse tokenResponse = alipayService.getOAuthToken(authCode);
                 if(tokenResponse == null || !tokenResponse.isSuccess()){
                     throw new Exception("验证失败");
@@ -93,7 +95,7 @@ public class AlipayOAuthController {
                 String alipayUserId = tokenResponse.getUserId();
                 if(StringUtils.isEmpty(alipayUserId)) throw new Exception("验证失败");
                 URL redirectUrl = new URL(logModel.getRedirectUri());
-                UserThirdAccountModel accountModel = accountService.searchByTypeAndKey(UserThirdAccountType.ALIPAY,alipayUserId);
+                ThirdAccountModel accountModel = accountService.searchByTypeAndKey(ThirdAccountType.ALIPAY,alipayUserId);
                 if(accountModel == null){
                     // 注册
                     AlipayUserInfoShareResponse shareResponse = alipayService.getUserInfo(tokenResponse.getAccessToken());
@@ -125,7 +127,7 @@ public class AlipayOAuthController {
     }
 
     @PostMapping("/login")
-    public Result login(HttpServletRequest request, HttpServletResponse response, HttpSession session, @MultiRequestBody @NotBlank @Mobile String mobile, @MultiRequestBody @NotBlank String code){
+    public ResultModel login(HttpServletRequest request, HttpServletResponse response, HttpSession session, @MultiRequestBody @NotBlank @Mobile String mobile, @MultiRequestBody @NotBlank String code){
 
         List<SmsLogModel> listLog = smsLogService.searchByTemplateAndMobile("verify",mobile);
         SmsLogModel checkLog = null;
@@ -137,10 +139,10 @@ public class AlipayOAuthController {
             }
         }
         if(checkLog == null){
-            return new Result(1001,"验证码错误或已过期");
+            return new ResultModel(1001,"验证码错误或已过期");
         }
         Object sessionData = session.getAttribute(ALIPAY_USER_SESSION_KEY);
-        if(sessionData == null) return new Result(500,"认证错误，请返回重试");
+        if(sessionData == null) return new ResultModel(500,"认证错误，请返回重试");
         Map<String , String> userMap = (Map<String , String>)sessionData;
 
         String clientIp = IPUtils.getClientIp(request);
@@ -159,28 +161,28 @@ public class AlipayOAuthController {
             }
             userId = userRegisterService.mobile(nickName,null,mobile,clientIp);
         }
-        UserThirdAccountModel accountModel = new UserThirdAccountModel();
+        ThirdAccountModel accountModel = new ThirdAccountModel();
         accountModel.setUserId(userId);
         accountModel.setCreatedTime(DateUtils.getTimestamp());
         accountModel.setCreatedIp(IPUtils.toLong(clientIp));
         accountModel.setKey(userMap.get("key"));
-        accountModel.setType(UserThirdAccountType.ALIPAY);
+        accountModel.setType(ThirdAccountType.ALIPAY);
         accountModel.setName(StringUtils.isEmpty(name) ? nickName : name);
         accountModel.setAvatar(userMap.get("avatar"));
         try {
             accountService.insert(accountModel);
         }catch (Exception e){
-            return new Result(500,"绑定失败，请重试");
+            return new ResultModel(500,"绑定失败，请重试");
         }
         if(userInfoModel != null && userInfoModel.isDisabled()){
-            return new Result(1003,"账户已锁定");
+            return new ResultModel(1003,"账户已锁定");
         }
         String token = loginService.createToken(userId,IPUtils.toLong(clientIp));
         if(StringUtils.isEmpty(token)){
-            return new Result(1004,"登录出错啦");
+            return new ResultModel(1004,"登录出错啦");
         }
         loginService.sendToken(response,token);
         session.removeAttribute(ALIPAY_USER_SESSION_KEY);
-        return new Result(userInfoModel,"base");
+        return new ResultModel(userInfoModel,"base");
     }
 }

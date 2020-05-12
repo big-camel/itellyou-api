@@ -1,13 +1,16 @@
 package com.itellyou.model.tag;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.itellyou.model.common.IndexModel;
+import com.itellyou.util.annotation.JSONDefault;
+import lombok.*;
 
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class TagIndexModel {
+@JSONDefault(includes = "base")
+public class TagIndexModel extends IndexModel {
     private Long id;
     private Long groupId;
     private String name;

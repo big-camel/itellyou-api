@@ -2,18 +2,23 @@ package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagInfoDao;
 import com.itellyou.dao.tag.TagVersionDao;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.TagEvent;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.model.user.UserDraftModel;
-import com.itellyou.service.tag.TagIndexService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.tag.TagVersionService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -25,22 +30,26 @@ import java.util.Map;
 @Service
 public class TagVersionServiceImpl implements TagVersionService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final TagVersionDao versionDao;
     private final TagInfoDao infoDao;
     private final TagSearchService searchService;
-    private final TagIndexService indexService;
     private final UserDraftService draftService;
 
+    private final OperationalPublisher operationalPublisher;
+
     @Autowired
-    public TagVersionServiceImpl(TagVersionDao versionDao,TagInfoDao infoDao,TagSearchService searchService,TagIndexService indexService,UserDraftService draftService){
+    public TagVersionServiceImpl(TagVersionDao versionDao, TagInfoDao infoDao, TagSearchService searchService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.versionDao = versionDao;
         this.infoDao = infoDao;
         this.searchService = searchService;
-        this.indexService = indexService;
         this.draftService = draftService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
+    @CacheEvict(value = "tag",key = "#versionModel.tagId")
     public int insert(TagVersionModel versionModel) {
         try{
             int rows = versionDao.insert(versionModel);
@@ -57,6 +66,7 @@ public class TagVersionServiceImpl implements TagVersionService {
     }
 
     @Override
+    @CacheEvict(value = "tag",key = "#versionModel.tagId")
     public int update(TagVersionModel versionModel) {
         try{
             int rows = versionDao.update(versionModel);
@@ -111,6 +121,7 @@ public class TagVersionServiceImpl implements TagVersionService {
     }
 
     @Override
+    @CacheEvict(value = "tag",key = "#id")
     public int updateVersionById(Long id, Integer version, Integer draft, Boolean isPublished, Long time, Long ip, Long userId) {
         return infoDao.updateVersionById(id,version,draft,isPublished,time,ip,userId);
     }
@@ -174,6 +185,7 @@ public class TagVersionServiceImpl implements TagVersionService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "tag",key = "#id")
     public TagVersionModel addVersion(Long id, Long userId, String content, String html,String icon, String description, String remark, Integer version, String save_type, Long ip, Boolean isPublish, Boolean force) throws Exception {
         try {
             TagDetailModel detailModel = searchService.getDetail(id, "draft",userId);
@@ -227,12 +239,17 @@ public class TagVersionServiceImpl implements TagVersionService {
             draftService.insertOrUpdate(draftModel);
 
             if(isPublish){
-                detailModel = searchService.getDetail(detailModel.getId());
-                indexService.updateIndex(detailModel);
+                if(!detailModel.isPublished()){
+                    operationalPublisher.publish(new TagEvent(this, EntityAction.PUBLISH,
+                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                }else{
+                    operationalPublisher.publish(new TagEvent(this, EntityAction.UPDATE,
+                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                }
             }
             return versionModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }

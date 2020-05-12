@@ -1,15 +1,14 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.api.handler.response.Result;
-import com.itellyou.model.ali.DmLogModel;
-import com.itellyou.model.ali.SmsLogModel;
-import com.itellyou.model.geetest.GeetestResultModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.thirdparty.DmLogModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
+import com.itellyou.model.thirdparty.GeetestResultModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.ali.DmService;
-import com.itellyou.service.ali.SmsService;
-import com.itellyou.service.ali.VerifyCodeException;
-import com.itellyou.service.geetest.GeetestService;
-import com.itellyou.service.user.UserInfoService;
+import com.itellyou.service.thirdparty.DmService;
+import com.itellyou.service.thirdparty.SmsService;
+import com.itellyou.service.thirdparty.VerifyCodeException;
+import com.itellyou.service.thirdparty.GeetestService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -40,7 +39,7 @@ public class ValidationController {
         this.userSearchService = userSearchService;
     }
 
-    private Result sendMobileCode(String action,String mobile,String clientIp){
+    private ResultModel sendMobileCode(String action, String mobile, String clientIp){
         Map<String,Object> dataResult = new HashMap<>();
         dataResult.put("mobile",mobile);
         try{
@@ -50,7 +49,7 @@ public class ValidationController {
 
             SmsLogModel smsLogModel = smsService.send(action,mobile,sendData,clientIp);
             if(smsLogModel == null){
-                return new Result(1003,"发送短信出错了",dataResult);
+                return new ResultModel(1003,"发送短信出错了",dataResult);
             }
             dataResult.put("time",smsLogModel.getCreatedTime());
         }catch (VerifyCodeException e){
@@ -59,15 +58,15 @@ public class ValidationController {
             if(seconds != null){
                 dataResult.put("seconds",seconds);
             }
-            return new Result(1004,e.getMessage(),dataResult);
+            return new ResultModel(1004,e.getMessage(),dataResult);
         }catch (Exception e){
             e.printStackTrace();
-            return new Result(1005,e.getMessage(),dataResult);
+            return new ResultModel(1005,e.getMessage(),dataResult);
         }
-        return new Result(dataResult);
+        return new ResultModel(dataResult);
     }
 
-    private Result sendEmailCode(String action,String email,String clientIp){
+    private ResultModel sendEmailCode(String action, String email, String clientIp){
         Map<String,Object> dataResult = new HashMap<>();
         dataResult.put("email",email);
         try{
@@ -77,7 +76,7 @@ public class ValidationController {
 
             DmLogModel logModel = dmService.send(action,email,sendData,clientIp);
             if(logModel == null){
-                return new Result(1003,"发送邮件出错了",dataResult);
+                return new ResultModel(1003,"发送邮件出错了",dataResult);
             }
             dataResult.put("time",logModel.getCreatedTime());
         }catch (VerifyCodeException e){
@@ -86,24 +85,24 @@ public class ValidationController {
             if(seconds != null){
                 dataResult.put("seconds",seconds);
             }
-            return new Result(1004,e.getMessage(),dataResult);
+            return new ResultModel(1004,e.getMessage(),dataResult);
         }catch (Exception e){
             e.printStackTrace();
-            return new Result(1005,e.getMessage(),dataResult);
+            return new ResultModel(1005,e.getMessage(),dataResult);
         }
-        return new Result(dataResult);
+        return new ResultModel(dataResult);
     }
 
     @PostMapping("/register/code")
-    public Result register(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel register(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
 
         UserInfoModel userInfoModel = userSearchService.findByMobile(mobile);
         if(userInfoModel != null){
-            return new Result(1002,"亲，手机号已被注册了",mobile);
+            return new ResultModel(1002,"亲，手机号已被注册了",mobile);
         }
 
         String clientIp = IPUtils.getClientIp(request);
@@ -111,15 +110,15 @@ public class ValidationController {
     }
 
     @PostMapping("/login/code")
-    public Result login(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel login(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
 
         UserInfoModel userInfoModel = userSearchService.findByMobile(mobile);
         if(userInfoModel == null){
-            return new Result(1002,"亲，手机号还未注册",mobile);
+            return new ResultModel(1002,"亲，手机号还未注册",mobile);
         }
 
         String clientIp = IPUtils.getClientIp(request);
@@ -127,46 +126,46 @@ public class ValidationController {
     }
 
     @PostMapping("/verify/mobile/code")
-    public Result verifyMobile(UserInfoModel userModel,HttpServletRequest request, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel verifyMobile(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
 
-        if(userModel == null) return new Result(403,"未登陆");
-        if(userModel.isDisabled())  return new Result(403,"用户状态不正确");
-        if(!userModel.isMobileStatus()) return new Result(1002,"手机号还未验证或无效");
+        if(userModel == null) return new ResultModel(403,"未登陆");
+        if(userModel.isDisabled())  return new ResultModel(403,"用户状态不正确");
+        if(!userModel.isMobileStatus()) return new ResultModel(1002,"手机号还未验证或无效");
         String mobile = userModel.getMobile();
         String clientIp = IPUtils.getClientIp(request);
         return sendMobileCode("verify",mobile,clientIp);
     }
 
     @PostMapping("/verify/email/code")
-    public Result verifyEmail(UserInfoModel userModel,HttpServletRequest request, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel verifyEmail(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
 
-        if(userModel == null) return new Result(403,"未登陆");
-        if(userModel.isDisabled())  return new Result(403,"用户状态不正确");
-        if(!userModel.isEmailStatus()) return new Result(1002,"邮箱还未验证或无效");
+        if(userModel == null) return new ResultModel(403,"未登陆");
+        if(userModel.isDisabled())  return new ResultModel(403,"用户状态不正确");
+        if(!userModel.isEmailStatus()) return new ResultModel(1002,"邮箱还未验证或无效");
         String clientIp = IPUtils.getClientIp(request);
         return sendEmailCode("verify",userModel.getEmail(),clientIp);
     }
 
     @PostMapping("/replace/mobile/code")
-    public Result replaceMobile(UserInfoModel userModel,HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel replaceMobile(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
-        if(userModel == null) return new Result(403,"未登陆");
-        if(userModel.isDisabled())  return new Result(403,"用户状态不正确");
+        if(userModel == null) return new ResultModel(403,"未登陆");
+        if(userModel.isDisabled())  return new ResultModel(403,"用户状态不正确");
 
         UserInfoModel userInfoModel = userSearchService.findByMobile(mobile);
         if(userInfoModel != null || userModel.getMobile() == mobile){
-            return new Result(1002,"手机号已被占用",mobile);
+            return new ResultModel(1002,"手机号已被占用",mobile);
         }
 
         String clientIp = IPUtils.getClientIp(request);
@@ -174,17 +173,17 @@ public class ValidationController {
     }
 
     @PostMapping("/replace/email/code")
-    public Result replaceEmail(UserInfoModel userModel,HttpServletRequest request, @MultiRequestBody @NotBlank String email, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel replaceEmail(UserInfoModel userModel, HttpServletRequest request, @MultiRequestBody @NotBlank String email, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
-        if(userModel == null) return new Result(403,"未登陆");
-        if(userModel.isDisabled())  return new Result(403,"用户状态不正确");
+        if(userModel == null) return new ResultModel(403,"未登陆");
+        if(userModel.isDisabled())  return new ResultModel(403,"用户状态不正确");
 
         UserInfoModel emailUser = userSearchService.findByEmail(email);
         if(emailUser != null || userModel.getEmail() == email){
-            return new Result(1002,"邮箱已被占用",email);
+            return new ResultModel(1002,"邮箱已被占用",email);
         }
 
         String clientIp = IPUtils.getClientIp(request);
@@ -192,10 +191,10 @@ public class ValidationController {
     }
 
     @PostMapping("/login/oauth/code")
-    public Result loginOauth(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
+    public ResultModel loginOauth(HttpServletRequest request, @MultiRequestBody @NotBlank String mobile, @MultiRequestBody("geetest") GeetestResultModel geetestResultModel) {
         boolean result = geetestService.verify(geetestResultModel);
         if(!result){
-            return new Result(1001,"Geetest 验证失败");
+            return new ResultModel(1001,"Geetest 验证失败");
         }
 
         String clientIp = IPUtils.getClientIp(request);

@@ -1,10 +1,9 @@
 package com.itellyou.service.question;
 
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.model.question.*;
-import com.itellyou.model.view.ViewInfoModel;
-
-import java.util.Map;
 
 public interface QuestionAnswerService {
     int insert(QuestionAnswerModel answerModel);
@@ -23,12 +22,12 @@ public interface QuestionAnswerService {
 
     QuestionDetailModel adopt(Long id,Long userId, String ip) throws Exception;
 
-    QuestionAnswerDetailModel delete(Long id,Long questionId,Long userId) throws Exception;
-    QuestionAnswerDetailModel revokeDelete(Long id,Long questionId,Long userId) throws Exception;
+    QuestionAnswerDetailModel delete(Long id,Long questionId,Long userId,Long ip) throws Exception;
+    QuestionAnswerDetailModel revokeDelete(Long id,Long questionId,Long userId,Long ip) throws Exception;
 
     Long create(Long questionId, Long userId, String content, String html,String description,String remark, String save_type, Long ip) throws Exception;
 
-    Map<String,Object> updateVote(VoteType type, Long id, Long userId, String ip);
+    int updateVote(VoteType type,Integer value,Long id);
 
     int updateMetas(Long id, String cover);
 }

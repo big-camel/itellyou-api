@@ -3,28 +3,32 @@ package com.itellyou.service.article.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.itellyou.dao.article.ArticleInfoDao;
 import com.itellyou.dao.article.ArticleVersionDao;
-import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.column.ColumnInfoModel;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.ArticleEvent;
+import com.itellyou.model.event.ColumnIndexEvent;
+import com.itellyou.model.event.TagIndexEvent;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.model.user.*;
-import com.itellyou.service.article.ArticleIndexService;
+import com.itellyou.model.user.UserDraftModel;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.article.ArticleVersionService;
-import com.itellyou.service.column.ColumnIndexService;
 import com.itellyou.service.column.ColumnInfoService;
-import com.itellyou.service.tag.TagIndexService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserOperationalService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -34,35 +38,32 @@ import java.util.*;
 @Service
 public class ArticleVersionServiceImpl implements ArticleVersionService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final ArticleVersionDao versionDao;
     private final ArticleInfoDao infoDao;
     private final ArticleSearchService searchService;
-    private final ArticleIndexService indexService;
     private final TagInfoService tagService;
-    private final TagIndexService tagIndexService;
     private final UserDraftService draftService;
     private final ColumnInfoService columnService;
-    private final ColumnIndexService columnIndexService;
     private final UserInfoService userService;
-    private final UserOperationalService operationalService;
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public ArticleVersionServiceImpl(ArticleVersionDao articleVersionDao,ArticleInfoDao infoDao,ArticleSearchService searchService, TagInfoService tagService, TagIndexService tagIndexService, UserDraftService draftService, ArticleIndexService indexService, ColumnInfoService columnService,ColumnIndexService columnIndexService,UserInfoService userService, UserOperationalService operationalService){
+    public ArticleVersionServiceImpl(ArticleVersionDao articleVersionDao, ArticleInfoDao infoDao, ArticleSearchService searchService, TagInfoService tagService, UserDraftService draftService, ColumnInfoService columnService, UserInfoService userService, OperationalPublisher operationalPublisher){
         this.versionDao = articleVersionDao;
         this.infoDao = infoDao;
         this.searchService = searchService;
         this.tagService = tagService;
-        this.tagIndexService = tagIndexService;
         this.draftService = draftService;
-        this.indexService = indexService;
         this.columnService = columnService;
-        this.columnIndexService = columnIndexService;
+        this.operationalPublisher = operationalPublisher;
         this.userService = userService;
-        this.operationalService = operationalService;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "article",key = "#articleVersionModel.articleId")
     public int insert(ArticleVersionModel articleVersionModel) {
         try{
             int rows = versionDao.insert(articleVersionModel);
@@ -80,7 +81,7 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
             }
             return 1;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -88,6 +89,7 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "article",key = "#versionModel.articleId")
     public int update(ArticleVersionModel versionModel) {
         try{
             int rows = versionDao.update(versionModel);
@@ -111,7 +113,7 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
             }
             return 1;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -182,6 +184,7 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
     }
 
     @Override
+    @CacheEvict(value = "article",key = "#articleId")
     public int updateVersion(Long articleId, Integer version, Integer draft,Boolean isPublished, Long time, Long ip, Long user) {
         return infoDao.updateVersion(articleId,version,draft,isPublished,time,ip,user);
     }
@@ -261,6 +264,7 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
     }
     @Override
     @Transactional
+    @CacheEvict(value = "article",key = "#id")
     public ArticleVersionModel addVersion(Long id, Long userId, Long columnId, ArticleSourceType sourceType, String sourceData, String title, String content, String html, String description, List<TagInfoModel> tags, String remark, Integer version, String save_type, Long ip, Boolean isPublish, Boolean force) throws Exception {
         try {
             ArticleVersionModel versionModel = new ArticleVersionModel();
@@ -318,12 +322,12 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
                     }
                     versionModel.setColumnId(columnId);
                     ColumnInfoModel column = detailModel.getColumn();
-                    if(columnId > 0 && (column == null || column.getId() != columnId)){
+                    if(columnId > 0 && (column == null || !column.getId().equals(columnId))){
                         int result = columnService.updateArticles(columnId,1);
                         if(result != 1) throw new Exception("更新专栏文章数量失败");
                     }
 
-                    if(column != null && column.getId() != columnId && column.getId() > 0){
+                    if(column != null && !column.getId().equals(columnId) && column.getId() > 0){
                         int result = columnService.updateArticles(column.getId(),-1);
                         if(result != 1) throw new Exception("更新专栏文章数量失败");
                     }
@@ -370,15 +374,15 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
             draftService.insertOrUpdate(draftModel);
 
             if(isPublish){
-                if(!detailModel.isPublished()){
-                    operationalService.insertAsync(new UserOperationalModel(
-                            UserOperationalAction.PUBLISH,
-                            EntityType.ARTICLE,detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                if(!detailModel.isPublished()) {
+                    // 首次发布
+                    operationalPublisher.publish(new ArticleEvent(this, EntityAction.PUBLISH,
+                            detailModel.getId(), detailModel.getCreatedUserId(), userId, DateUtils.getTimestamp(), ip));
+                }else{
+                    // 文章更新
+                    operationalPublisher.publish(new ArticleEvent(this, EntityAction.UPDATE,
+                            detailModel.getId(), detailModel.getCreatedUserId(), userId, DateUtils.getTimestamp(), ip));
                 }
-
-                detailModel = searchService.getDetail(id);
-                indexService.updateIndex(detailModel);
-
                 HashSet<Long> tagIds = new HashSet<>();
                 if(addTags != null && addTags.size() > 0){
                     for(Long i : addTags){
@@ -390,19 +394,26 @@ public class ArticleVersionServiceImpl implements ArticleVersionService {
                         if(!tagIds.contains(i)) tagIds.add(i);
                     }
                 }
-                if(tagIds.size() > 0) tagIndexService.updateIndex(tagIds);
+                if(tagIds.size() > 0){
+                    operationalPublisher.publish(new TagIndexEvent(this,tagIds));
+                }
 
+                HashSet<Long> columns = new HashSet<>();
                 ColumnInfoModel column = detailModel.getColumn();
                 if(columnId > 0 && (column == null || column.getId() != columnId)){
-                    columnIndexService.updateIndex(columnId);
+                    columns.add(columnId);
                 }
                 if(column != null && column.getId() != columnId && column.getId() > 0){
-                    columnIndexService.updateIndex(column.getId());
+                    columns.add(column.getId());
+                }
+
+                if(columns.size() > 0){
+                    operationalPublisher.publish(new ColumnIndexEvent(this,columns));
                 }
             }
             return versionModel;
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }

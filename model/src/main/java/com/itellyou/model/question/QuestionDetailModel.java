@@ -1,14 +1,10 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.annotation.JSONType;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserDetailModel;
-import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.EnumSerializer;
 import lombok.*;

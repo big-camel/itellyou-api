@@ -1,52 +1,60 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionInfoDao;
-import com.itellyou.model.column.ColumnInfoModel;
-import com.itellyou.model.question.*;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.QuestionEvent;
+import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.question.QuestionVersionModel;
 import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.model.view.ViewInfoModel;
-import com.itellyou.service.question.QuestionIndexService;
+import com.itellyou.service.common.ViewService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.question.QuestionVersionService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.view.ViewInfoService;
 import com.itellyou.util.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.*;
+import java.util.List;
 
+@CacheConfig(cacheNames = "question")
 @Service
 public class QuestionInfoServiceImpl implements QuestionInfoService {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionInfoDao questionInfoDao;
 
     private final QuestionVersionService versionService;
 
-    private final ViewInfoService viewService;
+    private final ViewService viewService;
 
-    private final QuestionIndexService indexerService;
 
     private final QuestionSearchService questionSearchService;
 
     private final UserInfoService userInfoService;
     private final UserDraftService draftService;
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionInfoServiceImpl(QuestionInfoDao questionInfoDao, QuestionVersionService versionService, ViewInfoService viewService, QuestionIndexService indexerService, QuestionSearchService questionSearchService, UserInfoService userInfoService, UserDraftService draftService){
+    public QuestionInfoServiceImpl(QuestionInfoDao questionInfoDao, QuestionVersionService versionService, ViewService viewService, QuestionSearchService questionSearchService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.questionInfoDao = questionInfoDao;
         this.versionService = versionService;
         this.viewService = viewService;
-        this.indexerService = indexerService;
         this.questionSearchService = questionSearchService;
         this.userInfoService = userInfoService;
         this.draftService = draftService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
@@ -57,9 +65,12 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
 
     @Override
     @Transactional
+    @CacheEvict(key = "#id")
     public int updateView(Long userId,Long id,Long ip,String os,String browser) {
 
         try{
+            QuestionInfoModel questionModel = questionSearchService.findById(id);
+            if(questionModel == null) throw new Exception("错误的编号");
             long prevTime = viewService.insertOrUpdate(userId,EntityType.QUESTION,id,ip,os,browser);
 
             if(DateUtils.getTimestamp() - prevTime > 3600){
@@ -67,9 +78,8 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
                 if(result != 1){
                     throw new Exception("更新浏览次数失败");
                 }
-                indexerService.updateIndex(id);
+                operationalPublisher.publish(new QuestionEvent(this, EntityAction.VIEW,id,questionModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
             }
-            indexerService.updateIndex(id);
             return 1;
         }catch (Exception e){
             e.printStackTrace();
@@ -79,22 +89,26 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateAnswers(Long id, Integer value) {
         int result = questionInfoDao.updateAnswers(id,value);
         return result;
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateAdopt(Boolean isAdopted, Long adoptionId, Long id) {
         return questionInfoDao.updateAdopt(isAdopted,adoptionId,id);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateComments(Long id, Integer value) {
         return questionInfoDao.updateComments(id,value);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateStarCountById(Long id, Integer step) {
         return questionInfoDao.updateStarCountById(id,step);
     }
@@ -116,7 +130,7 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
                 throw new Exception("写入版本失败");
             return infoModel.getId();
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return null;
         }
@@ -124,22 +138,23 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
 
     @Override
     @Transactional
-    public int updateDeleted(boolean deleted, Long id,Long userId) {
+    @CacheEvict(key = "#id")
+    public int updateDeleted(boolean deleted, Long id,Long userId,Long ip) {
         try {
-            QuestionInfoModel questionDetailModel = questionSearchService.findById(id);
-            if(questionDetailModel == null) throw new Exception("未找到问题");
-            if(!questionDetailModel.getCreatedUserId().equals(userId)) throw new Exception("无权限");
+            QuestionInfoModel questionInfoModel = questionSearchService.findById(id);
+            if(questionInfoModel == null) throw new Exception("未找到问题");
+            if(!questionInfoModel.getCreatedUserId().equals(userId)) throw new Exception("无权限");
             int result = questionInfoDao.updateDeleted(deleted,id);
             if(result != 1)throw new Exception("删除失败");
             if(deleted){
-                indexerService.delete(id);
                 draftService.delete(userId, EntityType.ARTICLE,id);
-            }else{
-                indexerService.updateIndex(id);
             }
             userInfoService.updateArticleCount(userId,deleted ? -1 : 1);
+            operationalPublisher.publish(new QuestionEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,
+                    id,questionInfoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
             return result;
         }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
@@ -147,6 +162,7 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateMetas(Long id, String cover) {
         return questionInfoDao.updateMetas(id,cover);
     }

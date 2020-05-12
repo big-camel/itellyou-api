@@ -11,6 +11,7 @@ import java.io.IOException;
 @WebFilter(filterName="FilterHandler",urlPatterns="/*")
 @Configuration
 public class FilterHandler implements Filter {
+    // 缓存 request content ，以免多次读取IO报错
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;

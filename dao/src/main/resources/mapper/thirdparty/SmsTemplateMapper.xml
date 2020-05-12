@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.thirdparty.SmsTemplateDao">
+    <sql id="columns">
+        id , `name` , code , param , sign_name , expire
+    </sql>
+    <select id="findById" resultType="SmsTemplateModel">
+        select <include refid="columns" /> from ali_sms_template where id = #{id}
+    </select>
+    <select id="getAll" resultType="SmsTemplateModel">
+        select <include refid="columns" /> from ali_sms_template
+    </select>
+</mapper>

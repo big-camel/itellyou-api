@@ -6,7 +6,11 @@ import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.tag.TagVersionService;
 import com.itellyou.util.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -14,8 +18,11 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.ArrayList;
 import java.util.List;
 
+@CacheConfig(cacheNames = "tag")
 @Service
 public class TagInfoServiceImpl implements TagInfoService {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final TagInfoDao tagInfoDao;
     private final TagVersionService versionService;
@@ -32,6 +39,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateStarCountById(Long id, Integer step) {
         List<Long> list = new ArrayList<>();
         list.add(id);
@@ -45,6 +53,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateArticleCountById(Long id, Integer step) {
         List<Long> list = new ArrayList<>();
         list.add(id);
@@ -58,6 +67,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateQuestionCountById(Long id, Integer step) {
         List<Long> list = new ArrayList<>();
         list.add(id);
@@ -90,7 +100,7 @@ public class TagInfoServiceImpl implements TagInfoService {
                 throw new Exception("写入版本失败");
             return infoModel.getId();
         }catch (Exception e){
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return null;
         }

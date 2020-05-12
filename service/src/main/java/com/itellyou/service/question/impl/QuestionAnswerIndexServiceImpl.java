@@ -2,131 +2,39 @@ package com.itellyou.service.question.impl;
 
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerIndexModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.service.common.IndexService;
-import com.itellyou.service.question.QuestionAnswerIndexService;
+import com.itellyou.service.common.impl.IndexServiceImpl;
 import com.itellyou.service.question.QuestionAnswerSearchService;
-import com.itellyou.service.question.QuestionIndexService;
 import com.itellyou.util.StringUtils;
-import com.itellyou.util.ansj.AnsjAnalyzer;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.LockObtainFailedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Paths;
+import java.util.HashSet;
 
 @Service
-public class QuestionAnswerIndexServiceImpl implements QuestionAnswerIndexService {
+public class QuestionAnswerIndexServiceImpl extends IndexServiceImpl<QuestionAnswerDetailModel> {
 
-    private final String direct = "./.indexer/answer";
-
-    private final IndexService indexService;
-
-    private final QuestionIndexService questionIndexService;
+    private final IndexService<QuestionDetailModel> questionIndexService;
     private final QuestionAnswerSearchService answerSearchService;
 
     @Autowired
-    public QuestionAnswerIndexServiceImpl(IndexService indexService, QuestionIndexService questionIndexService, QuestionAnswerSearchService answerSearchService){
-        this.indexService = indexService;
+    public QuestionAnswerIndexServiceImpl(QuestionIndexServiceImpl questionIndexService, QuestionAnswerSearchService answerSearchService){
+        super("./.indexer/answer");
         this.questionIndexService = questionIndexService;
         this.answerSearchService = answerSearchService;
     }
 
     @Override
-    @Async
-    public void create(QuestionAnswerDetailModel detailModel) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            create(indexWriter,detailModel);
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void create(IndexWriter indexWriter, QuestionAnswerDetailModel detailModel) {
-        try {
-            indexWriter.addDocument(getDocument(detailModel));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    @Async
-    public void delete(Long id) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            indexWriter.deleteDocuments(LongPoint.newExactQuery("id",id));
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void delete(IndexWriter indexWriter, Long id) {
-        try {
-            indexWriter.deleteDocuments(LongPoint.newExactQuery("id",id));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    @Async
-    public void update(QuestionAnswerDetailModel detailModel) {
-        try {
-            IndexWriter indexWriter = getIndexWriter();
-            if(detailModel.getId() != null) delete(indexWriter,detailModel.getId());
-            create(indexWriter,detailModel);
-            indexWriter.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public IndexWriter getIndexWriter() {
-        return indexService.getIndexWriter(direct);
-    }
-
-    @Override
-    public IndexReader getIndexReader(){
-        return indexService.getIndexReader(direct);
-    }
-
-    @Override
-    public Document getDocument(Long id) throws IOException {
-        IndexReader indexReader = getIndexReader();
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs docs = searcher.search(LongPoint.newExactQuery("id",id),1);
-        if(docs != null && docs.scoreDocs.length > 0) return searcher.doc(docs.scoreDocs[0].doc);
-        return null;
-    }
-
-    @Override
-    public Document getDocument(QuestionAnswerDetailModel detailModel) throws IOException {
+    public Document getDocument(QuestionAnswerDetailModel detailModel) {
         Document questionDocument = questionIndexService.getDocument(detailModel.getQuestionId());
 
-        Document doc = new Document();
+        Document doc = super.getDocument(detailModel);
+        if(doc == null) return doc;
         String html = detailModel.getHtml();
-        Long id = detailModel.getId();
-        if(id == null) return null;
         doc.add(new StoredField("type","answer"));
-        doc.add(new LongPoint("id", id));
-        doc.add(new StoredField("id",id));
         doc.add(new LongPoint("question_id", detailModel.getQuestionId()));
         doc.add(new StoredField("question_id",detailModel.getQuestionId()));
         doc.add(new TextField("title", questionDocument == null ? "" : questionDocument.get("title"), Field.Store.YES));
@@ -153,8 +61,7 @@ public class QuestionAnswerIndexServiceImpl implements QuestionAnswerIndexServic
     @Override
     public QuestionAnswerIndexModel getModel(Document document) {
         QuestionAnswerIndexModel model = new QuestionAnswerIndexModel();
-        String id = document.get("id");
-        model.setId(StringUtils.isNotEmpty(id) ? Long.parseLong(id) : 0);
+        model.setId(super.getModel(document).getId());
         model.setTitle(document.get("title"));
         model.setContent(document.get("content"));
         String userId = document.get("created_user_id");
@@ -173,19 +80,13 @@ public class QuestionAnswerIndexServiceImpl implements QuestionAnswerIndexServic
 
     @Override
     @Async
-    public void createIndex(QuestionAnswerDetailModel detailModel) {
-        create(detailModel);
-    }
-
-    @Override
-    @Async
     public void updateIndex(Long id) {
         update(answerSearchService.getDetail(id));
     }
 
     @Override
     @Async
-    public void updateIndex(QuestionAnswerDetailModel detailModel) {
-        update(detailModel);
+    public void updateIndex(HashSet<Long> ids) {
+        update(answerSearchService.search(ids,null,null,null,null,true,null,null,null,null,null));
     }
 }

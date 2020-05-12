@@ -1,45 +1,34 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
-import com.itellyou.model.sys.SysPath;
-import com.itellyou.model.sys.SysPathModel;
-import com.itellyou.model.user.UserBankModel;
-import com.itellyou.model.user.UserDetailModel;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.event.UserEvent;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.sys.SysPathService;
-import com.itellyou.service.user.UserBankService;
-import com.itellyou.service.user.UserIndexService;
+import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+@CacheConfig(cacheNames = "user_info")
 @Service
 public class UserInfoServiceImpl implements UserInfoService {
 
     private final UserInfoDao userInfoDao;
-    private final UserBankService bankService;
-    private final UserIndexService indexService;
-    private final SysPathService pathService;
+
+    private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public UserInfoServiceImpl(UserInfoDao userInfoDao,UserBankService bankService,UserIndexService indexService,SysPathService pathService){
+    public UserInfoServiceImpl(UserInfoDao userInfoDao, OperationalPublisher operationalPublisher){
         this.userInfoDao = userInfoDao;
-        this.bankService = bankService;
-        this.indexService = indexService;
-        this.pathService = pathService;
+        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
+    @CacheEvict
     public int updateByUserId(UserInfoModel infoModel) {
         if(StringUtils.isNotEmpty(infoModel.getLoginPassword())){
             infoModel.setLoginPassword(StringUtils.encoderPassword(infoModel.getLoginPassword()));
@@ -49,42 +38,49 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
         int result = userInfoDao.updateByUserId(infoModel);
         if(result == 1 && (StringUtils.isNotEmpty(infoModel.getName()) || StringUtils.isNotEmpty(infoModel.getAvatar()))){
-            indexService.update(infoModel);
+            operationalPublisher.publish(new UserEvent(this, EntityAction.UPDATE,infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getUpdatedUserId(), DateUtils.getTimestamp(),infoModel.getUpdatedIp()));
         }
         return result;
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateStarCount(Long id, Integer step) {
         return userInfoDao.updateStarCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateFollowerCount(Long id, Integer step) {
         return userInfoDao.updateFollowerCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateQuestionCount(Long id, Integer step) {
         return userInfoDao.updateQuestionCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateAnswerCount(Long id, Integer step) {
         return userInfoDao.updateAnswerCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateArticleCount(Long id, Integer step) {
         return userInfoDao.updateArticleCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateColumnCount(Long id, Integer step) {
         return userInfoDao.updateColumnCount(id,step);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateCollectionCount(Long id, Integer step) {
         return userInfoDao.updateCollectionCount(id,step);
     }

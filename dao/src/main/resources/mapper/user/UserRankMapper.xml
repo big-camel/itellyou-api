@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.user.UserRankDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}name ${prefix}name,
+        ${alias}min_score ${prefix}min_score,
+        ${alias}max_score ${prefix}max_score,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into user_rank(name,min_score,max_score,created_user_id,created_time,created_ip) values
+         (#{name},#{minScore},#{maxScore},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="deleteById">
+        delete from user_rank where id=#{id}
+    </delete>
+    <update id="update">
+        update user_rank <set>
+        <if test="name!=null">
+            name=#{name},
+        </if>
+        <if test="minScore!=null">
+            min_score=#{minScore},
+        </if>
+        <if test="maxScore!=null">
+            max_score=#{maxScore},
+        </if>
+        </set>
+            where id = #{id}
+    </update>
+    <select id="findByName" resultType="UserRankModel">
+        select <include refid="columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+    </include> from user_rank where name=#{name}
+    </select>
+    <select id="findById" resultType="UserRankModel">
+        select <include refid="columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+    </include> from user_rank where id=#{id}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="name != null">
+                <bind name="bindName" value="'%' + name + '%'"/>
+                and ${alias}name like #{bindName}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{disabled}
+            </if>
+            <if test="minScore != null">
+                and ${alias}min_score >= #{minScore}
+            </if>
+            <if test="maxScore != null">
+                and ${alias}max_score <![CDATA[<=]]> #{maxScore}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="UserRankModel">
+        select * from user_rank <include refid="where">
+        <property name="alias" value=""/>
+    </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from user_rank <include refid="where">
+        <property name="alias" value=""/>
+    </include>
+    </select>
+</mapper>

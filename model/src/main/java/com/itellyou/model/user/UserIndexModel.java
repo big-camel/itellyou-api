@@ -1,13 +1,16 @@
 package com.itellyou.model.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.itellyou.model.common.IndexModel;
+import com.itellyou.util.annotation.JSONDefault;
+import lombok.*;
 
 @Data
-@NoArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class UserIndexModel {
+@NoArgsConstructor
+@JSONDefault(includes = "base")
+public class UserIndexModel extends IndexModel {
     private Long id;
     private String name;
     private String description;

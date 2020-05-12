@@ -1,12 +1,16 @@
 package com.itellyou.api.controller.question;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.QuestionCommentVoteModel;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerCommentDetailModel;
 import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.common.VoteService;
+import com.itellyou.service.common.impl.VoteFactory;
 import com.itellyou.service.question.QuestionAnswerCommentSearchService;
 import com.itellyou.service.question.QuestionAnswerCommentService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
@@ -26,22 +30,24 @@ import java.util.Map;
 @RequestMapping("/question/{questionId:\\d+}/answer/{answerId:\\d+}/comment")
 public class AnswerCommentController {
 
+    private final VoteService<QuestionCommentVoteModel> voteService;
     private final QuestionAnswerCommentService commentService;
     private final QuestionAnswerCommentSearchService commentSearchService;
     private final QuestionAnswerSearchService searchService;
 
-    public AnswerCommentController(QuestionAnswerCommentSearchService commentSearchService, QuestionAnswerCommentService commentService,QuestionAnswerSearchService searchService){
+    public AnswerCommentController(QuestionAnswerCommentSearchService commentSearchService, QuestionAnswerCommentService commentService, QuestionAnswerSearchService searchService, VoteFactory voteFactory){
         this.commentSearchService = commentSearchService;
         this.commentService = commentService;
         this.searchService = searchService;
+        this.voteService = voteFactory.create(EntityType.ANSWER_COMMENT);
     }
 
     @GetMapping("/root")
-    public Result root(UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel root(UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         QuestionAnswerModel answerModel = searchService.findById(answerId);
 
         if(answerModel == null || answerModel.isDisabled() || !answerModel.getQuestionId().equals(questionId)){
-            return new Result(404,"Not found");
+            return new ResultModel(404,"Not found");
         }
         Long searchUserId = userModel == null ? null : userModel.getId();
         if(offset == null || offset < 0) offset = 0;
@@ -82,14 +88,14 @@ public class AnswerCommentController {
         extendData.put("comments",answerModel.getComments());
         extendData.put("hots",hotData.size());
         pageData.setExtend(extendData);
-        return new Result(pageData);
+        return new ResultModel(pageData);
     }
 
     @GetMapping("/{id:\\d+}/child")
-    public Result child(UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId,@PathVariable Long id, @RequestParam(required = false) boolean hasDetail, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel child(UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId, @PathVariable Long id, @RequestParam(required = false) boolean hasDetail, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         QuestionAnswerModel answerModel = searchService.findById(answerId);
         if(answerModel == null || answerModel.isDisabled() || !answerModel.getQuestionId().equals(questionId)){
-            return new Result(404,"Not found");
+            return new ResultModel(404,"Not found");
         }
         Long searchUserId = userModel == null ? null : userModel.getId();
         if(offset == null || offset < 0) offset = 0;
@@ -109,59 +115,59 @@ public class AnswerCommentController {
             extendData.put("detail",commentDetail);
             pageData.setExtend(extendData);
         }
-        return new Result(pageData);
+        return new ResultModel(pageData);
     }
 
     @PutMapping("/create")
-    public Result create(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId,@MultiRequestBody(required = false,parseAllFields = false) Long parentId,@MultiRequestBody(required = false,parseAllFields = false) Long replyId, @MultiRequestBody String content, @MultiRequestBody String html){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel create(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long questionId, @PathVariable Long answerId, @MultiRequestBody(required = false,parseAllFields = false) Long parentId, @MultiRequestBody(required = false,parseAllFields = false) Long replyId, @MultiRequestBody String content, @MultiRequestBody String html){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         if(parentId == null) parentId = 0l;
         if(replyId == null) replyId = 0l;
 
         try {
             if(parentId > 0){
                 QuestionAnswerCommentModel commentModel = commentSearchService.findById(parentId);
-                if(commentModel == null) new Result(0,"错误的parentId");
+                if(commentModel == null) new ResultModel(0,"错误的parentId");
             }
             if(replyId > 0){
                 QuestionAnswerCommentModel commentModel = commentSearchService.findById(replyId);
-                if(commentModel == null) new Result(0,"错误的replyId");
+                if(commentModel == null) new ResultModel(0,"错误的replyId");
             }
-            QuestionAnswerCommentModel commentModel = commentService.insert(answerId, parentId, replyId, content, html, userModel.getId(), IPUtils.getClientIp(request));
-            if (commentModel == null) return new Result(0, "评论失败");
+            QuestionAnswerCommentModel commentModel = commentService.insert(answerId, parentId, replyId, content, html, userModel.getId(), IPUtils.toLong(request),true);
+            if (commentModel == null) return new ResultModel(0, "评论失败");
             QuestionAnswerCommentDetailModel detailModel = commentSearchService.getDetail(commentModel.getId(),answerId,null,null,userModel.getId(),userModel.getId(),null);
-            return new Result(detailModel);
+            return new ResultModel(detailModel);
         }catch (Exception e){
-            return new Result(0,e.getMessage());
+            return new ResultModel(0,e.getMessage());
         }
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public Result delete(UserInfoModel userModel,@PathVariable Long id,@PathVariable Long answerId){
-        if(userModel == null) return new Result(401,"未登陆");
+    public ResultModel delete(HttpServletRequest request,UserInfoModel userModel, @PathVariable Long id, @PathVariable Long answerId){
+        if(userModel == null) return new ResultModel(401,"未登陆");
         QuestionAnswerCommentDetailModel detailModel = commentSearchService.getDetail(id,answerId,null,null,userModel.getId(),userModel.getId(),false);
 
         if(detailModel == null || !detailModel.getCreatedUserId().equals(userModel.getId()) || detailModel.isDeleted()){
-            return new Result(0,"错误的评论编号");
+            return new ResultModel(0,"错误的评论编号");
         }
 
-        int result = commentService.updateDeleted(id,true);
+        int result = commentService.updateDeleted(id,true,userModel.getId(),IPUtils.toLong(request));
         detailModel.setDeleted(true);
         detailModel.setContent("");
         detailModel.setAllowDelete(false);
         detailModel.setHtml("");
-        return result == 1 ? new Result(detailModel) : new Result(0,"删除评论失败");
+        return result == 1 ? new ResultModel(detailModel) : new ResultModel(0,"删除评论失败");
     }
 
     @PostMapping(value = { "/{id:\\d+}/{type:support}","/{id:\\d+}/{type:oppose}"})
-    public Result vote(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @PathVariable String type){
+    public ResultModel vote(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @PathVariable String type){
         if(userModel == null){
-            return new Result(401,"未登陆");
+            return new ResultModel(401,"未登陆");
         }
-        Map<String,Object> data = commentService.updateVote(VoteType.valueOf(type.toUpperCase()),id,userModel.getId(), IPUtils.getClientIp(request));
+        Map<String,Object> data = voteService.doVote(VoteType.valueOf(type.toUpperCase()),id,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
         if(data == null){
-            return new Result(0,"更新失败");
+            return new ResultModel(0,"更新失败");
         }
-        return new Result(data);
+        return new ResultModel(data);
     }
 }

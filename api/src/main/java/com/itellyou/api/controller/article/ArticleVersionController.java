@@ -1,13 +1,12 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.api.handler.response.Result;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticleVersionService;
-import com.itellyou.service.column.ColumnInfoService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,21 +35,21 @@ public class ArticleVersionController {
     }
 
     @GetMapping("")
-    public Result list(@PathVariable @NotNull Long articleId){
+    public ResultModel list(@PathVariable @NotNull Long articleId){
 
         List<ArticleVersionModel> listVersion = versionService.searchByArticleId(articleId);
-        return new Result(listVersion,
+        return new ResultModel(listVersion,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
     }
 
     @GetMapping("/{versionId:\\d+}")
-    public Result find(@PathVariable @NotNull Long versionId,@PathVariable @NotNull Long articleId){
+    public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long articleId){
         ArticleVersionModel versionModel = versionService.findByArticleIdAndId(versionId,articleId);
         if(versionModel == null){
-            return new Result(0,"错误的编号");
+            return new ResultModel(0,"错误的编号");
         }
-        return new Result(versionModel,
+        return new ResultModel(versionModel,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
     }
@@ -98,21 +97,21 @@ public class ArticleVersionController {
     }
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
-    public Result compare(@PathVariable @NotNull Long current,@PathVariable @NotNull Long target,@PathVariable @NotNull Long articleId){
+    public ResultModel compare(@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long articleId){
         ArticleVersionModel currentVersion = versionService.findByArticleIdAndId(current,articleId);
         if(currentVersion == null){
-            return new Result(0,"错误的当前编号");
+            return new ResultModel(0,"错误的当前编号");
         }
 
         ArticleVersionModel targetVersion = versionService.findByArticleIdAndId(target,articleId);
         if(targetVersion == null){
-            return new Result(0,"错误的目标编号");
+            return new ResultModel(0,"错误的目标编号");
         }
 
         Map<String,String> htmlData = new HashMap<>();
         htmlData.put("current",getVersionHtml(currentVersion));
         htmlData.put("target",getVersionHtml(targetVersion));
 
-        return new Result(htmlData);
+        return new ResultModel(htmlData);
     }
 }

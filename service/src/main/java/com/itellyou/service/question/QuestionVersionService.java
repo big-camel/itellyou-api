@@ -1,7 +1,7 @@
 package com.itellyou.service.question;
 
 import com.itellyou.model.question.QuestionVersionModel;
-import com.itellyou.model.reward.RewardType;
+import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagInfoModel;
 
 import java.util.List;
