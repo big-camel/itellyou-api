@@ -68,6 +68,7 @@ root 超级管理员
 guest 游客
 user 登录用户
 
+需要设置 sys_role 中的created_user_id的用户编码设置为你的超级账号id
 首次设置超级权限需要在 user_role 中添加root角色
 ```
 insert into user_role(user_id,role_id,created_user_id,created_time,created_ip) values(用户编号,3,0,0,0)
