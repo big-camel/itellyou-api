@@ -1,10 +1,12 @@
 package com.itellyou.api.handler;
 
-import com.itellyou.model.sys.*;
+import com.itellyou.model.sys.SysPermissionMethod;
+import com.itellyou.model.sys.SysPermissionModel;
+import com.itellyou.model.sys.SysPermissionType;
+import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.service.sys.SysPermissionService;
 import com.itellyou.service.sys.SysRolePermissionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
@@ -21,11 +23,10 @@ import java.util.List;
 @Component
 public class TokenSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     private final SysPermissionService permissionService;
     private final SysRolePermissionService rolePermissionService;
 
+    @Autowired
     public TokenSecurityMetadataSource(SysPermissionService permissionService, SysRolePermissionService rolePermissionService) {
         this.permissionService = permissionService;
         this.rolePermissionService = rolePermissionService;

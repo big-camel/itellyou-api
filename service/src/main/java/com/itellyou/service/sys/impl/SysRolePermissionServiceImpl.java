@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-@Service
 @CacheConfig(cacheNames = "sys_role_permission")
+@Service
 public class SysRolePermissionServiceImpl implements SysRolePermissionService {
 
     private final SysRolePermissionDao rolePermissionDao;

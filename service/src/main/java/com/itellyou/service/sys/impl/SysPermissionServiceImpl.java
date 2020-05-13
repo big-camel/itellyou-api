@@ -3,6 +3,7 @@ package com.itellyou.service.sys.impl;
 import com.itellyou.dao.sys.SysPermissionDao;
 import com.itellyou.model.sys.*;
 import com.itellyou.service.sys.SysPermissionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,6 +18,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
 
     private final SysPermissionDao permissionDao;
 
+    @Autowired
     public SysPermissionServiceImpl(SysPermissionDao permissionDao) {
         this.permissionDao = permissionDao;
     }

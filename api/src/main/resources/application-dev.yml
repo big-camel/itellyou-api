@@ -1,0 +1,50 @@
+server:
+  port: 8082
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+    timeout: 300
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:3306/itellyou?useUnicode=true&useAffectedRows=true&characterEncoding=utf-8&useSSL=false
+      username: root
+      password: wangji520
+      initial-size: 10
+      min-idle: 10
+      max-active: 600
+      max-wait: 30000
+      connection-init-sqls: SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
+mybatis:
+  type-aliases-package: com.itellyou.model
+  mapper-locations: classpath*:mapper/*Mapper.xml,classpath*:mapper/**/*Mapper.xml
+  configuration:
+    default-enum-type-handler: com.itellyou.dao.handler.EnumTypeHandler
+    map-underscore-to-camel-case: true
+logging:
+  file:
+    name: ../itellyou-logs/api.log
+  pattern:
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
+  level:
+    root: warn
+    org:
+      hibernate: error
+
+

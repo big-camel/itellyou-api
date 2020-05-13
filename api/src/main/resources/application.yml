@@ -1,38 +1,5 @@
-server:
-  port: 8082
 spring:
   profiles:
     active: dev
-  mvc:
-    throw-exception-if-no-handler-found: true
-  resources:
-    add-mappings: false
-  servlet:
-    multipart:
-      max-file-size: -1
-      max-request-size: -1
-  redis:
-    database: 0
-    host: localhost
-    port: 6379
-    jedis:
-      pool:
-        max-active: 1000
-        max-wait: -1ms
-        max-idle: 8
-        min-idle: 0
-    timeout: 300
-logging:
-  file:
-    name: ../itellyou-logs/api.log
-  pattern:
-    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
-    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n'
-  level:
-    root: warn
-    org:
-      springframework:
-        security: debug
-      hibernate: error
 
 
