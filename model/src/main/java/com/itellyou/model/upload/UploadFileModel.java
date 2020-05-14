@@ -3,10 +3,7 @@ package com.itellyou.model.upload;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +26,7 @@ public class UploadFileModel implements CacheEntity {
         return this.domain + "/" + this.key;
     }
     private String bucket;
+    @JSONField(serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private UploadSource source;
     @JSONField(label = "base")
     private Long size;

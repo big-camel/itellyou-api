@@ -31,7 +31,7 @@ public class QuestionDetailModel extends QuestionInfoModel {
     private boolean useStar;
     @JSONField(label = "base")
     private boolean useAuthor;
-    @JSONField(label = "draft,base",serializeUsing = EnumSerializer.class)
+    @JSONField(label = "draft,base",serializeUsing = EnumSerializer.class, deserializeUsing = EnumSerializer.class)
     private RewardType rewardType=RewardType.DEFAULT;
     @JSONField(label = "draft,base")
     private Double rewardValue=0.0;

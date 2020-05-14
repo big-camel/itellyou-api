@@ -24,6 +24,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +76,12 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
     @Override
     @Cacheable
     public Map<String, ThirdAccountModel> searchByUserId(Long userId) {
-        return accountDao.searchByUserId(userId);
+        Map<ThirdAccountType, ThirdAccountModel> thirdAccountModelMap = accountDao.searchByUserId(userId);
+        Map<String, ThirdAccountModel> stringMap = new HashMap<>();
+        for (Map.Entry<ThirdAccountType,ThirdAccountModel> entry : thirdAccountModelMap.entrySet()){
+            stringMap.put(entry.getKey().getName(),entry.getValue());
+        }
+        return stringMap;
     }
 
     @Override

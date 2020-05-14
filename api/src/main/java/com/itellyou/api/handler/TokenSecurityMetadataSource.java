@@ -38,18 +38,24 @@ public class TokenSecurityMetadataSource implements FilterInvocationSecurityMeta
         HttpServletRequest request = filterInvocation.getHttpRequest();
 
         String method = request.getMethod();
-        List<SysPermissionModel> permissionModelList = permissionService.search(null,null, SysPermissionType.URL, SysPermissionMethod.valueOf(method.toUpperCase()),null,null,null,null);
+        SysPermissionMethod permissionMethod = SysPermissionMethod.valueOf(method.toUpperCase());
+        List<SysPermissionModel> permissionModelList = permissionService.search(null,null, SysPermissionType.URL, permissionMethod,null,null,null,null);
+
+        Collection<ConfigAttribute> configAttributes = new ArrayList<>();
+
         for (SysPermissionModel permissionModel : permissionModelList){
             RequestMatcher requestMatcher = new AntPathRequestMatcher(permissionModel.getData());
             if (requestMatcher.matches(request)) {
-                Collection<ConfigAttribute> configAttributes = new ArrayList<>();
-
                 List<SysRoleModel> roleModels = rolePermissionService.findRoleByName(permissionModel.getName());
                 if(roleModels.size() > 0){
                     configAttributes.addAll(roleModels);
                     return configAttributes;
                 }
             }
+        }
+        if(permissionModelList.size() == 0 && SysPermissionMethod.OPTIONS.equals(permissionMethod)){
+            configAttributes.add(new SysRoleModel(1l,"guest","guest",false,true,null,null,null));
+            return configAttributes;
         }
         throw new TokenAccessDeniedException(HttpServletResponse.SC_FORBIDDEN,"No Access");
     }

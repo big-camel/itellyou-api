@@ -20,6 +20,7 @@ public class TokenAccessDeniedHandler implements AccessDeniedHandler {
             TokenAccessDeniedException tokenAccessDeniedException = (TokenAccessDeniedException)accessDeniedException;
             status = tokenAccessDeniedException.getStatus();
         }
+
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=utf-8");
         response.setStatus(status);

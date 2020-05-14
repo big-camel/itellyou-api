@@ -2,10 +2,7 @@ package com.itellyou.model.thirdparty;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,9 +17,9 @@ import lombok.NoArgsConstructor;
 public class ThirdLogModel {
     @JSONField(label = "base")
     private String id;//主键
-    @JSONField(label = "base")
+    @JSONField(label = "base",serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private ThirdAccountAction action;//第三方账号操作
-    @JSONField(label = "base")
+    @JSONField(label = "base",serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private ThirdAccountType type;//第三方账号类型
     @JSONField(label = "base")
     private boolean isVerify;//是否已验证

@@ -1,0 +1,1 @@
+ALTER TABLE `itellyou`.`tag_star` DROP INDEX `user_id`, ADD INDEX `user_id` USING BTREE (`tag_id`) comment '';

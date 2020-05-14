@@ -4,10 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,9 +16,9 @@ import lombok.NoArgsConstructor;
 public class RewardLogModel implements CacheEntity{
     @JSONField(label = "base")
     private Long id;
-    @JSONField(label = "base")
+    @JSONField(label = "base",serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private UserBankType bankType;
-    @JSONField(label = "base")
+    @JSONField(label = "base",serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private EntityType dataType;
     @JSONField(label = "base")
     private Long dataKey;

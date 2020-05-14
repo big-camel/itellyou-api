@@ -117,8 +117,8 @@ public class ExploreController {
                         }
                         dataMap.put(EntityType.ARTICLE.toString()+"_" + articleIndexModel.getId(),articleIndexModel);
                         break;
-                    default:
-                        System.out.println(document);
+                    //default:
+                        //System.out.println(document);
                 }
             }
             List<Map<String , Object >> listData = new ArrayList<>();

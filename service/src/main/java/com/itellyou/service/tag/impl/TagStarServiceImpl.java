@@ -51,6 +51,8 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
         TagInfoModel infoModel = searchService.findById(model.getTagId());
         try{
             if(infoModel == null) throw new Exception("错误的标签ID");
+            List<TagStarDetailModel> list = search(model.getTagId(),model.getCreatedUserId(),null,null,null,null,null,null);
+            if(list!=null && list.size() > 0) return 1;
             int result = starDao.insert(model);
             if(result != 1) throw new Exception("写入关注记录失败");
             result = infoService.updateStarCountById(model.getTagId(),1);
@@ -70,6 +72,9 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
         TagInfoModel infoModel = searchService.findById(tagId);
         try{
             if(infoModel == null) throw new Exception("错误的标签ID");
+            List<TagStarDetailModel> list = search(tagId,userId,null,null,null,null,null,null);
+            if(list == null || list.size() == 0) return 1;
+
             int result = starDao.delete(tagId,userId);
             if(result != 1) throw new Exception("删除关注记录失败");
             result = infoService.updateStarCountById(tagId,-1);

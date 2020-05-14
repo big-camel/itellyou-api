@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class ThirdAccountModel {
     @JSONField(label = "base")
     private Long userId;//用户编号，与 user_info -> id 对应
-    @JSONField(label = "base" , serializeUsing = EnumSerializer.class)
+    @JSONField(label = "base" , serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private ThirdAccountType type;//第三方账号类型
     @JSONField(label = "base")
     private String key;//第三方账号唯一id

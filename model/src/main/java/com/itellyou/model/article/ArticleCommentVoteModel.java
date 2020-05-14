@@ -2,10 +2,7 @@ package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ArticleCommentVoteModel {
     private Long commentId;
+    @JSONField(serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private VoteType type;
     @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class,label = "base")
     private Long createdTime = 0l;

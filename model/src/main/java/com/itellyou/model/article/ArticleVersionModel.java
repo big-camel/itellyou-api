@@ -4,10 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +19,7 @@ public class ArticleVersionModel implements CacheEntity {
     private Long articleId = 0l;
     @JSONField(label = "draft,base")
     private Long columnId;
+    @JSONField(serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private ArticleSourceType sourceType=ArticleSourceType.ORIGINAL;
     private String sourceData="";
     private String title = "";

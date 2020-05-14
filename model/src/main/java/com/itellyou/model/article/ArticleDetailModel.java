@@ -7,6 +7,7 @@ import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
+import com.itellyou.util.serialize.EnumSerializer;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity 
     private String description = "";
     @JSONField(label = "base")
     private boolean useStar;
-    @JSONField(label = "draft,base")
+    @JSONField(label = "draft,base", serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private ArticleSourceType sourceType=ArticleSourceType.ORIGINAL;
     @JSONField(label = "draft,base")
     private String sourceData="";

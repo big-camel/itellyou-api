@@ -29,7 +29,7 @@ public interface ThirdAccountDao {
     int deleteByUserIdAndType(@Param("userId") Long userId, @Param("type") ThirdAccountType type);
 
     @MapKey("type")
-    Map<String , ThirdAccountModel> searchByUserId(Long userId);
+    Map<ThirdAccountType , ThirdAccountModel> searchByUserId(Long userId);
 
     /**
      * 根据第三方账户类型，和KEY查询

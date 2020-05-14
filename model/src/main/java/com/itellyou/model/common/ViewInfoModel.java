@@ -5,10 +5,7 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
+import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +23,7 @@ public class ViewInfoModel {
     private String os;
     @JSONField(label = "base")
     private String browser;
-    @JSONField(label = "base")
+    @JSONField(label = "base", serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
     private EntityType dataType;
     @JSONField(label = "base")
     private Long dataKey;

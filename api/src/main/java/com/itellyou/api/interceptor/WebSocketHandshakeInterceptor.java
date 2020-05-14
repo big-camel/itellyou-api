@@ -44,6 +44,7 @@ public class WebSocketHandshakeInterceptor extends HttpSessionHandshakeIntercept
         if (infoModel == null || infoModel.isDisabled()) {
             return false;
         }
+
         attributes.put("user",infoModel);
         return super.beforeHandshake(request, response, webSocketHandler, attributes);
     }

@@ -8,6 +8,7 @@ public enum SysPermissionMethod implements BaseEnum<SysPermissionMethod,Integer>
     POST(2,"post"),
     PUT(3,"put"),
     DELETE(4,"delete"),
+    OPTIONS(5,"options"),
     CLICK(9,"click");
 
     private int value;
@@ -29,6 +30,8 @@ public enum SysPermissionMethod implements BaseEnum<SysPermissionMethod,Integer>
                 return PUT;
             case 4:
                 return DELETE;
+            case 5:
+                return OPTIONS;
             case 9:
                 return CLICK;
             default:
