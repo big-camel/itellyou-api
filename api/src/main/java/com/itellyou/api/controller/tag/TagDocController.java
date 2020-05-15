@@ -1,5 +1,6 @@
 package com.itellyou.api.controller.tag;
 
+import com.itellyou.api.handler.TokenAccessDeniedException;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.tag.TagDetailModel;
@@ -10,6 +11,7 @@ import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.tag.TagVersionService;
+import com.itellyou.service.user.UserPermissionService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -34,14 +36,23 @@ public class TagDocController {
     private final TagVersionService versionService;
     private final CollabInfoService collabService;
     private final UserSearchService userSearchService;
+    private final UserPermissionService userPermissionService;
 
     @Autowired
-    public TagDocController(TagInfoService tagService,TagSearchService searchService, CollabInfoService collabService, TagVersionService versionService,UserSearchService userSearchService){
+    public TagDocController(TagInfoService tagService, TagSearchService searchService, CollabInfoService collabService, TagVersionService versionService, UserSearchService userSearchService, UserPermissionService userPermissionService){
         this.tagService = tagService;
         this.searchService = searchService;
         this.collabService = collabService;
         this.versionService = versionService;
         this.userSearchService = userSearchService;
+        this.userPermissionService = userPermissionService;
+    }
+
+    private boolean checkAuthority(Long authorId,Long userId){
+        if(!authorId.equals(userId) && !userPermissionService.check(userId,"web_tag_public_edit")){
+            throw new TokenAccessDeniedException(403,"无权限编辑");
+        }
+        return true;
     }
 
     @PostMapping("/create")
@@ -70,9 +81,13 @@ public class TagDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        TagDetailModel detailModel = searchService.getDetail(id,"draft",userInfoModel.getId());
+        TagDetailModel detailModel = searchService.getDetail(id,"draft",null);
         if(detailModel == null || detailModel.isDisabled()){
             return  new ResultModel(404,"无记录，错误的ID");
+        }
+
+        if(!checkAuthority(detailModel.getCreatedUserId(),userInfoModel.getId())){
+            return new ResultModel(403,"无权限编辑");
         }
 
         if(ot){
@@ -97,15 +112,15 @@ public class TagDocController {
         TagInfoModel infoModel = searchService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled()) return new ResultModel(404,"无可用标签");
-            //暂时只能创建者有权限编辑
-            if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
-                return new ResultModel(401,"无权限编辑");
+            // 创建者和具有公共编辑权限的用户才能编辑
+            if(!checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId())){
+                return new ResultModel(403,"无权限编辑");
             }
 
             TagVersionModel versionModel = versionService.addVersion(id,userInfoModel.getId(),content,html,icon,StringUtils.getFragmenter(content),
                     "一般编辑更新",null,save_type,ipLong,false,false);
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
-            TagDetailModel detailModel = searchService.getDetail(id,"draft",userInfoModel.getId());
+            TagDetailModel detailModel = searchService.getDetail(id,"draft",null);
             return new ResultModel(detailModel,new Labels.LabelModel(TagDetailModel.class,"draft"));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
@@ -119,9 +134,9 @@ public class TagDocController {
         }
         TagInfoModel infoModel = searchService.findById(id);
         if(infoModel == null || infoModel.isDisabled()) return new ResultModel(404,"无可用提问");
-        //暂时只能创建者有权限编辑
-        if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
-            return new ResultModel(401,"无权限编辑");
+        // 创建者和具有公共编辑权限的用户才能编辑
+        if(!checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId())){
+            return new ResultModel(403,"无权限编辑");
         }
         TagVersionModel tagVersion = versionService.findByTagIdAndId(version_id,id);
         if(tagVersion == null || tagVersion.isDisabled()){
@@ -134,7 +149,7 @@ public class TagDocController {
                     IPUtils.toLong(clientIp),false,true);
 
             if(versionModel == null) return new ResultModel(0,"回滚失败");
-            TagDetailModel detailModel = searchService.getDetail(id,"draft",userInfoModel.getId());
+            TagDetailModel detailModel = searchService.getDetail(id,"draft",null);
             return new ResultModel(detailModel,new Labels.LabelModel(TagDetailModel.class,"draft"));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
@@ -146,13 +161,13 @@ public class TagDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        TagDetailModel detailModel = searchService.getDetail(id,"draft",userInfoModel.getId());
+        TagDetailModel detailModel = searchService.getDetail(id,"draft",null);
         if(detailModel == null || detailModel.isDisabled()){
             return new ResultModel(401,"无权限");
         }
-        //暂时只能创建者有权限编辑
-        if(!detailModel.getCreatedUserId().equals(userInfoModel.getId())){
-            return new ResultModel(401,"无权限发布");
+        // 创建者和具有公共编辑权限的用户才能编辑
+        if(!checkAuthority(detailModel.getCreatedUserId(),userInfoModel.getId())){
+            return new ResultModel(403,"无权限编辑");
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
@@ -162,7 +177,7 @@ public class TagDocController {
         }catch (Exception e){
             return new ResultModel(0,"发布失败");
         }
-        detailModel = searchService.getDetail(id,"version",userInfoModel.getId());
+        detailModel = searchService.getDetail(id,"version",null);
         return new ResultModel(detailModel);
     }
 
@@ -176,10 +191,17 @@ public class TagDocController {
         if(infoModel == null || infoModel.isDisabled()){
             return new ResultModel(0,"没有可用的文档");
         }
-        UserInfoModel userInfo = userSearchService.findById(collabInfoModel.getCreatedUserId());
+
+        UserInfoModel userInfo = userSearchService.find(collabInfoModel.getCreatedUserId(),null);
         if(userInfo == null || userInfo.isDisabled()){
             return new ResultModel(0,"用户状态不正确");
         }
+
+        // 创建者和具有公共编辑权限的用户才能编辑
+        if(!checkAuthority(infoModel.getCreatedUserId(),userInfo.getId())){
+            return new ResultModel(403,"无权限编辑");
+        }
+
         Map<String,Object> mapData = new HashMap<>();
         mapData.put("doc",infoModel);
         mapData.put("user",userInfo);

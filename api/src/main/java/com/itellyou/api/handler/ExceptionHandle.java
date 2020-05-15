@@ -1,6 +1,7 @@
 package com.itellyou.api.handler;
 
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -69,6 +71,22 @@ public class ExceptionHandle {
     }
 
     /**
+     * 处理无权限异常
+     *
+     * @param response
+     * @param exception
+     * @return
+     */
+    @ExceptionHandler(value = TokenAccessDeniedException.class)
+    public ResultModel accessException(HttpServletResponse response, TokenAccessDeniedException exception) {
+        String message = exception.getMessage();
+        if(StringUtils.isEmpty(message)) message = "系统错误";
+        logger.error(message);
+        response.setStatus(exception.getStatus());
+        return new ResultModel(exception.getStatus(), message);
+    }
+
+    /**
      * 处理未定义的其他异常信息
      *
      * @param request
@@ -81,7 +99,6 @@ public class ExceptionHandle {
         if(message == null)
             message = "系统错误";
         logger.error(message);
-        exception.printStackTrace();
         return new ResultModel(500, message);
     }
 

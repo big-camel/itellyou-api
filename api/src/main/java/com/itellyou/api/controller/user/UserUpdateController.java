@@ -183,6 +183,9 @@ public class UserUpdateController {
     public ResultModel path(UserInfoModel userModel, @MultiRequestBody @NotBlank @Path String path){
         if(userModel == null) return new ResultModel(403,"未登陆");
         path = path.toLowerCase();
+        if(com.itellyou.util.StringUtils.isNotEmpty(path) && (path.length() < 3 || path.length() > 30)){
+            return new ResultModel(0,"路径长度为3-30位");
+        }
         SysPathModel pathModel = pathService.findByTypeAndId(SysPath.USER,userModel.getId());
         boolean isSame = false;
         if(pathModel != null && pathModel.getPath().equals(path)) {

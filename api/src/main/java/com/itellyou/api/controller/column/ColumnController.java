@@ -131,7 +131,10 @@ public class ColumnController {
         );
 
         try {
-            int result = path != null ? infoService.update(updateModel,path) : infoService.update(updateModel);
+            if(StringUtils.isNotEmpty(path) && (path.length() < 3 || path.length() > 30)){
+                return new ResultModel(0,"路径长度为3-30位");
+            }
+            int result = path != null ? infoService.update(updateModel,path.toLowerCase()) : infoService.update(updateModel);
             if(result == 1){
                 return new ResultModel(searchService.getDetail(id,null,userModel.getId()));
             }

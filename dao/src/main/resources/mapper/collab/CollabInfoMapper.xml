@@ -15,6 +15,6 @@
     </select>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         insert into collab_info(<include refid="columns"></include>) values
-        (#{key},#{token},#{host},#{isDisabled},#{createdTime},#{createdUserId},#{createdIp})
+        (#{key},#{token},#{host},#{isDisabled},#{createdUserId},#{createdTime},#{createdIp})
     </insert>
 </mapper>
