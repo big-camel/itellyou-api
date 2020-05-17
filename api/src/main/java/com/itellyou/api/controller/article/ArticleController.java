@@ -1,13 +1,15 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.article.ArticleVoteModel;
-import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.sys.VoteType;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleInfoModel;
+import com.itellyou.model.article.ArticleVoteModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.VoteType;
+import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticleInfoService;
+import com.itellyou.service.article.ArticlePaidReadService;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
@@ -32,13 +34,15 @@ public class ArticleController {
     private final ArticleInfoService infoService;
     private final VoteService<ArticleVoteModel> voteService;
     private final UserDraftService draftService;
+    private final ArticlePaidReadService articlePaidReadService;
 
     @Autowired
-    public ArticleController(ArticleSearchService searchService, ArticleInfoService infoService, UserDraftService draftService, VoteFactory voteFactory){
+    public ArticleController(ArticleSearchService searchService, ArticleInfoService infoService, UserDraftService draftService, VoteFactory voteFactory, ArticlePaidReadService articlePaidReadService){
         this.searchService = searchService;
         this.infoService = infoService;
         this.draftService = draftService;
         this.voteService = voteFactory.create(EntityType.ARTICLE);
+        this.articlePaidReadService = articlePaidReadService;
     }
 
     @GetMapping("/{id:\\d+}/view")
@@ -109,5 +113,15 @@ public class ArticleController {
             return new ResultModel();
         }
         return new ResultModel(0,"删除失败");
+    }
+
+    @PostMapping("/{id:\\d+}/paidread")
+    public ResultModel doPaidRead(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id){
+        try{
+            UserBankLogModel logModel = articlePaidReadService.doPaidRead(id,userModel.getId(), IPUtils.toLong(request));
+            return new ResultModel(logModel);
+        }catch (Exception e){
+            return new ResultModel(500,e.getLocalizedMessage());
+        }
     }
 }

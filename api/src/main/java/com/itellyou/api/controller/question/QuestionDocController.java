@@ -1,10 +1,12 @@
 package com.itellyou.api.controller.question;
 
+import com.itellyou.api.handler.TokenAccessDeniedException;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.*;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserBankService;
+import com.itellyou.service.user.UserPermissionService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.serialize.filter.Labels;
@@ -45,9 +47,10 @@ public class QuestionDocController {
     private final RewardConfigService rewardService;
     private final UserSearchService userSearchService;
     private final UserBankService bankService;
+    private final UserPermissionService userPermissionService;
 
     @Autowired
-    public QuestionDocController(QuestionInfoService questionInfoService,QuestionSearchService questionSearchService,QuestionVersionService questionVersionService, CollabInfoService collabInfoService, QuestionVersionService versionService, TagSearchService tagSearchService, RewardConfigService rewardService, UserSearchService userSearchService,UserBankService bankService){
+    public QuestionDocController(QuestionInfoService questionInfoService, QuestionSearchService questionSearchService, QuestionVersionService questionVersionService, CollabInfoService collabInfoService, QuestionVersionService versionService, TagSearchService tagSearchService, RewardConfigService rewardService, UserSearchService userSearchService, UserBankService bankService, UserPermissionService userPermissionService){
         this.questionInfoService = questionInfoService;
         this.questionSearchService = questionSearchService;
         this.questionVersionService = questionVersionService;
@@ -57,6 +60,14 @@ public class QuestionDocController {
         this.rewardService = rewardService;
         this.userSearchService = userSearchService;
         this.bankService = bankService;
+        this.userPermissionService = userPermissionService;
+    }
+
+    private boolean checkAuthority(Long authorId,Long userId){
+        if(!authorId.equals(userId) && !userPermissionService.check(userId,"web_question_public_edit")){
+            throw new TokenAccessDeniedException(403,"无权限编辑");
+        }
+        return true;
     }
 
     @PostMapping("/create")
@@ -82,15 +93,12 @@ public class QuestionDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        QuestionDetailModel questionDetailModel = questionSearchService.getDetail(id,"draft",userInfoModel.getId());
+        QuestionDetailModel questionDetailModel = questionSearchService.getDetail(id,"draft");
         if(questionDetailModel == null || questionDetailModel.isDeleted() || questionDetailModel.isDisabled()){
             return  new ResultModel(404,"无记录，错误的ID");
         }
 
-        //暂时只能创建者有权限编辑
-        if(!questionDetailModel.getCreatedUserId().equals(userInfoModel.getId())){
-            return new ResultModel(401,"无权限编辑");
-        }
+        checkAuthority(questionDetailModel.getCreatedUserId(),userInfoModel.getId());
 
         if(ot){
             String clientIp = IPUtils.getClientIp(request);
@@ -114,15 +122,13 @@ public class QuestionDocController {
         QuestionInfoModel infoModel = questionSearchService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用提问");
-            //暂时只能创建者有权限编辑
-            if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
-                return new ResultModel(401,"无权限编辑");
-            }
+
+            checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId());
 
             QuestionVersionModel versionModel = questionVersionService.addVersion(id,userInfoModel.getId(),title,content,html,null,null,null,null,null,
                     "一般编辑更新",null,save_type,ipLong,false,false);
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
-            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"draft",userInfoModel.getId());
+            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"draft");
             return new ResultModel(detailModel,new Labels.LabelModel(QuestionDetailModel.class,"draft"));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
@@ -136,10 +142,9 @@ public class QuestionDocController {
         }
         QuestionInfoModel infoModel = questionSearchService.findById(id);
         if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用提问");
-        //暂时只能创建者有权限编辑
-        if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
-            return new ResultModel(401,"无权限编辑");
-        }
+
+        checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId());
+
         QuestionVersionModel questionVersion = versionService.findByQuestionIdAndId(version_id,id);
         if(questionVersion == null || questionVersion.isDisabled()){
             return  new ResultModel(0,"无记录，错误的ID");
@@ -153,7 +158,7 @@ public class QuestionDocController {
                     IPUtils.toLong(clientIp),false,true);
 
             if(versionModel == null) return new ResultModel(0,"回滚失败");
-            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"draft",userInfoModel.getId());
+            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"draft");
             return new ResultModel(detailModel,new Labels.LabelModel(QuestionDetailModel.class,"draft"));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
@@ -165,10 +170,12 @@ public class QuestionDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        QuestionDetailModel questionVersion = questionSearchService.getDetail(id,"draft",userInfoModel.getId());
+        QuestionDetailModel questionVersion = questionSearchService.getDetail(id,"draft");
         if(questionVersion == null || questionVersion.isDisabled() || questionVersion.isDeleted()){
             return new ResultModel(401,"无权限");
         }
+
+        checkAuthority(questionVersion.getCreatedUserId(),userInfoModel.getId());
 
         if(tags.length > 0){
             int rows = tagSearchService.exists(tags);
@@ -185,7 +192,7 @@ public class QuestionDocController {
         }
 
         Object objType = reward.get("type");
-        RewardType rewardType = objType == null ? RewardType.DEFAULT : RewardType.valueOf((Integer) objType);
+        RewardType rewardType = objType == null ? RewardType.DEFAULT : RewardType.valueOf(objType.toString().toUpperCase());
         if(rewardType == null){
             return new ResultModel(0,"错误的悬赏类别");
         }
@@ -235,14 +242,14 @@ public class QuestionDocController {
                     IPUtils.toLong(clientIp),true,true);
 
             if(versionModel == null) return new ResultModel(0,"发布提问失败");
-            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"version",userInfoModel.getId());
+            QuestionDetailModel detailModel = questionSearchService.getDetail(id,"version");
             return new ResultModel(detailModel);
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
         }
     }
 
-    @PostMapping("/collab")
+    @PostMapping("/{id:\\d+}/collab")
     public ResultModel collab(@MultiRequestBody @NotBlank String token, @PathVariable Long id){
         CollabInfoModel collabInfoModel = collabInfoService.findByToken(token);
         if(collabInfoModel == null || collabInfoModel.isDisabled() == true){
@@ -256,6 +263,9 @@ public class QuestionDocController {
         if(userInfo == null || userInfo.isDisabled()){
             return new ResultModel(0,"用户状态不正确");
         }
+
+        checkAuthority(infoModel.getCreatedUserId(),userInfo.getId());
+
         Map<String,Object> mapData = new HashMap<>();
         mapData.put("doc",infoModel);
         mapData.put("user",userInfo);

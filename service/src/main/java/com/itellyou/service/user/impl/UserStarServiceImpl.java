@@ -139,4 +139,10 @@ public class UserStarServiceImpl implements UserStarService , StarService<UserSt
         Integer total = count(userId,followerId,beginTime,endTime,ip);
         return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
     }
+
+    @Override
+    public UserStarDetailModel find(Long userId, Long followerId) {
+        List<UserStarDetailModel> data = search(userId,followerId,null,null,null,null,null,null,null);
+        return data != null && data.size() > 0 ? data.get(0) : null;
+    }
 }

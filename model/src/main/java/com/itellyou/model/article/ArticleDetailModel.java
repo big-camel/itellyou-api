@@ -54,6 +54,8 @@ public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity 
     private boolean allowOppose;
     @JSONField(label = "base")
     private boolean allowStar;
+    @JSONField(label = "draft,base")
+    private ArticlePaidReadModel paidRead;
 
     @Override
     public String cacheKey() {

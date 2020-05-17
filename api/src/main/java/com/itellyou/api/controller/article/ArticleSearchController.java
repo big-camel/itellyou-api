@@ -1,17 +1,19 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleIndexModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.tag.TagStarDetailModel;
 import com.itellyou.model.tag.TagStarModel;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.article.ArticlePaidReadService;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.article.impl.ArticleIndexServiceImpl;
 import com.itellyou.service.common.IndexService;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.tag.impl.TagStarServiceImpl;
+import com.itellyou.util.HtmlUtils;
 import com.itellyou.util.ansj.AnsjAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -34,11 +36,13 @@ public class ArticleSearchController {
     private final ArticleSearchService searchService;
     private final IndexService<ArticleDetailModel> articleIndexService;
     private final StarService<TagStarModel> tagStarService;
+    private final ArticlePaidReadService articlePaidReadService;
 
-    public ArticleSearchController(ArticleSearchService searchService, ArticleIndexServiceImpl articleIndexService, TagStarServiceImpl tagStarService) {
+    public ArticleSearchController(ArticleSearchService searchService, ArticleIndexServiceImpl articleIndexService, TagStarServiceImpl tagStarService, ArticlePaidReadService articlePaidReadService) {
         this.searchService = searchService;
         this.articleIndexService = articleIndexService;
         this.tagStarService = tagStarService;
+        this.articlePaidReadService = articlePaidReadService;
     }
 
     @GetMapping("/list")
@@ -55,7 +59,7 @@ public class ArticleSearchController {
                 order.put("comment_count","desc");
                 order.put("view","desc");
                 order.put("star_count","desc");
-                data = searchService.page(null,null,columnId,userId,searchUserId,null,true,false,false,true,
+                data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,
                         tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,50,null,2,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
             case "star":
@@ -72,12 +76,12 @@ public class ArticleSearchController {
                 order.put("comment_count","desc");
                 order.put("view","desc");
                 order.put("star_count","desc");
-                data = searchService.page(null,null,columnId,userId,searchUserId,null,true,false,false,true,tags.size() > 0 ? tags : null,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
+                data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,tags.size() > 0 ? tags : null,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
             default:
                 order = new HashMap<>();
                 order.put("created_time","desc");
-                data = searchService.page(null,null,columnId,userId,searchUserId,null,true,false,false,true,
+                data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,
                         tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,
                         null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
 
@@ -90,6 +94,15 @@ public class ArticleSearchController {
         Long searchUserId = userModel == null ? null : userModel.getId();
         ArticleDetailModel detailModel = searchService.getDetail(id,(Long)null,searchUserId);
         if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return  new ResultModel(404,"错误的编号");
+
+        if(articlePaidReadService.checkRead(detailModel.getPaidRead(),detailModel.getCreatedUserId(),searchUserId) == false){
+            String content =  HtmlUtils.subEditorContent(detailModel.getContent(),detailModel.getHtml(),detailModel.getPaidRead().getFreeReadScale());
+            detailModel.setContent(content);
+            detailModel.setHtml(null);
+        }else{
+            detailModel.setPaidRead(null);
+        }
+
         return new ResultModel(detailModel);
     }
 

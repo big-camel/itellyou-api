@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.question.QuestionAnswerPaidReadDao">
+    <sql id="columns">
+        ${alias}answer_id ${prefix}answer_id,
+        ${alias}paid_type ${prefix}paid_type,
+        ${alias}paid_to_read ${prefix}paid_to_read,
+        ${alias}paid_amount ${prefix}paid_amount,
+        ${alias}star_to_read ${prefix}star_to_read,
+        ${alias}free_read_scale ${prefix}free_read_scale
+    </sql>
+    <insert id="insert">
+        insert into question_answer_paid_read (answer_id,paid_type,paid_to_read,paid_amount,star_to_read,free_read_scale) values
+        (#{answerId},#{paidType},#{paidToRead},#{paidAmount},#{starToRead},#{freeReadScale})
+    </insert>
+    <delete id="deleteByAnswerId">
+        delete from question_answer_paid_read where answer_id=#{answerId}
+    </delete>
+    <select id="findByAnswerId" resultType="QuestionAnswerPaidReadModel">
+        select <include refid="columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+    </include> from question_answer_paid_read where answer_id=#{answerId}
+    </select>
+</mapper>

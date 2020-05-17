@@ -1,17 +1,16 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.article.ArticleSourceType;
+import com.itellyou.model.article.*;
 import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.article.ArticleDetailModel;
-import com.itellyou.model.article.ArticleInfoModel;
-import com.itellyou.model.article.ArticleVersionModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagInfoModel;
+import com.itellyou.model.user.UserBankType;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.article.ArticleInfoService;
+import com.itellyou.service.article.ArticlePaidReadService;
+import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.article.ArticleVersionService;
+import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.IPUtils;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,9 +41,10 @@ public class ArticleDocController {
     private final ArticleVersionService versionService;
     private final TagSearchService tagSearchService;
     private final UserSearchService userSearchService;
+    private final ArticlePaidReadService paidReadService;
 
     @Autowired
-    public ArticleDocController(ArticleInfoService articleInfoService,ArticleVersionService articleVersionService,ArticleSearchService articleSearchService, CollabInfoService collabInfoService, ArticleVersionService versionService,TagSearchService tagSearchService, UserSearchService userSearchService){
+    public ArticleDocController(ArticleInfoService articleInfoService, ArticleVersionService articleVersionService, ArticleSearchService articleSearchService, CollabInfoService collabInfoService, ArticleVersionService versionService, TagSearchService tagSearchService, UserSearchService userSearchService, ArticlePaidReadService paidReadService){
         this.articleInfoService = articleInfoService;
         this.articleSearchService = articleSearchService;
         this.articleVersionService = articleVersionService;
@@ -51,6 +52,7 @@ public class ArticleDocController {
         this.versionService = versionService;
         this.tagSearchService = tagSearchService;
         this.userSearchService = userSearchService;
+        this.paidReadService = paidReadService;
     }
 
     @PostMapping("/create")
@@ -142,6 +144,50 @@ public class ArticleDocController {
 
             int result = articleInfoService.updateMetas(id,customDescription,cover);
             if(result != 1) return new ResultModel(0,"更新失败");
+            ArticleDetailModel detailModel = articleSearchService.getDetail(id,"draft",userInfoModel.getId());
+            return new ResultModel(detailModel,new Labels.LabelModel(ArticleDetailModel.class,"draft"));
+        }catch (Exception e){
+            return new ResultModel(0,e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id:\\d+}/paidread")
+    public ResultModel paidRead(UserInfoModel userInfoModel, @PathVariable Long id, @RequestBody Map<String ,Object> params){
+        ArticleInfoModel infoModel = articleSearchService.findById(id);
+        try{
+            if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用文章");
+            //暂时只能创建者有权限编辑
+            if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
+                return new ResultModel(401,"无权限编辑");
+            }
+            ArticlePaidReadModel paidReadModel = new ArticlePaidReadModel();
+            paidReadModel.setArticleId(id);
+            paidReadModel.setPaidToRead(false);
+            Object paidObject = params.get("paid");
+            if(paidObject != null){
+                paidReadModel.setPaidToRead(true);
+                Map<String,Object> paidMap = (Map<String,Object>)paidObject;
+                UserBankType bankType = UserBankType.valueOf(paidMap.get("type").toString().toUpperCase());
+                if(bankType.equals(UserBankType.SCORE)) throw new Exception("参数错误");
+                paidReadModel.setPaidType(bankType);
+                Double amount = Math.abs(Double.valueOf(paidMap.get("amount").toString()));
+                paidReadModel.setPaidAmount(amount);
+            }
+            Object starObject = params.get("star");
+            paidReadModel.setStarToRead(false);
+            if(starObject != null){
+                paidReadModel.setStarToRead(Boolean.valueOf(starObject.toString()));
+            }
+            Object scaleObject = params.getOrDefault("scale",0);
+            if(scaleObject == null) scaleObject = 0;
+            Double scale = Math.abs(Double.valueOf(scaleObject.toString()));
+            if(scale > 50) scale = 50.0;
+            paidReadModel.setFreeReadScale(scale == 0 ? 0 : new BigDecimal(scale).divide(new BigDecimal(100)).doubleValue());
+            if(paidReadModel.getStarToRead() || paidReadModel.getPaidToRead()){
+                if(paidReadService.insertOrUpdate(paidReadModel) != 1) throw new Exception("设置失败");
+            }else{
+                paidReadService.deleteByArticleId(id);
+            }
             ArticleDetailModel detailModel = articleSearchService.getDetail(id,"draft",userInfoModel.getId());
             return new ResultModel(detailModel,new Labels.LabelModel(ArticleDetailModel.class,"draft"));
         }catch (Exception e){

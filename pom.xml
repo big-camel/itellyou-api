@@ -25,6 +25,7 @@
         <lucene.version>8.4.0</lucene.version>
         <ansj.version>5.1.6</ansj.version>
         <alipay.version>4.9.124.ALL</alipay.version>
+        <jsoup.version>1.13.1</jsoup.version>
         <dao.version>1.0.0-SNAPSHOT</dao.version>
         <model.version>1.0.0-SNAPSHOT</model.version>
         <service.version>1.0.0-SNAPSHOT</service.version>
@@ -190,6 +191,11 @@
                 <groupId>com.alipay.sdk</groupId>
                 <artifactId>alipay-sdk-java</artifactId>
                 <version>${alipay.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.itellyou</groupId>

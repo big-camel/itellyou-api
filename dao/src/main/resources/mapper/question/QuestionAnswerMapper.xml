@@ -112,9 +112,9 @@
     </sql>
     <select id="search" resultMap="searchMap">
         select q.id,q.question_id,q.is_published,q.is_disabled,q.is_deleted,q.is_adopted,q.comments,q.view,q.support,q.oppose,q.star_count,q.draft,q.cover,q.version,
-        q.created_time,q.created_user_id,q.created_ip,i.id q_id,
+        q.created_time,q.created_user_id,q.created_ip,i.id q_id,w.title q_title,w.description q_description,v.description,
         <if test="hasContent != false">
-            w.title q_title,w.description q_description,v.content,v.html,v.description,
+            v.content,v.html,
         </if>
         <choose>
             <when test="mode == 'draft'">
@@ -158,9 +158,7 @@
         left join question_answer_star qs on qs.answer_id=q.id and qs.created_user_id = #{searchUserId}
         </if>
         left join question_info i on q.question_id=i.id
-        <if test="hasContent != false">
-            left join question_version w on i.id = w.question_id and i.version = w.version
-        </if>
+        left join question_version w on i.id = w.question_id and i.version = w.version
         <include refid="searchWhere">
             <property name="alias" value="q."/>
         </include>

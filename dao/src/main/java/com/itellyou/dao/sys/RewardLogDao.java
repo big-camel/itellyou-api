@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public interface RewardLogDao {
     List<RewardLogModel> search(@Param("id") Long id,
                                 @Param("bankType")UserBankType bankType,
                                 @Param("dataType") EntityType dataType,
-                                @Param("dataKey") Long dataKey,
+                                @Param("dataKeys") HashSet<Long> dataKeys,
                                 @Param("userId") Long userId,
                                 @Param("createdUserId") Long createdUserId,
                                 @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -29,7 +30,7 @@ public interface RewardLogDao {
     int count(@Param("id") Long id,
               @Param("bankType")UserBankType bankType,
               @Param("dataType") EntityType dataType,
-              @Param("dataKey") Long dataKey,
+              @Param("dataKeys") HashSet<Long> dataKeys,
               @Param("userId") Long userId,
               @Param("createdUserId") Long createdUserId,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

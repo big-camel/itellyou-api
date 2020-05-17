@@ -47,4 +47,6 @@ public class QuestionAnswerDetailModel extends QuestionAnswerModel {
     private boolean allowAdopt;
     @JSONField(label = "base")
     private boolean allowStar;
+    @JSONField(label = "draft,base")
+    private QuestionAnswerPaidReadModel paidRead;
 }

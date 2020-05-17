@@ -145,16 +145,16 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return result;
     }
 
-    public static List<JSONObject> getEditorElectionValueToJSON(String html, String element,String name, String attr){
+    public static List<JSONObject> getEditorSectionValueToJSON(String html, String element,String name, String attr){
         List<String> values = getEditorContentAttrByName(html,element,name,attr);
         List<JSONObject> data = new ArrayList<>();
         for (String value : values){
-            data.add(getEditorElectionValueToJSON(value));
+            data.add(getEditorSectionValueToJSON(value));
         }
         return data;
     }
 
-    public static JSONObject getEditorElectionValueToJSON(String value){
+    public static JSONObject getEditorSectionValueToJSON(String value){
         String prefix = "data:";
         try {
             if(StringUtils.startsWith(value,prefix)){
@@ -169,7 +169,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     }
 
     public static JSONObject getEditorContentCover(String content){
-        List<JSONObject> imagesValue = getEditorElectionValueToJSON(content,"section","image","value");
+        List<JSONObject> imagesValue = getEditorSectionValueToJSON(content,"section","image","value");
         JSONObject checkedValue = null;
         for (JSONObject imageValue : imagesValue){
             String status = imageValue.getString("status");

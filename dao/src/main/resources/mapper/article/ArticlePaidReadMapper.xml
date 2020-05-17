@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.article.ArticlePaidReadDao">
+    <sql id="columns">
+        ${alias}article_id ${prefix}article_id,
+        ${alias}paid_type ${prefix}paid_type,
+        ${alias}paid_to_read ${prefix}paid_to_read,
+        ${alias}paid_amount ${prefix}paid_amount,
+        ${alias}star_to_read ${prefix}star_to_read,
+        ${alias}free_read_scale ${prefix}free_read_scale
+    </sql>
+    <insert id="insert">
+        insert into article_paid_read (article_id,paid_type,paid_to_read,paid_amount,star_to_read,free_read_scale) values
+        (#{articleId},#{paidType},#{paidToRead},#{paidAmount},#{starToRead},#{freeReadScale})
+    </insert>
+    <delete id="deleteByArticleId">
+        delete from article_paid_read where article_id=#{articleId}
+    </delete>
+    <select id="findByArticleId" resultType="ArticlePaidReadModel">
+        select <include refid="columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+    </include> from article_paid_read where article_id=#{articleId}
+    </select>
+</mapper>

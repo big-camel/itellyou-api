@@ -1,10 +1,12 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerDao;
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.question.*;
-import com.itellyou.model.user.*;
-import com.itellyou.service.question.*;
+import com.itellyou.model.user.UserDetailModel;
+import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
+import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.user.UserSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -19,11 +21,13 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
 
     private final QuestionAnswerDao answerDao;
     private final UserSearchService userSearchService;
+    private final QuestionAnswerPaidReadSearchService paidReadSearchService;
 
     @Autowired
-    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao,UserSearchService userSearchService){
+    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService){
         this.answerDao = answerDao;
         this.userSearchService = userSearchService;
+        this.paidReadSearchService = paidReadSearchService;
     }
 
     @Override
@@ -39,8 +43,11 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
 
     @Override
     public List<QuestionAnswerDetailModel> search(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        return answerDao.search(ids,questionId,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
-
+        List<QuestionAnswerDetailModel> list = answerDao.search(ids,questionId,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+        for (QuestionAnswerDetailModel detailModel : list){
+            detailModel.setPaidRead(paidReadSearchService.findByAnswerId(detailModel.getId()));
+        }
+        return list;
     }
 
     @Override

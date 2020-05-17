@@ -5,6 +5,7 @@ import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.sys.PageModel;
+import com.itellyou.service.article.ArticlePaidReadSearchService;
 import com.itellyou.service.article.ArticleSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -21,16 +22,22 @@ import java.util.Map;
 public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     private final ArticleInfoDao articleInfoDao;
+    private final ArticlePaidReadSearchService paidReadSearchService;
 
     @Autowired
-    public ArticleSearchServiceImpl(ArticleInfoDao articleInfoDao){
+    public ArticleSearchServiceImpl(ArticleInfoDao articleInfoDao, ArticlePaidReadSearchService paidReadSearchService){
         this.articleInfoDao = articleInfoDao;
+        this.paidReadSearchService = paidReadSearchService;
     }
 
     @Override
     public List<ArticleDetailModel> search(HashSet<Long> ids, String mode, Long columnId, Long userId, Long searchUserId, ArticleSourceType sourceType, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isPublished,
                                            List<Long> tags, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        return articleInfoDao.search(ids,mode,columnId,userId,searchUserId,sourceType,hasContent,isDisabled,isPublished,isDeleted,tags, minComments, maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,ip,order,offset,limit);
+        List<ArticleDetailModel> list = articleInfoDao.search(ids,mode,columnId,userId,searchUserId,sourceType,hasContent,isDisabled,isPublished,isDeleted,tags, minComments, maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,ip,order,offset,limit);
+        for (ArticleDetailModel detailModel : list){
+            detailModel.setPaidRead(paidReadSearchService.findByArticleId(detailModel.getId()));
+        }
+        return list;
     }
 
     @Override

@@ -75,7 +75,7 @@
     </sql>
     <resultMap id="searchMap" type="TagVersionModel" autoMapping="true">
         <id property="id" column="id" />
-        <association property="author" javaType="UserInfoModel" columnPrefix="user_" autoMapping="true">
+        <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
             <id property="id" column="id" />
         </association>
     </resultMap>

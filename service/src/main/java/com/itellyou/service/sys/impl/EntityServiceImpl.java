@@ -44,7 +44,7 @@ public class EntityServiceImpl implements EntityService {
     public Map<EntityType, Map<Long, Object>> find(Map<EntityType, HashSet<Long>> ids,Long searchId,Integer childCount) {
         Map<EntityType, Map<Long, Object>> mapData = new LinkedHashMap<>();
         if(ids.containsKey(EntityType.QUESTION)){
-            List<QuestionDetailModel> list = questionSearchService.search(ids.get(EntityType.QUESTION),null,null,searchId,true,childCount,null,null,null,null,null);
+            List<QuestionDetailModel> list = questionSearchService.search(ids.get(EntityType.QUESTION),null,null,searchId,false,childCount,null,null,null,null,null);
             Map<Long, Object> map = new LinkedHashMap<>();
             for (QuestionDetailModel model : list){
                 map.put(model.getId(),model);
@@ -52,7 +52,7 @@ public class EntityServiceImpl implements EntityService {
             mapData.put(EntityType.QUESTION,map);
         }
         if(ids.containsKey(EntityType.ANSWER)){
-            List<QuestionAnswerDetailModel> list = answerSearchService.search(ids.get(EntityType.ANSWER),null,null,searchId,null,true,null,null,null,null,null);
+            List<QuestionAnswerDetailModel> list = answerSearchService.search(ids.get(EntityType.ANSWER),null,null,searchId,null,false,null,null,null,null,null);
             Map<Long, Object> map = new LinkedHashMap<>();
             for (QuestionAnswerDetailModel model : list){
                 map.put(model.getId(),model);
@@ -60,7 +60,7 @@ public class EntityServiceImpl implements EntityService {
             mapData.put(EntityType.ANSWER,map);
         }
         if(ids.containsKey(EntityType.ARTICLE)){
-            List<ArticleDetailModel> list = articleSearchService.search(ids.get(EntityType.ARTICLE),null,null,null,searchId,null,true,null,null,null,null,null);
+            List<ArticleDetailModel> list = articleSearchService.search(ids.get(EntityType.ARTICLE),null,null,null,searchId,null,false,null,null,null,null,null);
             Map<Long, Object> map = new LinkedHashMap<>();
             for (ArticleDetailModel model : list){
                 map.put(model.getId(),model);

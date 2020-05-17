@@ -30,8 +30,8 @@ public class RewardLogServiceImpl implements RewardLogService {
     }
 
     @Override
-    public List<RewardLogDetailModel> search(Long id, UserBankType bankType, EntityType dataType, Long dataKey,Long searchUserId, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        List<RewardLogModel> listModels = logDao.search(id,bankType,dataType,dataKey,userId,createdUserId,beginTime,endTime,ip,order,offset,limit);
+    public List<RewardLogDetailModel> search(Long id, UserBankType bankType, EntityType dataType, HashSet<Long> dataKeys,Long searchUserId, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        List<RewardLogModel> listModels = logDao.search(id,bankType,dataType,dataKeys,userId,createdUserId,beginTime,endTime,ip,order,offset,limit);
         Map<EntityType, HashSet<Long>> mapIds = new HashMap<>();
         for (RewardLogModel logModel : listModels){
             if(!mapIds.containsKey(logModel.getDataType())){
@@ -68,16 +68,16 @@ public class RewardLogServiceImpl implements RewardLogService {
     }
 
     @Override
-    public int count(Long id, UserBankType bankType, EntityType dataType, Long dataKey, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip) {
-        return logDao.count(id,bankType,dataType,dataKey,userId,createdUserId,beginTime,endTime,ip);
+    public int count(Long id, UserBankType bankType, EntityType dataType, HashSet<Long> dataKeys, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip) {
+        return logDao.count(id,bankType,dataType,dataKeys,userId,createdUserId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<RewardLogDetailModel> page(Long id, UserBankType bankType, EntityType dataType, Long dataKey,Long searchUserId, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<RewardLogDetailModel> page(Long id, UserBankType bankType, EntityType dataType, HashSet<Long> dataKeys,Long searchUserId, Long userId, Long createdUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
-        List<RewardLogDetailModel> detailModels = search(id,bankType,dataType,dataKey,searchUserId,userId,createdUserId,beginTime,endTime,ip,order,offset,limit);
-        Integer count = count(id,bankType,dataType,dataKey,userId,createdUserId,beginTime,endTime,ip);
+        List<RewardLogDetailModel> detailModels = search(id,bankType,dataType,dataKeys,searchUserId,userId,createdUserId,beginTime,endTime,ip,order,offset,limit);
+        Integer count = count(id,bankType,dataType,dataKeys,userId,createdUserId,beginTime,endTime,ip);
         return new PageModel<>(offset,limit,count,detailModels);
     }
 

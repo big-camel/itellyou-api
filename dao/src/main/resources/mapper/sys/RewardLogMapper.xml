@@ -39,8 +39,11 @@
             <if test="dataType != null">
                 and ${alias}data_type = #{dataType}
             </if>
-            <if test="dataKey != null">
-                and ${alias}data_key = #{dataKey}
+            <if test="dataKeys != null">
+                and
+                ${alias}data_key <foreach collection="dataKeys" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
             </if>
             <if test="userId != null">
                 and ${alias}user_id = #{userId}

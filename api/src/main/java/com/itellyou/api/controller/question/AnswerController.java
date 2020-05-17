@@ -7,12 +7,15 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.sys.VoteType;
+import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
+import com.itellyou.service.question.QuestionAnswerPaidReadService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.user.UserDraftService;
+import com.itellyou.util.HtmlUtils;
 import com.itellyou.util.IPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -33,13 +36,15 @@ public class AnswerController {
     private final QuestionAnswerService answerService;
     private final QuestionAnswerSearchService searchService;
     private final UserDraftService draftService;
+    private final QuestionAnswerPaidReadService answerPaidReadService;
 
     @Autowired
-    public AnswerController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, UserDraftService draftService, VoteFactory voteFactory){
+    public AnswerController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, UserDraftService draftService, VoteFactory voteFactory, QuestionAnswerPaidReadService answerPaidReadService){
         this.voteService = voteFactory.create(EntityType.ANSWER);
         this.answerService = answerService;
         this.searchService = searchService;
         this.draftService = draftService;
+        this.answerPaidReadService = answerPaidReadService;
     }
 
     @GetMapping("/list")
@@ -78,7 +83,15 @@ public class AnswerController {
         pageData.getData().addAll(0,adoptData);
         pageData.setOffset(offset);
         pageData.setLimit(limit);
-        //pageData.setTotal(pageData.getTotal() + adoptData.size());
+        for (QuestionAnswerDetailModel detailModel : pageData.getData()){
+            if(answerPaidReadService.checkRead(detailModel.getPaidRead(),detailModel.getQuestionId(),detailModel.getCreatedUserId(),searchUserId) == false){
+                String content =  HtmlUtils.subEditorContent(detailModel.getContent(),detailModel.getHtml(),detailModel.getPaidRead().getFreeReadScale());
+                detailModel.setContent(content);
+                detailModel.setHtml(null);
+            }else{
+                detailModel.setPaidRead(null);
+            }
+        }
         Map<String,Object> extendData = new HashMap<>();
         extendData.put("adopts",adoptData.size());
         pageData.setExtend(extendData);
@@ -90,6 +103,13 @@ public class AnswerController {
         Long searchUserId = userModel == null ? null : userModel.getId();
         QuestionAnswerDetailModel detailModel = searchService.getDetail(id,questionId,"version",searchUserId,null,true,null,false,true,false);
         if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return new ResultModel(404,"无数据");
+        if(answerPaidReadService.checkRead(detailModel.getPaidRead(),detailModel.getQuestionId(),detailModel.getCreatedUserId(),searchUserId) == false){
+            String content =  HtmlUtils.subEditorContent(detailModel.getContent(),detailModel.getHtml(),detailModel.getPaidRead().getFreeReadScale());
+            detailModel.setContent(content);
+            detailModel.setHtml(null);
+        }else{
+            detailModel.setPaidRead(null);
+        }
         return new ResultModel(detailModel);
     }
 
@@ -162,5 +182,15 @@ public class AnswerController {
             return new ResultModel(0,"更新失败");
         }
         return new ResultModel(data);
+    }
+
+    @PostMapping("/{id:\\d+}/paidread")
+    public ResultModel doPaidRead(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id){
+        try{
+            UserBankLogModel logModel = answerPaidReadService.doPaidRead(id,userModel.getId(), IPUtils.toLong(request));
+            return new ResultModel(logModel);
+        }catch (Exception e){
+            return new ResultModel(500,e.getLocalizedMessage());
+        }
     }
 }

@@ -1,26 +1,28 @@
 package com.itellyou.api.controller.question;
 
+import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.*;
 import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.user.UserBankType;
 import com.itellyou.model.user.UserDraftModel;
+import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.StringUtils;
-import com.itellyou.util.serialize.filter.Labels;
-import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.question.*;
-import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.util.IPUtils;
+import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
+import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,9 +38,10 @@ public class AnswerDocController {
     private final UserSearchService userSearchService;
     private final UserDraftService draftService;
     private final QuestionSearchService questionSearchService;
+    private final QuestionAnswerPaidReadService answerPaidReadService;
 
     @Autowired
-    public AnswerDocController(QuestionAnswerService answerService,QuestionAnswerSearchService searchService, CollabInfoService collabInfoService, QuestionAnswerVersionService versionService, UserSearchService userSearchService, UserDraftService draftService,QuestionSearchService questionSearchService){
+    public AnswerDocController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, CollabInfoService collabInfoService, QuestionAnswerVersionService versionService, UserSearchService userSearchService, UserDraftService draftService, QuestionSearchService questionSearchService, QuestionAnswerPaidReadService answerPaidReadService){
         this.answerService = answerService;
         this.searchService = searchService;
         this.collabInfoService = collabInfoService;
@@ -46,6 +49,7 @@ public class AnswerDocController {
         this.userSearchService = userSearchService;
         this.draftService = draftService;
         this.questionSearchService = questionSearchService;
+        this.answerPaidReadService = answerPaidReadService;
     }
 
     @PostMapping("/create")
@@ -128,6 +132,50 @@ public class AnswerDocController {
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
             QuestionAnswerDetailModel detailModel = searchService.getDetail(answerModel.getId(),questionId,"draft",null,userInfoModel.getId());
 
+            return new ResultModel(detailModel,new Labels.LabelModel(QuestionAnswerDetailModel.class,"draft"));
+        }catch (Exception e){
+            return new ResultModel(0,e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id:\\d+}/paidread")
+    public ResultModel paidRead(UserInfoModel userInfoModel, @PathVariable Long id, @PathVariable Long questionId, @RequestBody Map<String ,Object> params){
+        QuestionAnswerModel infoModel = searchService.findById(id);
+        try{
+            if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用回答");
+            //暂时只能创建者有权限编辑
+            if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
+                return new ResultModel(401,"无权限编辑");
+            }
+            QuestionAnswerPaidReadModel paidReadModel = new QuestionAnswerPaidReadModel();
+            paidReadModel.setAnswerId(id);
+            paidReadModel.setPaidToRead(false);
+            Object paidObject = params.get("paid");
+            if(paidObject != null){
+                paidReadModel.setPaidToRead(true);
+                Map<String,Object> paidMap = (Map<String,Object>)paidObject;
+                UserBankType bankType = UserBankType.valueOf(paidMap.get("type").toString().toUpperCase());
+                if(bankType.equals(UserBankType.SCORE)) throw new Exception("参数错误");
+                paidReadModel.setPaidType(bankType);
+                Double amount = Math.abs(Double.valueOf(paidMap.get("amount").toString()));
+                paidReadModel.setPaidAmount(amount);
+            }
+            Object starObject = params.get("star");
+            paidReadModel.setStarToRead(false);
+            if(starObject != null){
+                paidReadModel.setStarToRead(Boolean.valueOf(starObject.toString()));
+            }
+            Object scaleObject = params.getOrDefault("scale",0);
+            if(scaleObject == null) scaleObject = 0;
+            Double scale = Math.abs(Double.valueOf(scaleObject.toString()));
+            if(scale > 50) scale = 50.0;
+            paidReadModel.setFreeReadScale(scale == 0 ? 0 : new BigDecimal(scale).divide(new BigDecimal(100)).doubleValue());
+            if(paidReadModel.getStarToRead() || paidReadModel.getPaidToRead()){
+                if(answerPaidReadService.insertOrUpdate(paidReadModel) != 1) throw new Exception("设置失败");
+            }else{
+                answerPaidReadService.deleteByAnswerId(id);
+            }
+            QuestionAnswerDetailModel detailModel = searchService.getDetail(id,questionId,"draft",null,userInfoModel.getId());
             return new ResultModel(detailModel,new Labels.LabelModel(QuestionAnswerDetailModel.class,"draft"));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
