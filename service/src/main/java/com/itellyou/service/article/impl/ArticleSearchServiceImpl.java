@@ -1,17 +1,19 @@
 package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleInfoDao;
-import com.itellyou.model.article.ArticleDetailModel;
-import com.itellyou.model.article.ArticleInfoModel;
-import com.itellyou.model.article.ArticleSourceType;
+import com.itellyou.model.article.*;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.service.article.ArticlePaidReadSearchService;
 import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleVersionSearchService;
+import com.itellyou.util.HtmlUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,11 +25,13 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     private final ArticleInfoDao articleInfoDao;
     private final ArticlePaidReadSearchService paidReadSearchService;
+    private final ArticleVersionSearchService versionSearchService;
 
     @Autowired
-    public ArticleSearchServiceImpl(ArticleInfoDao articleInfoDao, ArticlePaidReadSearchService paidReadSearchService){
+    public ArticleSearchServiceImpl(ArticleInfoDao articleInfoDao, ArticlePaidReadSearchService paidReadSearchService, ArticleVersionSearchService versionSearchService){
         this.articleInfoDao = articleInfoDao;
         this.paidReadSearchService = paidReadSearchService;
+        this.versionSearchService = versionSearchService;
     }
 
     @Override
@@ -35,7 +39,35 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
                                            List<Long> tags, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<ArticleDetailModel> list = articleInfoDao.search(ids,mode,columnId,userId,searchUserId,sourceType,hasContent,isDisabled,isPublished,isDeleted,tags, minComments, maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,ip,order,offset,limit);
         for (ArticleDetailModel detailModel : list){
-            detailModel.setPaidRead(paidReadSearchService.findByArticleId(detailModel.getId()));
+            ArticlePaidReadModel paidReadModel = paidReadSearchService.findByArticleId(detailModel.getId());
+            detailModel.setPaidRead(paidReadModel);
+            if(mode != "draft" && paidReadSearchService.checkRead(paidReadModel,detailModel.getCreatedUserId(),searchUserId) == false){
+                String content =  HtmlUtils.subEditorContent(detailModel.getContent(),detailModel.getHtml(),paidReadModel.getFreeReadScale());
+                detailModel.setContent(content);
+                String description;
+                if(StringUtils.isEmpty(detailModel.getCustomDescription())){
+                    String html = detailModel.getHtml();
+                    if(hasContent != null && hasContent == false){
+                        ArticleVersionModel versionModel = versionSearchService.find(detailModel.getId(),detailModel.getVersion());
+                        if(versionModel != null) html = versionModel.getHtml();
+                    }
+
+                    String text = StringUtils.removeHtmlTags(html);
+                    int len = new BigDecimal(text.length()).multiply(new BigDecimal(paidReadModel.getFreeReadScale())).intValue();
+                    if(len >= text.length()) len = text.length() - 1;
+                    if(len <= 0) description = "";
+                    else {
+                        description = text.substring(0, len);
+                        description = StringUtils.getFragmenter(description);
+                    }
+                    detailModel.setDescription(description);
+                }else{
+                    detailModel.setDescription(null);
+                }
+                detailModel.setHtml(null);
+            }else{
+                detailModel.setPaidRead(null);
+            }
         }
         return list;
     }

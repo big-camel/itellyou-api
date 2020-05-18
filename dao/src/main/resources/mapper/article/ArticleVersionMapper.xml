@@ -52,6 +52,12 @@
     <delete id="deleteTag">
         delete from article_version_tag where version=#{version}
     </delete>
+    <select id="findByArticleIdAndVersion" resultType="ArticleVersionModel">
+        select <include refid="columns">
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include> from article_version where article_id=#{articleId} and version = #{version}
+    </select>
     <sql id="where">
         <where>
             <if test="isReviewed != null">

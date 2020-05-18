@@ -127,8 +127,8 @@ public class AnswerDocController {
             if(!answerModel.getCreatedUserId().equals(userInfoModel.getId())){
                 return new ResultModel(401,"无权限编辑");
             }
-
-            QuestionAnswerVersionModel versionModel = versionService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,StringUtils.getFragmenter(content),"一般编辑更新",save_type,ipLong,false,false);
+            String description = StringUtils.getFragmenter(content);
+            QuestionAnswerVersionModel versionModel = versionService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,description,"一般编辑更新",save_type,ipLong,false,false);
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
             QuestionAnswerDetailModel detailModel = searchService.getDetail(answerModel.getId(),questionId,"draft",null,userInfoModel.getId());
 

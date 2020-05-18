@@ -6,7 +6,9 @@ import com.itellyou.model.user.UserStarDetailModel;
 import java.util.List;
 import java.util.Map;
 
-public interface UserStarService {
+public interface UserStarSearchService {
+
+    int count(Long userId, Long followerId, Long beginTime, Long endTime, Long ip);
 
     List<UserStarDetailModel> search(Long userId, Long followerId, Long searchId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit);
 

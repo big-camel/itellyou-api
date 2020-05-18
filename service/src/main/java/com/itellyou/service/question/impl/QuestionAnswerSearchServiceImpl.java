@@ -3,16 +3,22 @@ package com.itellyou.service.question.impl;
 import com.itellyou.dao.question.QuestionAnswerDao;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionAnswerPaidReadModel;
+import com.itellyou.model.question.QuestionAnswerVersionModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionAnswerVersionSearchService;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.util.HtmlUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -22,12 +28,14 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     private final QuestionAnswerDao answerDao;
     private final UserSearchService userSearchService;
     private final QuestionAnswerPaidReadSearchService paidReadSearchService;
+    private final QuestionAnswerVersionSearchService versionSearchService;
 
     @Autowired
-    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService){
+    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService, QuestionAnswerVersionSearchService versionSearchService){
         this.answerDao = answerDao;
         this.userSearchService = userSearchService;
         this.paidReadSearchService = paidReadSearchService;
+        this.versionSearchService = versionSearchService;
     }
 
     @Override
@@ -45,7 +53,32 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     public List<QuestionAnswerDetailModel> search(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         List<QuestionAnswerDetailModel> list = answerDao.search(ids,questionId,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
         for (QuestionAnswerDetailModel detailModel : list){
-            detailModel.setPaidRead(paidReadSearchService.findByAnswerId(detailModel.getId()));
+            QuestionAnswerPaidReadModel paidReadModel = paidReadSearchService.findByAnswerId(detailModel.getId());
+            detailModel.setPaidRead(paidReadModel);
+            if(mode != "draft" && paidReadSearchService.checkRead(paidReadModel,detailModel.getQuestionId(),detailModel.getCreatedUserId(),searchUserId) == false){
+                String content =  HtmlUtils.subEditorContent(detailModel.getContent(),detailModel.getHtml(),paidReadModel.getFreeReadScale());
+                detailModel.setContent(content);
+                String description;
+                String html = detailModel.getHtml();
+                if(hasContent != null && hasContent == false){
+                    QuestionAnswerVersionModel versionModel = versionSearchService.find(detailModel.getId(),detailModel.getVersion());
+                    if(versionModel != null) html = versionModel.getHtml();
+                }
+
+                String text = StringUtils.removeHtmlTags(html);
+                int len = new BigDecimal(text.length()).multiply(new BigDecimal(paidReadModel.getFreeReadScale())).intValue();
+                if(len >= text.length()) len = text.length() - 1;
+                if(len <= 0) description = "";
+                else {
+                    description = text.substring(0, len);
+                    description = StringUtils.getFragmenter(description);
+                }
+                detailModel.setDescription(description);
+
+                detailModel.setHtml(null);
+            }else{
+                detailModel.setPaidRead(null);
+            }
         }
         return list;
     }

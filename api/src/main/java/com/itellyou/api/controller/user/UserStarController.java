@@ -9,7 +9,7 @@ import com.itellyou.model.user.UserStarModel;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.common.impl.StarFactory;
 import com.itellyou.service.user.UserSearchService;
-import com.itellyou.service.user.UserStarService;
+import com.itellyou.service.user.UserStarSearchService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -27,11 +27,11 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserStarController {
 
-    private final UserStarService starSearchService;
+    private final UserStarSearchService starSearchService;
     private final StarService<UserStarModel> starService;
     private final UserSearchService userSearchService;
 
-    public UserStarController(UserStarService starSearchService, StarFactory starFactory, UserSearchService userSearchService){
+    public UserStarController(UserStarSearchService starSearchService, StarFactory starFactory, UserSearchService userSearchService){
         this.starSearchService = starSearchService;
         this.starService = starFactory.create(EntityType.USER);
         this.userSearchService = userSearchService;

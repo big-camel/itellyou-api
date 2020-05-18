@@ -11,7 +11,5 @@ public interface QuestionAnswerPaidReadService {
 
     int deleteByAnswerId(Long answerId);
 
-    boolean checkRead(QuestionAnswerPaidReadModel paidReadModel,Long questionId, Long authorId, Long userId);
-
     UserBankLogModel doPaidRead(Long answerId, Long userId, Long ip) throws Exception;
 }

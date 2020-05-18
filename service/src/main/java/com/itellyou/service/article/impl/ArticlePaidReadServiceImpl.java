@@ -9,14 +9,11 @@ import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserBankType;
-import com.itellyou.model.user.UserStarDetailModel;
 import com.itellyou.service.article.ArticlePaidReadSearchService;
 import com.itellyou.service.article.ArticlePaidReadService;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.event.OperationalPublisher;
-import com.itellyou.service.user.UserBankLogService;
 import com.itellyou.service.user.UserBankService;
-import com.itellyou.service.user.UserStarService;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.List;
-
 @CacheConfig(cacheNames = "article_paid_read")
 @Service
 public class ArticlePaidReadServiceImpl implements ArticlePaidReadService {
@@ -36,17 +31,13 @@ public class ArticlePaidReadServiceImpl implements ArticlePaidReadService {
 
     private final ArticlePaidReadDao articlePaidReadDao;
     private final ArticlePaidReadSearchService paidReadSearchService;
-    private final UserStarService userStarService;
-    private final UserBankLogService bankLogService;
     private final UserBankService userBankService;
     private final ArticleSearchService articleSearchService;
     private final OperationalPublisher operationalPublisher;
 
-    public ArticlePaidReadServiceImpl(ArticlePaidReadDao articlePaidReadDao, ArticlePaidReadSearchService paidReadSearchService, UserStarService userStarService, UserBankLogService bankLogService, UserBankService userBankService, ArticleSearchService articleSearchService, OperationalPublisher operationalPublisher) {
+    public ArticlePaidReadServiceImpl(ArticlePaidReadDao articlePaidReadDao, ArticlePaidReadSearchService paidReadSearchService, UserBankService userBankService, ArticleSearchService articleSearchService, OperationalPublisher operationalPublisher) {
         this.articlePaidReadDao = articlePaidReadDao;
         this.paidReadSearchService = paidReadSearchService;
-        this.userStarService = userStarService;
-        this.bankLogService = bankLogService;
         this.userBankService = userBankService;
         this.articleSearchService = articleSearchService;
         this.operationalPublisher = operationalPublisher;
@@ -82,22 +73,6 @@ public class ArticlePaidReadServiceImpl implements ArticlePaidReadService {
     @CacheEvict(key = "#articleId")
     public int deleteByArticleId(Long articleId) {
         return articlePaidReadDao.deleteByArticleId(articleId);
-    }
-
-    @Override
-    public boolean checkRead(ArticlePaidReadModel paidReadModel , Long authorId, Long userId) {
-        if(paidReadModel != null && !authorId.equals(userId)){
-            if(userId == null) return false;
-            if(paidReadModel.getStarToRead()){
-                UserStarDetailModel starModel = userStarService.find(authorId,userId);
-                if(starModel != null) return true;
-            }
-            if(paidReadModel.getPaidToRead()){
-                List<UserBankLogModel> logModels = bankLogService.search(null,paidReadModel.getPaidType(), EntityAction.PAYMENT, EntityType.ARTICLE,paidReadModel.getArticleId().toString(),userId,null,null,null,null,null,null);
-                return logModels != null && logModels.size() > 0 && logModels.get(0).getAmount() < 0;
-            }else return false;
-        }
-        return true;
     }
 
     @Override

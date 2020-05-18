@@ -11,7 +11,5 @@ public interface ArticlePaidReadService {
 
     int deleteByArticleId(Long articleId);
 
-    boolean checkRead(ArticlePaidReadModel paidReadModel , Long authorId, Long userId);
-
     UserBankLogModel doPaidRead(Long articleId, Long userId, Long ip) throws Exception;
 }

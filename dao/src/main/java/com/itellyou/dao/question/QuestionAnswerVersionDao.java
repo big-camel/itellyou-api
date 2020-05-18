@@ -15,6 +15,8 @@ public interface QuestionAnswerVersionDao {
 
     Integer findVersionById(Long id);
 
+    QuestionAnswerVersionModel findByAnswerIdAndVersion(Long answerId,Integer version);
+
     List<QuestionAnswerVersionModel> search(@Param("id") Long id,
                                       @Param("answerId") Long answerId,
                                       @Param("questionId") Long questionId,

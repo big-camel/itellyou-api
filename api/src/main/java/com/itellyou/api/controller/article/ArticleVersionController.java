@@ -1,11 +1,15 @@
 package com.itellyou.api.controller.article;
 
+import com.itellyou.api.handler.TokenAccessDeniedException;
+import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.article.ArticlePaidReadSearchService;
+import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.article.ArticleVersionService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.util.serialize.filter.Labels;
@@ -27,16 +31,29 @@ import java.util.Map;
 public class ArticleVersionController {
     private final ArticleVersionService versionService;
     private final ColumnSearchService columnSearchService;
+    private final ArticlePaidReadSearchService paidReadSearchService;
+    private final ArticleSearchService articleSearchService;
 
     @Autowired
-    public ArticleVersionController(ArticleVersionService versionService,ColumnSearchService columnSearchService){
+    public ArticleVersionController(ArticleVersionService versionService, ColumnSearchService columnSearchService, ArticlePaidReadSearchService paidReadSearchService, ArticleSearchService articleSearchService){
         this.versionService = versionService;
         this.columnSearchService = columnSearchService;
+        this.paidReadSearchService = paidReadSearchService;
+        this.articleSearchService = articleSearchService;
+    }
+
+    private void check(Long articleId,Long userId){
+        ArticleInfoModel articleInfoModel = articleSearchService.findById(articleId);
+        if(articleInfoModel == null) throw new TokenAccessDeniedException(403,"403");
+        boolean check = paidReadSearchService.checkRead(paidReadSearchService.findByArticleId(articleId),articleInfoModel.getCreatedUserId(),userId);
+        if(check == false){
+            throw new TokenAccessDeniedException(403,"无权限");
+        }
     }
 
     @GetMapping("")
-    public ResultModel list(@PathVariable @NotNull Long articleId){
-
+    public ResultModel list(UserInfoModel userModel,@PathVariable @NotNull Long articleId){
+        check(articleId,userModel == null ? null : userModel.getId());
         List<ArticleVersionModel> listVersion = versionService.searchByArticleId(articleId);
         return new ResultModel(listVersion,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
@@ -44,11 +61,12 @@ public class ArticleVersionController {
     }
 
     @GetMapping("/{versionId:\\d+}")
-    public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long articleId){
+    public ResultModel find(UserInfoModel userModel,@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long articleId){
         ArticleVersionModel versionModel = versionService.findByArticleIdAndId(versionId,articleId);
         if(versionModel == null){
             return new ResultModel(0,"错误的编号");
         }
+        check(articleId,userModel == null ? null : userModel.getId());
         return new ResultModel(versionModel,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
@@ -97,7 +115,8 @@ public class ArticleVersionController {
     }
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
-    public ResultModel compare(@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long articleId){
+    public ResultModel compare(UserInfoModel userModel,@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long articleId){
+        check(articleId,userModel == null ? null : userModel.getId());
         ArticleVersionModel currentVersion = versionService.findByArticleIdAndId(current,articleId);
         if(currentVersion == null){
             return new ResultModel(0,"错误的当前编号");

@@ -1,15 +1,13 @@
 package com.itellyou.api.controller;
 
+import com.itellyou.model.article.ArticlePaidReadModel;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.column.ColumnDetailModel;
-import com.itellyou.model.question.QuestionAnswerDetailModel;
-import com.itellyou.model.question.QuestionDetailModel;
+import com.itellyou.model.question.*;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.article.ArticleIndexModel;
 import com.itellyou.model.column.ColumnIndexModel;
-import com.itellyou.model.question.QuestionAnswerIndexModel;
-import com.itellyou.model.question.QuestionIndexModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagIndexModel;
 import com.itellyou.model.sys.EntityType;
@@ -34,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 @RestController
@@ -152,7 +151,7 @@ public class SearchController {
                         }
                         highlightData.put(EntityType.ANSWER.toString()+"_" + answerIndexModel.getId(),new HashMap<String,String>(){{
                             put("title",getHighlighter(highlighter,analyzer,"title",answerIndexModel.getTitle()));
-                            put("content",getHighlighter(highlighter,analyzer,"content",answerIndexModel.getContent()));
+                            put("content",answerIndexModel.getContent());
                         }});
                         break;
                     case ARTICLE:
@@ -164,7 +163,7 @@ public class SearchController {
                         }
                         highlightData.put(EntityType.ARTICLE.toString()+"_" + articleIndexModel.getId(),new HashMap<String,String>(){{
                             put("title",getHighlighter(highlighter,analyzer,"title",articleIndexModel.getTitle()));
-                            put("content",getHighlighter(highlighter,analyzer,"content",articleIndexModel.getContent()));
+                            put("content",articleIndexModel.getContent());
                         }});
                         break;
                     case COLUMN:
@@ -216,8 +215,43 @@ public class SearchController {
                 if(mapData.containsKey(type) && mapData.get(type).containsKey(id)){
                     Map<String,Object> data = new HashMap<>();
                     data.put("type",type.toString());
-                    data.put("object", mapData.get(type).get(id));
-                    data.put("highlight",entry.getValue());
+                    Object object = mapData.get(type).get(id);
+                    data.put("object", object);
+                    Object highlight = entry.getValue();
+                    if(type.equals(EntityType.ARTICLE)){
+                        ArticleDetailModel articleDetailModel = (ArticleDetailModel)object;
+                        ArticlePaidReadModel articlePaidReadModel = articleDetailModel.getPaidRead();
+
+                        HashMap<String,String> highlightMap = (HashMap<String,String>)highlight;
+                        String content = highlightMap.get("content");
+
+                        if(articlePaidReadModel != null){
+                            int len = new BigDecimal(content.length()).multiply(new BigDecimal(articlePaidReadModel.getFreeReadScale())).intValue();
+                            if(len >= content.length()) len = content.length() - 1;
+                            if(len <= 0) content = "";
+                            else {
+                                content = content.substring(0, len);
+                            }
+                        }
+                        highlightMap.put("content",getHighlighter(highlighter,analyzer,"content",StringUtils.getFragmenter(content)));
+                    }else if(type.equals(EntityType.ANSWER)){
+                        QuestionAnswerDetailModel answerDetailModel = (QuestionAnswerDetailModel)object;
+                        QuestionAnswerPaidReadModel answerPaidReadModel = answerDetailModel.getPaidRead();
+
+                        HashMap<String,String> highlightMap = (HashMap<String,String>)highlight;
+                        String content = highlightMap.get("content");
+
+                        if(answerPaidReadModel != null){
+                            int len = new BigDecimal(content.length()).multiply(new BigDecimal(answerPaidReadModel.getFreeReadScale())).intValue();
+                            if(len >= content.length()) len = content.length() - 1;
+                            if(len <= 0) content = "";
+                            else {
+                                content = content.substring(0, len);
+                            }
+                        }
+                        highlightMap.put("content",getHighlighter(highlighter,analyzer,"content",StringUtils.getFragmenter(content)));
+                    }
+                    data.put("highlight",highlight);
                     listData.add(data);
                 }
             }

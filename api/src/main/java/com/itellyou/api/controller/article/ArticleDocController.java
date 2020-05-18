@@ -6,10 +6,7 @@ import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.article.ArticleInfoService;
-import com.itellyou.service.article.ArticlePaidReadService;
-import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.article.ArticleVersionService;
+import com.itellyou.service.article.*;
 import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserSearchService;
@@ -131,9 +128,9 @@ public class ArticleDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        if(StringUtils.isEmpty(customDescription) && StringUtils.isEmpty(cover)){
+       /** if(StringUtils.isEmpty(customDescription) && StringUtils.isEmpty(cover)){
             return new ResultModel(500,"参数错误");
-        }
+        }**/
         ArticleInfoModel infoModel = articleSearchService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用问题");
@@ -251,8 +248,9 @@ public class ArticleDocController {
 
         String clientIp = IPUtils.getClientIp(request);
         try {
+            String description = articleVersion.getDescription();
             ArticleVersionModel versionModel = articleVersionService.addVersion(id,userInfoModel.getId(),columnId,ArticleSourceType.valueOf(sourceType.toUpperCase()),sourceData,
-                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),articleVersion.getDescription(),listTag,
+                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),description,listTag,
                     remark,null,"publish",
                     IPUtils.toLong(clientIp),true,true);
 

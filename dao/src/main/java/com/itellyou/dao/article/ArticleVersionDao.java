@@ -23,6 +23,8 @@ public interface ArticleVersionDao {
 
     Integer findVersionById(Long id);
 
+    ArticleVersionModel findByArticleIdAndVersion(@Param("articleId") Long articleId,@Param("version") Integer version);
+
     List<ArticleVersionModel> search(@Param("id") Long id,
                                      @Param("articleId") Long articleId,
                                      @Param("userId") String userId,

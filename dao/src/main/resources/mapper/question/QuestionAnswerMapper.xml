@@ -140,7 +140,7 @@
         <include refid="com.itellyou.dao.user.UserInfoDao.columns">
             <property name="alias" value="u."/>
             <property name="prefix" value="user_"/>
-        </include>
+        </include>,s.path user_path
         from question_answer q
         inner join question_answer_version v on
         <choose>
@@ -153,6 +153,7 @@
         </choose>
         and q.id=v.answer_id
         left join user_info u on q.created_user_id=u.id
+        left join sys_path s on s.id=u.id and s.type=1
         <if test="searchUserId != null">
         left join question_answer_vote vt on vt.answer_id=q.id and vt.created_user_id = #{searchUserId}
         left join question_answer_star qs on qs.answer_id=q.id and qs.created_user_id = #{searchUserId}

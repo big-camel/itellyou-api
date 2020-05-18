@@ -133,9 +133,11 @@ public class NotificationSocketServiceImpl extends AbstractWebSocketHandler impl
         UserInfoModel userModel = getUser(session);
         if(userModel == null) return;
         List<WebSocketSession> socketSessions = socketMap.get(userModel.getId());
-        socketSessions.remove(session);
-        if(socketSessions.size() == 0){
-            managerService.removeJob(userModel.getId());
+        if(session != null && socketSessions != null){
+            socketSessions.remove(session);
+            if(socketSessions.size() == 0){
+                managerService.removeJob(userModel.getId());
+            }
         }
     }
 
