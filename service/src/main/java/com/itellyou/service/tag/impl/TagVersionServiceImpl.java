@@ -195,6 +195,7 @@ public class TagVersionServiceImpl implements TagVersionService {
                     detailModel = new TagDetailModel();
                     detailModel.setId(infoModel.getId());
                     detailModel.setName(infoModel.getName());
+                    detailModel.setDescription(description);
                     detailModel.setCreatedUserId(infoModel.getCreatedUserId());
                 }
             }
@@ -202,9 +203,11 @@ public class TagVersionServiceImpl implements TagVersionService {
             versionModel.setTagId(id);
             if (force) {
                 versionModel.setContent(content);
+                versionModel.setHtml(html);
             } else {
                 if (StringUtils.isNotEmpty(content) && detailModel != null && !content.equals(detailModel.getContent())) {
                     versionModel.setContent(content);
+                    versionModel.setHtml(html);
                 }
             }
             if(detailModel == null || detailModel.isDisabled()){
@@ -220,7 +223,6 @@ public class TagVersionServiceImpl implements TagVersionService {
                 }
                 versionModel.setPublished(isPublish);
                 versionModel.setVersion(version);
-                versionModel.setHtml(html);
                 versionModel.setIcon(icon == null ? detailModel.getIcon() : icon);
                 versionModel.setRemark(remark);
                 versionModel.setSaveType(save_type);
