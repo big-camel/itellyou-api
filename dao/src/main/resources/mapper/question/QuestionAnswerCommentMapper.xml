@@ -77,23 +77,23 @@
     </sql>
     <resultMap id="searchMap" type="QuestionAnswerCommentDetailModel" autoMapping="true">
         <id property="id" column="id" />
-        <association property="author" javaType="UserInfoModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
+        <association property="author" javaType="UserDetailModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
             <id property="id" column="id" />
         </association>
         <association property="reply" javaType="QuestionAnswerCommentDetailModel" notNullColumn="id" columnPrefix="r_c_" autoMapping="true">
             <id property="id" column="id"></id>
-            <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true" >
+            <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true" >
                 <id property="id" column="id" />
             </association>
         </association>
         <collection property="child" ofType="QuestionAnswerCommentDetailModel" notNullColumn="id" javaType="ArrayList" columnPrefix="ch_" autoMapping="true">
             <id property="id" column="id" />
-            <association property="author" javaType="UserInfoModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
+            <association property="author" javaType="UserDetailModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
                 <id property="id" column="id" />
             </association>
             <association property="reply" javaType="QuestionAnswerCommentDetailModel" notNullColumn="id" columnPrefix="r_c_" autoMapping="true">
                 <id property="id" column="id"></id>
-                <association property="author" javaType="UserInfoModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
+                <association property="author" javaType="UserDetailModel" notNullColumn="id" columnPrefix="u_" autoMapping="true">
                     <id property="id" column="id" />
                 </association>
             </association>
@@ -124,8 +124,8 @@
         (case when c.created_user_id=an.created_user_id then 1 else 0 end) ${prefix}use_author,
         (case when r.created_user_id=anr.created_user_id then 1 else 0 end) ${prefix}r_c_use_author,
 
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="u."/><property name="prefix" value="${prefix}u_"/></include>,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="ru."/><property name="prefix" value="${prefix}r_c_u_"/></include>
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="u."/><property name="prefix" value="${prefix}u_"/></include>,s.path ${prefix}u_path,
+        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="ru."/><property name="prefix" value="${prefix}r_c_u_"/></include>,su.path ${prefix}r_c_u_path
     </sql>
     <select id="search" resultMap="searchMap">
         <if test="childCount != null &amp;&amp; childCount &gt; 0">
@@ -144,7 +144,9 @@
                     left join question_answer_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
                     </if>
                     left join user_info u on c.created_user_id = u.id
+                    left join sys_path s on s.id=u.id and s.type=1
                     left join user_info ru on r.created_user_id = ru.id
+                    left join sys_path su on su.id=ru.id and su.type=1
 
                     <include refid="searchWhere">
                         <property name="alias" value="c."/>
@@ -169,7 +171,9 @@
                 left join question_answer_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
                 </if>
                 left join user_info u on c.created_user_id = u.id
+                left join sys_path s on s.id=u.id and s.type=1
                 left join user_info ru on r.created_user_id = ru.id
+                left join sys_path su on su.id=ru.id and su.type=1
                 left join question_answer an on an.id = c.answer_id
                 left join question_answer anr on anr.id = r.answer_id,(select @row_num:=0) tmp_rownum,(select @parent_id:=0) tmp_parent order by t.id
             ) b

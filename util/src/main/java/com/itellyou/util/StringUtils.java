@@ -110,6 +110,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         String htmlRegex="<[^>]+>";
         //定义空格,回车,换行符,制表符
         String spaceRegex = "\\s*|\t|\r|\n";
+        if(StringUtils.isEmpty(htmlStr)) return "";
         htmlStr = htmlStr.replaceAll(spaceRegex, "");
         // 过滤script标签
         htmlStr = htmlStr.replaceAll(scriptRegex, "");

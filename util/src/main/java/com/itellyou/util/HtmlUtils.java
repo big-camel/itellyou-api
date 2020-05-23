@@ -106,7 +106,7 @@ public class HtmlUtils {
             int length = StringUtils.removeHtmlTags(html).length();
             int subLength = new BigDecimal(length).multiply(new BigDecimal(scale)).intValue();
             // 少于二十字，直接不显示
-            if(subLength < 20) return "";
+            //if(subLength < 20) return "";
             if(StringUtils.isEmpty(content)) return "";
             Document document = Jsoup.parse(content);
             walkTree(new WalkState(document.body(),0,subLength),(WalkState state) -> {

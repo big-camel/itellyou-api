@@ -1,7 +1,7 @@
 package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
 
@@ -21,7 +21,7 @@ public class ArticleCommentDetailModel extends ArticleCommentModel {
     @JSONField(label = "article")
     private ArticleDetailModel article;
     @JSONField(label = "base")
-    private UserInfoModel author;
+    private UserDetailModel author;
     @JSONField(label = "base")
     private boolean isHot;
     @JSONField(label = "base")
