@@ -171,7 +171,7 @@ public class TagDocController {
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            TagVersionModel versionModel = versionService.addVersion(id, userInfoModel.getId(), detailModel.getContent(), detailModel.getHtml(),detailModel.getIcon(),null,
+            TagVersionModel versionModel = versionService.addVersion(id, userInfoModel.getId(), detailModel.getContent(), detailModel.getHtml(),detailModel.getIcon(),detailModel.getDescription(),
                     remark, null,"publish", IPUtils.toLong(clientIp),true,true);
             if(versionModel == null) return new ResultModel(0,"发布失败");
         }catch (Exception e){
