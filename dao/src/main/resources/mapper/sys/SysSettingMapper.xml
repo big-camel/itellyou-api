@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysSettingDao">
+    <sql id="columns">
+        ${alias}`key` ${prefix}`key`,
+        ${alias}`name` ${prefix}name,
+        ${alias}icp_text ${prefix}icp_text,
+        ${alias}copyright ${prefix}copyright,
+        ${alias}company_name ${prefix}company_name,
+        ${alias}user_agreement_link ${prefix}user_agreement_link,
+        ${alias}footer_scripts ${prefix}footer_scripts
+    </sql>
+    <select id="findByKey" resultType="SysSettingModel">
+        select 
+        <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from sys_setting where `key`=#{key}
+    </select>
+    <update id="updateByKey">
+        update sys_setting
+        <set>
+            <if test="name != null">
+                name=#{name},
+            </if>
+            <if test="icpText != null">
+                icp_text=#{icpText},
+            </if>
+            <if test="copyright != null">
+                copyright=#{copyright},
+            </if>
+            <if test="companyName != null">
+                company_name=#{companyName},
+            </if>
+            <if test="userAgreementLink != null">
+                user_agreement_link=#{userAgreementLink},
+            </if>
+            <if test="footerScripts != null">
+                footer_scripts=#{footerScripts},
+            </if>
+        </set>
+        where `key`=#{key}
+    </update>
+</mapper>

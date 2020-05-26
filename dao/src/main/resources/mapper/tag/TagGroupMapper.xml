@@ -16,9 +16,20 @@
     <select id="findById" resultType="TagGroupModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag_group where id=#{id}
     </select>
+    <select id="findByName" resultType="TagGroupModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag_group where name=#{name}
+    </select>
     <update id="updateTagCountById">
         update tag_group set tag_count=tag_count+#{step} where id=#{id}
     </update>
+    <update id="updateNameById">
+        update tag_group
+        set name=#{name}
+        where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from tag_group where id=#{id}
+    </delete>
     <resultMap id="searchMap" type="TagGroupModel" autoMapping="true">
         <id property="id" column="id"></id>
         <collection property="tagList" ofType="TagInfoModel" javaType="ArrayList" columnPrefix="t_" notNullColumn="id" autoMapping="true">

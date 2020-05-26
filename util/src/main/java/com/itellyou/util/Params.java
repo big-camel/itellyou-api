@@ -4,6 +4,10 @@ import java.util.Map;
 
 public class Params {
 
+    public static String getOrDefault(Map map,String key,Object defaultValue){
+        return getOrDefault(map,key,String.class,defaultValue);
+    }
+
     public static <T> T getOrDefault(Map map,String key,Class<T> clazz,Object defaultValue){
         Object value = map.getOrDefault(key,defaultValue);
         if(value == null || StringUtils.isEmpty(value.toString())) return null;

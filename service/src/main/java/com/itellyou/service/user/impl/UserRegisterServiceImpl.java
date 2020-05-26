@@ -65,7 +65,8 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             if(result != 1){
                 throw new Exception("创建用户余额失败");
             }
-            indexService.create(userInfoModel);
+
+            indexService.createIndex(userInfoModel.getId());
             return userInfoModel.getId();
         }catch (Exception e){
             e.printStackTrace();

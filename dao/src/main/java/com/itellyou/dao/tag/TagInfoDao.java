@@ -18,6 +18,10 @@ public interface TagInfoDao {
 
     int exists(@Param("ids") Long... ids);
 
+    int updateGroupByGroupId(@Param("nextGroupId") Long nextGroupId,@Param("prevGroupId") Long prevGroupId);
+
+    int updateById(@Param("id") Long id,@Param("name") String name,@Param("groupId") Long groupId,@Param("isDisabled") Boolean isDisabled);
+
     List<TagDetailModel> search(@Param("ids") HashSet<Long> ids,
                                 @Param("name") String name,
                                 @Param("mode") String mode,

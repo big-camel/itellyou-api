@@ -80,7 +80,17 @@ public class TagInfoServiceImpl implements TagInfoService {
         return tagInfoDao.updateQuestionCountById(ids,step);
     }
 
+    @Override
+    @CacheEvict(allEntries = true)
+    public int updateGroupByGroupId(Long nextGroupId, Long prevGroupId) {
+        return tagInfoDao.updateGroupByGroupId(nextGroupId,prevGroupId);
+    }
 
+    @Override
+    @CacheEvict(key = "#id")
+    public int updateById(Long id,String name, Long groupId, Boolean isDisabled) {
+        return tagInfoDao.updateById(id,name,groupId,isDisabled);
+    }
 
     @Override
     @Transactional
@@ -105,5 +115,4 @@ public class TagInfoServiceImpl implements TagInfoService {
             return null;
         }
     }
-
 }

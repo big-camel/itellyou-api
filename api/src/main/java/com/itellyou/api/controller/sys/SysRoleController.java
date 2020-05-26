@@ -1,4 +1,4 @@
-package com.itellyou.api.controller.system;
+package com.itellyou.api.controller.sys;
 
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.PageModel;
@@ -23,12 +23,12 @@ import java.util.Map;
 @Validated
 @RestController
 @RequestMapping("/system/role")
-public class SystemRoleController {
+public class SysRoleController {
 
     private final SysRoleService roleService;
 
 
-    public SystemRoleController(SysRoleService roleService) {
+    public SysRoleController(SysRoleService roleService) {
         this.roleService = roleService;
     }
 

@@ -1,4 +1,4 @@
-package com.itellyou.api.controller.system;
+package com.itellyou.api.controller.sys;
 
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.*;
@@ -20,12 +20,12 @@ import java.util.Map;
 @Validated
 @RestController
 @RequestMapping("/system/permission")
-public class SystemPermissionController {
+public class SysPermissionController {
 
     private final SysPermissionService permissionService;
     private final UserRoleService userRoleService;
 
-    public SystemPermissionController(SysPermissionService permissionService, UserRoleService userRoleService) {
+    public SysPermissionController(SysPermissionService permissionService, UserRoleService userRoleService) {
         this.permissionService = permissionService;
         this.userRoleService = userRoleService;
     }

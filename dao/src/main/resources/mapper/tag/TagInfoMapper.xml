@@ -23,6 +23,22 @@
         insert into tag (`name`,group_id,star_count,question_count,article_count,version,draft,is_published,is_disabled,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
         (#{name},#{groupId},#{starCount},#{questionCount},#{articleCount},#{version},#{draft},#{isPublished},#{isDisabled},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
     </insert>
+    <update id="updateGroupByGroupId">
+        update tag set group_id=#{nextGroupId} where group_id=#{prevGroupId}
+    </update>
+    <update id="updateById">
+        update tag <set>
+            <if test="name != null">
+                `name`=#{name},
+            </if>
+            <if test="groupId != null">
+                group_id=#{groupId},
+            </if>
+            <if test="isDisabled != null">
+                is_disabled=#{isDisabled},
+            </if>
+        </set> where id=#{id}
+    </update>
     <select id="exists" resultType="java.lang.Integer">
         select count(id) from tag where id in
         <foreach collection="ids" item="id" open="(" close=")" separator=",">

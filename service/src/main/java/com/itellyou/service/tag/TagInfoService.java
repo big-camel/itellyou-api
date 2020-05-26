@@ -15,7 +15,9 @@ public interface TagInfoService {
     int updateQuestionCountById(Long id,Integer step);
     int updateQuestionCountById(List<Long> ids,Integer step);
 
+    int updateGroupByGroupId(Long nextGroupId,Long prevGroupId);
 
+    int updateById(Long id,String name,Long groupId,Boolean isDisabled);
 
     Long create(Long userId,String name, String content, String html,String icon, String description, String remark, String save_type, Long ip) throws Exception;
 

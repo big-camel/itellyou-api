@@ -35,7 +35,7 @@ public class TagInfoModel implements CacheEntity {
     private Integer version=0;
     @JSONField(label = "draft",name = "draft_version")
     private Integer draft = 0;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
+    @JSONField(label = "base",serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
     private Long createdTime=0l;
     private Long createdUserId=0l;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)

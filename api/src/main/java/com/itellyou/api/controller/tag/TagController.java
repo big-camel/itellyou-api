@@ -5,10 +5,11 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.tag.TagGroupService;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserDraftService;
+import com.itellyou.util.Params;
+import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,17 +23,15 @@ import java.util.Map;
 @RequestMapping("/tag")
 public class TagController {
 
-    private final TagInfoService tagService;
     private final TagSearchService searchService;
-    private final TagGroupService groupService;
     private final UserDraftService draftService;
+    private final TagInfoService tagService;
 
     @Autowired
-    public TagController(TagInfoService tagService,TagSearchService searchService,TagGroupService groupService,UserDraftService draftService){
-        this.tagService = tagService;
+    public TagController(TagSearchService searchService, UserDraftService draftService, TagInfoService tagService){
         this.searchService = searchService;
-        this.groupService = groupService;
         this.draftService = draftService;
+        this.tagService = tagService;
     }
 
     @GetMapping("/search")
@@ -40,14 +39,19 @@ public class TagController {
         return new ResultModel(searchService.search(word,0,10));
     }
 
-    @GetMapping("/group")
-    public ResultModel group(){
-        return new ResultModel(groupService.page(null,null,null,false,true,null,null,null,null,null,0,100));
-    }
-
     @GetMapping("/list")
-    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false,defaultValue = "") String type, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
+    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false) String name,
+                            @RequestParam(required = false) String disabled,
+                            @RequestParam(required = false , name = "group_id") Long groupId,
+                            @RequestParam(required = false,defaultValue = "") String type,
+                            @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
         Long searchUserId = userModel == null ? null : userModel.getId();
+        Boolean isDisabled = false;
+        if(disabled != null && disabled.equals("all")){
+            isDisabled = null;
+        }else if(disabled != null && disabled.equals("true")){
+            isDisabled = true;
+        }
         Map<String,String > order;
         switch (type) {
             case "hot":
@@ -55,9 +59,9 @@ public class TagController {
                 order.put("question_count", "desc");
                 order.put("article_count", "desc");
                 order.put("star_count", "desc");
-                return new ResultModel(searchService.page(null,null,null,null,searchUserId,true,false,true,null,null,null,null,null,null,null,null,null,order,offset,limit));
+                return new ResultModel(searchService.page(name,null,groupId,null,searchUserId,true,isDisabled,true,null,null,null,null,null,null,null,null,null,order,offset,limit));
             default:
-                return new ResultModel(searchService.page(null,null,null,null,searchUserId,true,false,true,null,null,null,null,null,null,null,null,null,null,offset,limit));
+                return new ResultModel(searchService.page(name,null,groupId,null,searchUserId,true,isDisabled,true,null,null,null,null,null,null,null,null,null,null,offset,limit));
         }
     }
 
@@ -101,6 +105,22 @@ public class TagController {
         }
         int result = draftService.delete(userModel.getId(), EntityType.TAG,id);
         if(result != 1) return new ResultModel(0,"删除失败");
+        return new ResultModel();
+    }
+
+    @PostMapping("/{id:\\d+}")
+    public ResultModel update(@PathVariable Long id, @RequestBody Map<String,Object> params){
+        String name = Params.getOrDefault(params,"name",String.class,null);
+        if(StringUtils.isNotEmpty(name)){
+            TagInfoModel tagModel = searchService.findByName(name);
+            if(tagModel != null) {
+                return new ResultModel(500,"名称已存在");
+            }
+        }
+        Long groupId = Params.getOrDefault(params,"group_id",Long.class,null);
+        Boolean isDisabled = Params.getOrDefault(params,"disabled",Boolean.class,null);
+        int result = tagService.updateById(id,name,groupId,isDisabled);
+        if(result != 1) return new ResultModel(500,"更新失败");
         return new ResultModel();
     }
 }

@@ -11,7 +11,13 @@ public interface TagGroupService {
 
     TagGroupModel findById(Long id);
 
+    TagGroupModel findByName(String name);
+
     int updateTagCountById(Long id,Integer step);
+
+    int updateNameById(Long id, String name);
+
+    int deleteById(Long id);
 
     List<TagGroupModel> search(Long id,
                                Long userId,
@@ -39,7 +45,6 @@ public interface TagGroupService {
 
     int count(Long userId,
               Long ip,
-              Boolean isDisabled,Boolean isPublished,
               Integer minTagCount, Integer maxTagCount,
               Long beginTime, Long endTime);
 }

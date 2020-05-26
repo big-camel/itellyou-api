@@ -1,6 +1,5 @@
 package com.itellyou.api.config;
 
-import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.itellyou.api.serializer.GenericFastJsonRedisSerializer;
 import com.itellyou.util.CacheKeyUtil;
 import org.slf4j.Logger;
@@ -16,7 +15,8 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.*;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class RedisConfig extends CachingConfigurerSupport{
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
-        template.setKeySerializer(new FastJsonRedisSerializer<>(String.class));
+        template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericFastJsonRedisSerializer());
         template.afterPropertiesSet();
         return template;
@@ -98,6 +98,10 @@ public class RedisConfig extends CachingConfigurerSupport{
         configurationMap.put("user_rank",this.cacheConfiguration(Duration.ofDays(1)));
         //user_role
         configurationMap.put("user_role",this.cacheConfiguration(Duration.ofDays(1)));
+        //sys_link
+        configurationMap.put("sys_link",this.cacheConfiguration(Duration.ofDays(30)));
+        //sys_setting
+        configurationMap.put("sys_setting",this.cacheConfiguration(Duration.ofDays(30)));
         return configurationMap;
     }
 
@@ -111,7 +115,7 @@ public class RedisConfig extends CachingConfigurerSupport{
     private RedisCacheConfiguration cacheConfiguration(Duration ttl) {
         RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig();
         configuration = configuration
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new FastJsonRedisSerializer<>(String.class)))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericFastJsonRedisSerializer()))
                 .entryTtl(ttl);
         return configuration;

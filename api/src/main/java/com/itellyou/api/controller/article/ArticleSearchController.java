@@ -42,7 +42,28 @@ public class ArticleSearchController {
     }
 
     @GetMapping("/list")
-    public ResultModel list(UserInfoModel userModel, @RequestParam(required = false,name = "user_id") Long userId, @RequestParam(required = false) String type, @RequestParam(required = false , name = "column_id") Long columnId, @RequestParam(required = false , name = "tag_id") Long tagId, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+    public ResultModel list(UserInfoModel userModel,
+                            @RequestParam(required = false,name = "user_id") Long userId,
+                            @RequestParam(required = false) String type,
+                            @RequestParam(required = false) String disabled,
+                            @RequestParam(required = false) String deleted,
+                            @RequestParam(required = false , name = "column_id") Long columnId,
+                            @RequestParam(required = false , name = "tag_id") Long tagId,
+                            @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+        Boolean isDisabled = false;
+        if(disabled != null && disabled.equals("all")){
+            isDisabled = null;
+        }else if(disabled != null && disabled.equals("true")){
+            isDisabled = true;
+        }
+
+        Boolean isDeleted = false;
+        if(deleted != null && deleted.equals("all")){
+            isDeleted = null;
+        }else if(deleted != null && deleted.equals("true")){
+            isDeleted = true;
+        }
+
         Long searchUserId = userModel == null ? null : userModel.getId();
         PageModel<ArticleDetailModel> data = null;
         if(type == null) type = "";
@@ -77,7 +98,7 @@ public class ArticleSearchController {
             default:
                 order = new HashMap<>();
                 order.put("created_time","desc");
-                data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,
+                data = searchService.page(null,null,columnId,userId,searchUserId,null,false,isDisabled,isDeleted,true,
                         tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,
                         null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
 

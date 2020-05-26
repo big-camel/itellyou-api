@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysLinkDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}text ${prefix}text,
+        ${alias}link ${prefix}link,
+        ${alias}target ${prefix}target,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip
+    </sql>
+    <insert id="insert">
+        insert into sys_link(text,link,target,created_user_id,created_time,created_ip) values(#{text},#{link},#{target},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="delete">
+        delete from sys_link where id=#{id}
+    </delete>
+    <sql id="where">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="id != null">
+                and ${alias}id = #{id}
+            </if>
+            <if test="text != null">
+                <bind name="bindName" value="'%' + text + '%'"/>
+                and ${alias}`text` like #{bindName}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="link != null">
+                and ${alias}link = #{link}
+            </if>
+            <if test="target != null">
+                and ${alias}target = #{target}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysLinkModel">
+        select 
+        <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from sys_link
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_link <include refid="where">
+        <property name="alias" value=""/>
+    </include>
+    </select>
+</mapper>

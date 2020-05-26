@@ -28,7 +28,7 @@ public class SysPathServiceImpl implements SysPathService {
     }
 
     @Override
-    @Cacheable(key = "#path")
+    @Cacheable(key = "#path",unless="#result != null")
     public SysPathModel findByPath(String path) {
         return pathDao.findByPath(path);
     }
