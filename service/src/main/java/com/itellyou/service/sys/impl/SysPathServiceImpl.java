@@ -28,13 +28,13 @@ public class SysPathServiceImpl implements SysPathService {
     }
 
     @Override
-    @Cacheable(key = "#path",unless="#result != null")
+    @Cacheable(key = "#path",unless="#result == null")
     public SysPathModel findByPath(String path) {
         return pathDao.findByPath(path);
     }
 
     @Override
-    @Cacheable(key = "T(String).valueOf(#id).concat('-').concat(#type)" , condition = "#id > 0",unless="#result != null")
+    @Cacheable(key = "T(String).valueOf(#id).concat('-').concat(#type)" , condition = "#id > 0",unless="#result == null")
     public SysPathModel findByTypeAndId(SysPath type, Long id) {
         return pathDao.findByTypeAndId(type,id);
     }
