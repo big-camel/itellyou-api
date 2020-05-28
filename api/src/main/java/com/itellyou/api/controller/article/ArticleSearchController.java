@@ -110,7 +110,7 @@ public class ArticleSearchController {
     public ResultModel detail(UserInfoModel userModel, @PathVariable Long id){
         Long searchUserId = userModel == null ? null : userModel.getId();
         ArticleDetailModel detailModel = searchService.getDetail(id,(Long)null,searchUserId);
-        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return  new ResultModel(404,"错误的编号");
+        if(detailModel == null || detailModel.isDeleted() || detailModel.isDisabled()) return new ResultModel(404,"错误的编号");
         return new ResultModel(detailModel);
     }
 

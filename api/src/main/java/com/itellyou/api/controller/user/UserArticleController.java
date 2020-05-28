@@ -27,7 +27,7 @@ public class UserArticleController {
         if(userModel == null) return new ResultModel(401,"未登陆");
         Map<String,String> order = new HashMap<>();
         order.put("created_time","desc");
-        PageModel<ArticleDetailModel> pageData = searchService.page(null,null,null,userModel.getId(),userModel.getId(),null,false,false,false,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
+        PageModel<ArticleDetailModel> pageData = searchService.page(null,"draft",null,userModel.getId(),userModel.getId(),null,false,false,false,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
         return new ResultModel(pageData);
     }
 }

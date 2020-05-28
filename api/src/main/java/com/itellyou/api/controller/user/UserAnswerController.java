@@ -31,7 +31,7 @@ public class UserAnswerController {
         if(userModel == null) return new ResultModel(401,"未登陆");
         Map<String,String> order = new HashMap<>();
         order.put("created_time","desc");
-        PageModel<QuestionAnswerDetailModel> pageData = answerSearchService.page(null,userModel.getId(),userModel.getId(),true,null,false,null,false,null,null,order,offset,limit);
+        PageModel<QuestionAnswerDetailModel> pageData = answerSearchService.page(null,null,"draft",userModel.getId(),userModel.getId(),false,null,false,null,false,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
         return new ResultModel(pageData,new Labels.LabelModel(QuestionAnswerDetailModel.class,"base","question"));
     }
 }

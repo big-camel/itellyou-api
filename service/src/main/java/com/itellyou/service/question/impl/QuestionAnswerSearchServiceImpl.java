@@ -147,6 +147,15 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     }
 
     @Override
+    public PageModel<QuestionAnswerDetailModel> page(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        if(offset == null) offset = 0;
+        if(limit == null) limit = 10;
+        List<QuestionAnswerDetailModel> data = search(ids,questionId,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+        Integer total = count(ids,questionId,mode,searchUserId,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
+        return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
+    }
+
+    @Override
     public QuestionAnswerDetailModel getDetail(Long id, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent,Boolean isAdopted, Boolean isDisabled,Boolean isPublished, Boolean isDeleted) {
         List<QuestionAnswerDetailModel> listQuestion = search(new HashSet<Long>(){{add(id);}},questionId,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,null,null,null,0,1);
         return listQuestion != null && listQuestion.size() > 0 ? listQuestion.get(0) : null;

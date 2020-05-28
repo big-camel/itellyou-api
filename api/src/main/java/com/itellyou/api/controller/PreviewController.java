@@ -32,7 +32,7 @@ public class PreviewController {
         try {
             UploadFileModel fileModel = fileService.findByKey(key);
             UploadFileConfigModel fileConfigModel = fileConfigService.findConfig(fileModel.getExtname(),null,null,null,null);
-            return new ResultModel(fileModel).extend("preview",fileConfigModel.isDoc() ? officePreviewService.GetPreviewURL(key) : null).extend("config",fileConfigModel);
+            return new ResultModel(fileModel).extend("preview",fileConfigModel.isDoc() ? fileModel.getUrl() + "?" + officePreviewService.GetPreviewURL(key).getQuery() : null).extend("config",fileConfigModel);
         }catch (Exception e){
             return new ResultModel(0,e.getLocalizedMessage());
         }
