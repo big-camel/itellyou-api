@@ -1,0 +1,4 @@
+update `itellyou`.`sys_permission` set `name`='api_user_email_update', `platform`='2', `type`='1', `method`='3', `data`='/user/update/email', `remark`='设置或更换用户邮箱账户' where `name`='api_user_email_update';
+update `itellyou`.`sys_permission` set `name`='api_user_mobile_update', `platform`='2', `type`='1', `method`='3', `data`='/user/update/mobile', `remark`='设置或更换用户手机号码' where `name`='api_user_mobile_update';
+update `itellyou`.`sys_permission` set `name`='api_user_password_update', `platform`='2', `type`='1', `method`='3', `data`='/user/update/password', `remark`='设置或更换用户登录密码' where `name`='api_user_password_update';
+update `itellyou`.`sys_permission` set `name`='api_user_path_update', `platform`='2', `type`='1', `method`='3', `data`='/user/update/path', `remark`='设置或更换用户路径' where `name`='api_user_path_update';
