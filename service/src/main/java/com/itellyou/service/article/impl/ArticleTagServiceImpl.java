@@ -71,7 +71,7 @@ public class ArticleTagServiceImpl implements ArticleTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_article",unless = "#result == null")
+    @Cacheable(value = "tag_article",key = "#methodName",unless = "#result == null")
     public HashSet<Long> searchArticleId(HashSet<Long> tagId) {
         return articleTagDao.searchArticleId(tagId);
     }

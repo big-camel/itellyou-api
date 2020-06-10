@@ -71,7 +71,7 @@ public class QuestionTagServiceImpl implements QuestionTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_question",unless = "#result == null")
+    @Cacheable(value = "tag_question",key = "#methodName",unless = "#result == null")
     public HashSet<Long> searchQuestionId(HashSet<Long> tagId) {
         return questionTagDao.searchQuestionId(tagId);
     }
