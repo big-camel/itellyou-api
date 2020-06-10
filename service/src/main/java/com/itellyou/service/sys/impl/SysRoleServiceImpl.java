@@ -5,8 +5,8 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.service.sys.SysRolePermissionService;
 import com.itellyou.service.sys.SysRoleService;
-import com.itellyou.service.user.UserRankRoleService;
-import com.itellyou.service.user.UserRoleService;
+import com.itellyou.service.user.rank.UserRankRoleService;
+import com.itellyou.service.user.access.UserRoleService;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -40,13 +40,13 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SysRoleModel findByName(String name,Long userId) {
         return roleDao.findByName(name,userId);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SysRoleModel findById(Long id) {
         return roleDao.findById(id);
     }
@@ -75,19 +75,19 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysRoleModel> search(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return roleDao.search(id,name,disabled,system,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public int count(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip) {
         return roleDao.count(id,name,disabled,system,userId,beginTime,endTime,ip);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public PageModel<SysRoleModel> page(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;

@@ -2,23 +2,26 @@ package com.itellyou.service.tag;
 
 import com.itellyou.model.tag.TagInfoModel;
 
-import java.util.List;
+import java.util.HashSet;
 
 public interface TagInfoService {
 
     int insert(TagInfoModel tagInfoModel);
 
     int updateStarCountById(Long id,Integer step);
-    int updateStarCountById(List<Long> ids,Integer step);
+    int updateStarCountById(HashSet<Long> ids,Integer step);
     int updateArticleCountById(Long id,Integer step);
-    int updateArticleCountById(List<Long> ids,Integer step);
+    int updateArticleCountById(HashSet<Long> ids, Integer step);
     int updateQuestionCountById(Long id,Integer step);
-    int updateQuestionCountById(List<Long> ids,Integer step);
+    int updateQuestionCountById(HashSet<Long> ids,Integer step);
 
     int updateGroupByGroupId(Long nextGroupId,Long prevGroupId);
 
     int updateById(Long id,String name,Long groupId,Boolean isDisabled);
 
-    Long create(Long userId,String name, String content, String html,String icon, String description, String remark, String save_type, Long ip) throws Exception;
-
+    int updateInfo( Long id,
+                    String description,
+                    Long time,
+                    Long ip,
+                    Long userId);
 }

@@ -3,17 +3,21 @@ package com.itellyou.service.article.impl;
 import com.itellyou.dao.article.ArticleCommentVoteDao;
 import com.itellyou.model.article.ArticleCommentModel;
 import com.itellyou.model.article.ArticleCommentVoteModel;
-import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.event.ArticleCommentEvent;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.article.ArticleCommentSearchService;
 import com.itellyou.service.article.ArticleCommentService;
+import com.itellyou.service.common.VoteSearchService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -21,6 +25,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.HashMap;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "article_comment_vote")
 @Service
 public class ArticleCommentVoteServiceImpl implements VoteService<ArticleCommentVoteModel> {
 
@@ -29,36 +34,37 @@ public class ArticleCommentVoteServiceImpl implements VoteService<ArticleComment
     private final ArticleCommentVoteDao voteDao;
     private final ArticleCommentService commentService;
     private final ArticleCommentSearchService searchService;
+    private final VoteSearchService<ArticleCommentVoteModel> voteSearchService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public ArticleCommentVoteServiceImpl(ArticleCommentVoteDao voteDao, ArticleCommentService commentService, ArticleCommentSearchService searchService, OperationalPublisher operationalPublisher){
+    public ArticleCommentVoteServiceImpl(ArticleCommentVoteDao voteDao, ArticleCommentService commentService, ArticleCommentSearchService searchService, ArticleCommentVoteSearchServiceImpl voteSearchService, OperationalPublisher operationalPublisher){
         this.voteDao = voteDao;
         this.commentService = commentService;
         this.searchService = searchService;
+        this.voteSearchService = voteSearchService;
         this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     public int insert(ArticleCommentVoteModel voteModel) {
+        RedisUtils.clear("article_comment_vote_" + voteModel.getCreatedUserId());
         return voteDao.insert(voteModel);
     }
 
     @Override
+    @CacheEvict(key = "T(String).valueOf(#commentId).concat('-').concat(#userId)")
     public int deleteByTargetIdAndUserId(Long commentId, Long userId) {
+        RedisUtils.clear("article_comment_vote_" + userId);
         return voteDao.deleteByCommentIdAndUserId(commentId,userId);
     }
 
     @Override
-    public ArticleCommentVoteModel findByTargetIdAndUserId(Long commentId, Long userId) {
-        return voteDao.findByCommentIdAndUserId(commentId,userId);
-    }
-
-    @Override
+    @CacheEvict(key = "T(String).valueOf(#id).concat('-').concat(#userId)")
     @Transactional
     public Map<String, Object> doVote(VoteType type, Long id, Long userId, Long ip) {
         try{
-            ArticleCommentVoteModel voteModel = findByTargetIdAndUserId(id,userId);
+            ArticleCommentVoteModel voteModel = voteSearchService.findByTargetIdAndUserId(id,userId);
 
             if(voteModel != null){
                 int result = deleteByTargetIdAndUserId(id,userId);
@@ -83,6 +89,7 @@ public class ArticleCommentVoteServiceImpl implements VoteService<ArticleComment
             data.put("support",commentModel.getSupport());
             data.put("oppose",commentModel.getOppose());
             operationalPublisher.publish(new ArticleCommentEvent(this,type.equals(VoteType.SUPPORT) ? EntityAction.LIKE : EntityAction.UNLIKE,commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+            RedisUtils.clear("article_comment_vote_" + userId);
             return data;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

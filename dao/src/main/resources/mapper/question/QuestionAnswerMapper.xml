@@ -4,6 +4,7 @@
     <sql id="columns">
         ${alias}id ${prefix}id,
         ${alias}question_id ${prefix}question_id,
+        ${alias}description ${prefix}description,
         ${alias}version ${prefix}version,
         ${alias}is_published ${prefix}is_published,
         ${alias}is_disabled ${prefix}is_disabled,
@@ -24,8 +25,8 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into question_answer(question_id,version,is_published,is_disabled,is_deleted,is_adopted,draft,cover,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{questionId},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{isAdopted},#{draft},#{cover},#{comments},#{view},#{support},#{oppose},#{starCount},
+        insert into question_answer(question_id,description,version,is_published,is_disabled,is_deleted,is_adopted,draft,cover,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{questionId},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{isAdopted},#{draft},#{cover},#{comments},#{view},#{support},#{oppose},#{starCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
     </insert>
     <select id="findByQuestionIdAndUserId" resultType="QuestionAnswerModel">
@@ -34,15 +35,6 @@
     <select id="findById" resultType="QuestionAnswerModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from question_answer where id=#{id}
     </select>
-    <resultMap id="searchMap" type="QuestionAnswerDetailModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="question" javaType="QuestionDetailModel" columnPrefix="q_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-        <association property="author" javaType="UserDetailModel" columnPrefix="user_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-    </resultMap>
     <sql id="searchWhere">
         <where>
             <if test="isDisabled != null">
@@ -69,14 +61,16 @@
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="ids != null">
+            <if test="ids != null &amp;&amp; ids.size() > 0">
                 and
-                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
                     #{id}
                 </foreach>
             </if>
-            <if test="questionId != null">
-                and ${alias}question_id = #{questionId}
+            <if test="questionIds != null &amp;&amp; questionIds.size() > 0">
+                and ${alias}question_id <foreach collection="questionIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
             </if>
             <if test="minComments != null">
                 and ${alias}comments >= #{minComments}
@@ -108,75 +102,60 @@
             <if test="maxStar != null">
                 and ${alias}star_count &lt;= #{maxStar}
             </if>
+            <if test="mode != 'draft'">
+                and ${alias}version > 0
+            </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
-        select q.id,q.question_id,q.is_published,q.is_disabled,q.is_deleted,q.is_adopted,q.comments,q.view,q.support,q.oppose,q.star_count,q.draft,q.cover,q.version,
-        q.created_time,q.created_user_id,q.created_ip,i.id q_id,w.title q_title,w.description q_description,v.description,
-        <if test="hasContent != false">
-            v.content,v.html,
+    <sql id="searchOrder">
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${alias}${key} ${value}
+            </foreach>
         </if>
-        <choose>
-            <when test="mode == 'draft'">
-                v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
-            </when>
-            <otherwise>
-                q.updated_user_id,q.updated_time,q.updated_ip,
-            </otherwise>
-        </choose>
-        <if test="searchUserId != null">
-            (case when q.created_user_id=#{searchUserId} then 1 else 0 end) allow_delete,
-            (case when q.created_user_id=#{searchUserId} then 0 else 1 end) allow_support,
-            (case when q.created_user_id=#{searchUserId} then 0 else 1 end) allow_oppose,
-            (case when q.created_user_id=#{searchUserId} then 1 else 0 end) allow_edit,
-            case when q.created_user_id=#{searchUserId} then 0 else 1 end allow_star,
-            (case when i.created_user_id=#{searchUserId} and i.is_adopted=0 and q.is_adopted=0 then 1 else 0 end) allow_adopt,
-            (case when vt.type=1 then 1 else 0 end) use_support,
-            (case when vt.type=0 then 1 else 0 end) use_oppose,
-            case when qs.created_user_id is not null then 1 else 0 end use_star,
-        </if>
-        (case when q.created_user_id is null then null when q.created_user_id=i.created_user_id then 1 else 0 end) use_author,
-
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="user_"/>
-        </include>,s.path user_path
+    </sql>
+    <select id="search" resultType="QuestionAnswerModel">
+        select <include refid="columns"><property name="alias" value="q."/><property name="prefix" value=""/></include>
         from question_answer q
-        inner join question_answer_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                q.draft=v.version
-            </when>
-            <otherwise>
-                q.version=v.version
-            </otherwise>
-        </choose>
-        and q.id=v.answer_id
-        left join user_info u on q.created_user_id=u.id
-        left join sys_path s on s.id=u.id and s.type=1
-        <if test="searchUserId != null">
-        left join question_answer_vote vt on vt.answer_id=q.id and vt.created_user_id = #{searchUserId}
-        left join question_answer_star qs on qs.answer_id=q.id and qs.created_user_id = #{searchUserId}
-        </if>
-        left join question_info i on q.question_id=i.id
-        left join question_version w on i.id = w.question_id and i.version = w.version
         <include refid="searchWhere">
             <property name="alias" value="q."/>
         </include>
-        <if test="order != null">
-            <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                q.${key} ${value}
-            </foreach>
-        </if>
+        <include refid="searchOrder">
+            <property name="alias" value="q."/>
+        </include>
         <if test="limit != null and offset != null">
             limit #{offset},#{limit}
         </if>
     </select>
     <select id="count" resultType="Integer">
-        select count(id) from question_answer
+        select count(q.id) from question_answer q
+        <include refid="searchWhere">
+            <property name="alias" value="q."/>
+        </include>
+    </select>
+    <select id="searchChild" resultType="QuestionAnswerModel">
+        WITH rankCte AS (
+        SELECT
+        id,
+        rank() over ( PARTITION BY question_id
+        <if test="order == null">
+            order by id
+        </if>
+        <include refid="searchOrder">
+            <property name="alias" value=""/>
+        </include>
+        ) number
+        FROM
+        question_answer
         <include refid="searchWhere">
             <property name="alias" value=""/>
         </include>
+        )
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from
+        rankCte r
+        left join question_answer c on r.id = c.id
+        where r.number &lt;= #{childCount}
     </select>
     <sql id="groupWhere">
         <where>
@@ -291,6 +270,15 @@
                 cover = #{cover},
             </if>
         </set>
+        where id=#{id}
+    </update>
+    <update id="updateInfo">
+        update question_answer <set>
+        <if test="description != null">description=#{description},</if>
+        updated_time=#{time},
+        updated_ip=#{ip},
+        updated_user_id=#{userId}
+    </set>
         where id=#{id}
     </update>
 </mapper>

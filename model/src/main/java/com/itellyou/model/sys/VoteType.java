@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum VoteType implements BaseEnum<VoteType,Integer> , CacheEntity {
     SUPPORT(1,"support"),

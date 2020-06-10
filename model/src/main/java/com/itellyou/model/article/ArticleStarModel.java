@@ -1,6 +1,7 @@
 package com.itellyou.model.article;
 
 import com.itellyou.model.common.StarModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @JSONDefault(includes = "base")
-public class ArticleStarModel extends StarModel {
+public class ArticleStarModel extends StarModel implements CacheEntity {
     private Long articleId;
 
     public ArticleStarModel(Long id, Long createdTime,Long userId,Long ip){
@@ -19,5 +20,10 @@ public class ArticleStarModel extends StarModel {
         this.setCreatedUserId(userId);
         this.setCreatedTime(createdTime);
         this.setCreatedIp(ip);
+    }
+
+    @Override
+    public String cacheKey() {
+        return articleId.toString() + "-" + getCreatedUserId();
     }
 }

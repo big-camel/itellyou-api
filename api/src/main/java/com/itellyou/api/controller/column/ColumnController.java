@@ -1,13 +1,13 @@
 package com.itellyou.api.controller.column;
 
-import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.column.ColumnInfoService;
 import com.itellyou.service.column.ColumnSearchService;
-import com.itellyou.service.tag.TagSearchService;
+import com.itellyou.service.tag.TagSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Validated
@@ -30,13 +30,13 @@ public class ColumnController {
 
     private final ColumnSearchService searchService;
     private final ColumnInfoService infoService;
-    private final TagSearchService tagSearchService;
+    private final TagSingleService tagSingleService;
 
     @Autowired
-    public ColumnController(ColumnSearchService searchService, ColumnInfoService infoService, TagSearchService tagSearchService){
+    public ColumnController(ColumnSearchService searchService, ColumnInfoService infoService, TagSingleService tagSingleService){
         this.searchService = searchService;
         this.infoService = infoService;
-        this.tagSearchService = tagSearchService;
+        this.tagSingleService = tagSingleService;
     }
 
     @GetMapping("/list")
@@ -50,13 +50,13 @@ public class ColumnController {
                 order = new HashMap<>();
                 order.put("article_count","desc");
                 order.put("star_count","desc");
-                data = searchService.page(null,null,null,memberId,searchUserId,false,true,false,tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,null,null,null,null,null,order,offset,limit);
+                data = searchService.page(null,null,null,memberId,searchUserId,false,true,false,tagId != null ? new HashSet<Long>(){{ add(tagId);}} : null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
             default:
                 order = new HashMap<>();
                 order.put("created_time","desc");
                 data = searchService.page(null,null,null,memberId,searchUserId,false,true,false,
-                        tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,null,null,null,null,null,order,offset,limit);
+                        tagId != null ? new HashSet<Long>(){{ add(tagId);}} : null,null,null,null,null,null,null,null,order,offset,limit);
         }
         return new ResultModel(data);
     }
@@ -84,7 +84,7 @@ public class ColumnController {
         ColumnInfoModel infoModel = searchService.findByName(name);
         if(infoModel != null) return new ResultModel(1001,"专栏名称已存在");
         if(tags.length > 0){
-            int rows = tagSearchService.exists(tags);
+            int rows = tagSingleService.exists(tags);
             if(rows != tags.length){
                 return new ResultModel(0,"标签数据错误");
             }

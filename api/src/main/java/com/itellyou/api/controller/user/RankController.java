@@ -3,7 +3,7 @@ package com.itellyou.api.controller.user;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserRankModel;
-import com.itellyou.service.user.UserRankService;
+import com.itellyou.service.user.rank.UserRankService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.Params;

@@ -40,7 +40,7 @@
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="ids != null">
+            <if test="ids != null &amp;&amp; ids.size() > 0">
                 and
                 ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
                     #{id}
@@ -49,8 +49,10 @@
             <if test="articleId != null">
                 and ${alias}article_id = #{articleId}
             </if>
-            <if test="parentId != null">
-                and ${alias}parent_id = #{parentId}
+            <if test="parentIds != null &amp;&amp; parentIds.size() > 0">
+                and ${alias}parent_id <foreach collection="parentIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
             </if>
             <if test="replyId != null">
                 and ${alias}reply_id = #{replyId}
@@ -75,98 +77,24 @@
             </if>
         </where>
     </sql>
-    <resultMap id="searchMap" type="ArticleCommentDetailModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true" />
-        <association property="reply" javaType="ArticleCommentDetailModel" columnPrefix="r_c_" autoMapping="true">
-            <id property="id" column="id"></id>
-            <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true" />
-        </association>
-        <collection property="child" ofType="ArticleCommentDetailModel" javaType="ArrayList" columnPrefix="ch_" autoMapping="true">
-            <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true" />
-            <association property="reply" javaType="ArticleCommentDetailModel" columnPrefix="r_c_" autoMapping="true">
-                <id property="id" column="id"></id>
-                <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true" />
-            </association>
-        </collection>
-    </resultMap>
-    <sql id="searchFields">
-        <include refid="columns"><property name="alias" value="c."/><property name="prefix" value="${prefix}"/></include>,
-        <if test="searchUserId != null">
-        (case when v.type is null then null when v.type=1 then 1 else 0 end) ${prefix}use_support,
-        (case when v.type is null then null when v.type=0 then 1 else 0 end) ${prefix}use_oppose,
+    <sql id="searchOrder">
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${alias}${key} ${value}
+            </foreach>
         </if>
-        <include refid="columns"><property name="alias" value="r."/><property name="prefix" value="${prefix}r_c_"/></include>,
-        <if test="searchUserId != null">
-        (case when rv.type is null then null when rv.type=1 then 1 else 0 end) ${prefix}r_c_use_support,
-        (case when rv.type is null then null when rv.type=0 then 1 else 0 end) ${prefix}r_c_use_oppose,
-        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} and c.is_deleted=0 then 1 else 0 end) ${prefix}allow_delete,
-        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} and c.is_deleted=0 then 1 else 0 end) ${prefix}r_c_allow_delete,
-        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_support,
-        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_support,
-        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_oppose,
-        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_oppose,
-        (case when c.created_user_id is null then null when c.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}allow_reply,
-        (case when r.created_user_id is null then null when r.created_user_id=#{searchUserId} then 0 else 1 end) ${prefix}r_c_allow_reply,
-        </if>
-        (case when c.created_user_id is null then null when c.created_user_id=an.created_user_id then 1 else 0 end) ${prefix}use_author,
-        (case when r.created_user_id is null then null when r.created_user_id=anr.created_user_id then 1 else 0 end) ${prefix}r_c_use_author,
-
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="u."/><property name="prefix" value="${prefix}u_"/></include>,s.path ${prefix}u_path,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns"><property name="alias" value="ru."/><property name="prefix" value="${prefix}r_c_u_"/></include>,su.path ${prefix}r_c_u_path
     </sql>
-    <select id="search" resultMap="searchMap">
-        <if test="childCount != null &amp;&amp; childCount &gt; 0">
-        select * from (
-            select b.* , (case when @parent_id=b.ch_parent_id then @row_num:=@row_num+1 else @row_num:=1 end) as rownum,@parent_id:=b.ch_parent_id tmp_parent_id from (
-                select t.*,<include refid="searchFields"><property name="prefix" value="ch_"/></include>
-                from (
-        </if>
-                    select <include refid="searchFields"><property name="prefix" value=""/></include>
-                    from article_comment c
-                    left join article_info an on an.id = c.article_id
-                    left join article_comment r on c.reply_id = r.id
-                    left join article_info anr on anr.id = r.article_id
-                    <if test="searchUserId != null">
-                    left join article_comment_vote v on v.created_user_id = #{searchUserId} and v.comment_id=c.id
-                    left join article_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
-                    </if>
-                    left join user_info u on c.created_user_id = u.id
-                    left join sys_path s on s.id=u.id and s.type=1
-                    left join user_info ru on r.created_user_id = ru.id
-                    left join sys_path su on su.id=ru.id and su.type=1
-                    <include refid="searchWhere">
-                        <property name="alias" value="c."/>
-                    </include>
-                    <if test="order != null">
-                        <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                            c.${key} ${value}
-                        </foreach>
-                    </if>
-                    <if test="limit != null and offset != null">
-                        limit #{offset},#{limit}
-                    </if>
-        <if test="childCount != null &amp;&amp; childCount &gt; 0">
-                ) t
-                left join article_comment c on c.parent_id = t.id
-                left join article_comment r on c.reply_id = r.id
-                <if test="searchUserId != null">
-                left join article_comment_vote v on v.created_user_id = #{searchUserId} and v.comment_id=c.id
-                left join article_comment_vote rv on rv.created_user_id = #{searchUserId} and rv.comment_id=r.id
-                </if>
-                left join user_info u on c.created_user_id = u.id
-                left join sys_path s on s.id=u.id and s.type=1
-                left join user_info ru on r.created_user_id = ru.id
-                left join sys_path su on su.id=ru.id and su.type=1
-                left join article_info an on an.id = c.article_id
-                left join article_info anr on anr.id = r.article_id,(select @row_num:=0) tmp_rownum,(select @parent_id:=0) tmp_parent order by t.id
-            ) b
-            <if test="order != null">
-                <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                    b.${key} ${value}
-                </foreach>
-            </if>
-        ) a where a.rownum &lt;= #{childCount}
+    <select id="search" resultType="ArticleCommentModel">
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from article_comment c
+        <include refid="searchWhere">
+            <property name="alias" value="c."/>
+        </include>
+        <include refid="searchOrder">
+            <property name="alias" value="c."/>
+        </include>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
         </if>
     </select>
     <select id="count" resultType="Integer">
@@ -174,6 +102,30 @@
         <include refid="searchWhere">
             <property name="alias" value=""/>
         </include>
+    </select>
+    <select id="searchChild" resultType="ArticleCommentModel">
+        WITH rankCte AS (
+        SELECT
+        id,
+        rank() over ( PARTITION BY parent_id
+        <if test="order == null">
+            order by id
+        </if>
+        <include refid="searchOrder">
+            <property name="alias" value=""/>
+        </include>
+        ) number
+        FROM
+        article_comment
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        )
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from
+        rankCte r
+        left join article_comment c on r.id = c.id
+        where r.number &lt;= #{childCount}
     </select>
     <select id="findById" resultType="ArticleCommentModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from article_comment where id=#{id}

@@ -6,8 +6,8 @@ import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.thirdparty.SmsLogService;
-import com.itellyou.service.user.UserRegisterService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.passport.UserRegisterService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import org.apache.commons.lang3.StringUtils;
@@ -26,12 +26,12 @@ import java.util.Map;
 @RestController
 public class RegisterController {
 
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final UserRegisterService userRegisterService;
     private final SmsLogService smsLogService;
 
     @Autowired
-    public RegisterController(UserSearchService userSearchService,UserRegisterService userRegisterService,SmsLogService smsLogService){
+    public RegisterController(UserSingleService userSearchService,UserRegisterService userRegisterService,SmsLogService smsLogService){
         this.userSearchService = userSearchService;
         this.userRegisterService = userRegisterService;
         this.smsLogService = smsLogService;

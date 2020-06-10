@@ -2,20 +2,22 @@ package com.itellyou.api.controller;
 
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.thirdparty.DmLogModel;
-import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.thirdparty.GeetestResultModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.thirdparty.DmService;
+import com.itellyou.service.thirdparty.GeetestService;
 import com.itellyou.service.thirdparty.SmsService;
 import com.itellyou.service.thirdparty.VerifyCodeException;
-import com.itellyou.service.thirdparty.GeetestService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
@@ -29,10 +31,10 @@ public class ValidationController {
     private final SmsService smsService;
     private final DmService dmService;
     private final GeetestService geetestService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
 
     @Autowired
-    public ValidationController (SmsService smsService,DmService dmService,GeetestService geetestService,UserSearchService userSearchService){
+    public ValidationController (SmsService smsService,DmService dmService,GeetestService geetestService,UserSingleService userSearchService){
         this.smsService = smsService;
         this.dmService = dmService;
         this.geetestService = geetestService;

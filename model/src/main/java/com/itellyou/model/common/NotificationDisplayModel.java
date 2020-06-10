@@ -1,7 +1,7 @@
 package com.itellyou.model.common;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.util.serialize.EnumSerializer;

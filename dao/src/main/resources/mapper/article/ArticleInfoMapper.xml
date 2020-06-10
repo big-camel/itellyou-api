@@ -3,6 +3,11 @@
 <mapper namespace="com.itellyou.dao.article.ArticleInfoDao">
     <sql id="columns">
         ${alias}id ${prefix}id,
+        ${alias}column_id ${prefix}column_id,
+        ${alias}source_type ${prefix}source_type,
+        ${alias}source_data ${prefix}source_data,
+        ${alias}title ${prefix}title,
+        ${alias}description ${prefix}description,
         ${alias}version ${prefix}version,
         ${alias}is_published ${prefix}is_published,
         ${alias}is_disabled ${prefix}is_disabled,
@@ -23,21 +28,12 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into article_info(version,is_published,is_disabled,is_deleted,custom_description,cover,draft,comment_count,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{cover},#{draft},#{commentCount},#{view},#{support},#{oppose},#{starCount},
+        insert into article_info(column_id,source_type,source_data,title,description,version,is_published,is_disabled,is_deleted,custom_description,cover,draft,comment_count,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{columnId},#{sourceType},#{sourceData},#{title},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{cover},#{draft},#{commentCount},#{view},#{support},#{oppose},#{starCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
     </insert>
-    <resultMap id="searchMap" type="ArticleDetailModel" autoMapping="true">
+    <resultMap id="searchMap" type="ArticleInfoModel" autoMapping="true">
         <id property="id" column="id" />
-        <association property="author"  notNullColumn="id" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-        <association property="column"  notNullColumn="id" javaType="ColumnInfoModel" columnPrefix="c_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-        <collection property="tags" notNullColumn="id" ofType="TagDetailModel" javaType="ArrayList" columnPrefix="t_" autoMapping="true">
-            <id property="id" column="id" />
-        </collection>
     </resultMap>
     <sql id="searchWhere">
         <where>
@@ -62,17 +58,17 @@
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="ids != null">
+            <if test="ids != null &amp;&amp; ids.size() > 0">
                 and
                 ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
                     #{id}
                 </foreach>
             </if>
             <if test="columnId != null">
-                and ${versionAlias}column_id=#{columnId}
+                and ${alias}column_id=#{columnId}
             </if>
             <if test="sourceType != null">
-                and ${versionAlias}source_type=#{sourceType}
+                and ${alias}source_type=#{sourceType}
             </if>
             <if test="minComments != null">
                 and ${alias}comment_count >= #{minComments}
@@ -104,80 +100,19 @@
             <if test="maxStar != null">
                 and ${alias}star_count &lt;= #{maxStar}
             </if>
-            <if test="tags != null &amp;&amp; tags.size() > 0">
-                and ${tagAlias}tag in
-                <foreach collection="tags" item="id" open="(" close=")" separator=",">
-                    ${id}
-                </foreach>
+            <if test="mode != 'draft'">
+                and ${alias}version > 0
             </if>
         </where>
     </sql>
     <select id="search" resultMap="searchMap">
-        select q.*,
-        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
-            <property name="alias" value="t."/>
-            <property name="prefix" value="t_"/>
-        </include>
-        from (select
-        q.id,q.is_published,q.is_disabled,q.is_deleted,q.custom_description,q.cover,q.comment_count,q.view,q.support,q.oppose,q.star_count,q.draft,q.version,q.created_user_id,q.created_time,q.created_ip,
-        v.id version_id,v.column_id,v.source_type,v.source_data,v.title,v.description,
-        <if test="hasContent != false">
-            v.content,v.html,
-        </if>
-        <if test="searchUserId != null">
-            case when s.created_user_id is not null then 1 else 0 end use_star,
-            case when q.created_user_id=#{searchUserId} then 0 else 1 end allow_support,
-            case when q.created_user_id=#{searchUserId} then 0 else 1 end allow_oppose,
-            case when q.created_user_id=#{searchUserId} then 0 else 1 end allow_star,
-            case when q.created_user_id=#{searchUserId} then 1 else 0 end allow_edit,
-            case when av.type=1 then 1 else 0 end use_support,
-            case when av.type=0 then 1 else 0 end use_oppose,
-        </if>
-        <choose>
-            <when test="mode == 'draft'">
-                v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
-            </when>
-            <otherwise>
-                q.updated_user_id,q.updated_time,q.updated_ip,
-            </otherwise>
-        </choose>
-        <include refid="com.itellyou.dao.column.ColumnInfoDao.columns">
-            <property name="alias" value="c."/>
-            <property name="prefix" value="c_"/>
-        </include>,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="u_"/>
-        </include>,p.path u_path
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+
         from article_info q
-        inner join article_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                q.draft=v.version
-            </when>
-            <otherwise>
-                q.version=v.version
-            </otherwise>
-        </choose>
-        and q.id=v.article_id
-        <if test="tags != null &amp;&amp; tags.size() > 0">
-            left join article_version_tag vt on vt.version = v.id
-        </if>
-        left join column_info c on v.column_id=c.id
-        left join user_info u on q.created_user_id=u.id
-        left join sys_path p on p.id = u.id and p.type = 1
-        <if test="searchUserId != null">
-            left join article_star s on s.article_id=q.id and s.created_user_id=#{searchUserId}
-            left join article_vote av on av.created_user_id = #{searchUserId} and av.article_id=q.id
-        </if>
+
         <include refid="searchWhere">
             <property name="alias" value="q."/>
-            <property name="versionAlias" value="v."/>
-            <property name="tagAlias" value="vt."/>
         </include>
-        <if test="tags != null &amp;&amp; tags.size() > 0">
-            group by q.id
-        </if>
         <if test="order != null">
             <foreach collection="order" index="key" item="value" open="order by " separator=",">
                 <choose>
@@ -189,36 +124,11 @@
         <if test="limit != null and offset != null">
             limit #{offset},#{limit}
         </if>
-        ) q
-        left join article_version_tag vt on vt.version = q.version_id
-        left join tag t on vt.tag = t.id
-        <if test="order != null">
-            <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                <choose>
-                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                    <otherwise>q.${key} ${value}</otherwise>
-                </choose>
-            </foreach>
-        </if>
     </select>
     <select id="count" resultType="Integer">
-        select count(<if test="tags != null &amp;&amp; tags.size() > 0">distinct</if> q.id) from article_info q
-        inner join article_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                q.draft=v.version
-            </when>
-            <otherwise>
-                q.version=v.version
-            </otherwise>
-        </choose> and q.id=v.article_id
-        <if test="tags != null &amp;&amp; tags.size() > 0">
-            left join article_version_tag vt on vt.version = v.id
-        </if>
+        select count(q.id) from article_info q
         <include refid="searchWhere">
             <property name="alias" value="q."/>
-            <property name="versionAlias" value="v."/>
-            <property name="tagAlias" value="vt."/>
         </include>
     </select>
     <select id="findById" resultType="ArticleInfoModel">
@@ -277,5 +187,18 @@
     </update>
     <update id="updateDeleted">
         update article_info set is_deleted=#{deleted} where id=#{id}
+    </update>
+    <update id="updateInfo">
+        update article_info <set>
+            <if test="title != null">title=#{title},</if>
+            <if test="description != null">description=#{description},</if>
+            <if test="columnId != null">column_id=#{columnId},</if>
+            <if test="sourceType != null">source_type=#{sourceType},</if>
+            <if test="sourceData != null">source_data=#{sourceData},</if>
+            updated_time=#{time},
+            updated_ip=#{ip},
+            updated_user_id=#{userId}
+        </set>
+            where id=#{id}
     </update>
 </mapper>

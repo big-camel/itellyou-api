@@ -6,14 +6,18 @@ import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.model.question.QuestionAnswerCommentVoteModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.VoteType;
+import com.itellyou.service.common.VoteSearchService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerCommentSearchService;
 import com.itellyou.service.question.QuestionAnswerCommentService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -21,6 +25,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.HashMap;
 import java.util.Map;
 
+@CacheConfig(cacheNames = "answer_comment_vote")
 @Service
 public class QuestionAnswerCommentVoteServiceImpl implements VoteService<QuestionAnswerCommentVoteModel> {
 
@@ -30,35 +35,38 @@ public class QuestionAnswerCommentVoteServiceImpl implements VoteService<Questio
     private final QuestionAnswerCommentService commentService;
     private final QuestionAnswerCommentSearchService searchService;
     private final OperationalPublisher operationalPublisher;
+    private final VoteSearchService<QuestionAnswerCommentVoteModel> voteSearchService;
 
     @Autowired
-    public QuestionAnswerCommentVoteServiceImpl(QuestionAnswerCommentVoteDao voteDao, QuestionAnswerCommentService commentService, QuestionAnswerCommentSearchService searchService, OperationalPublisher operationalPublisher){
+    public QuestionAnswerCommentVoteServiceImpl(QuestionAnswerCommentVoteDao voteDao, QuestionAnswerCommentService commentService, QuestionAnswerCommentSearchService searchService, OperationalPublisher operationalPublisher, QuestionAnswerCommentVoteSearchServiceImpl voteSearchService){
         this.voteDao = voteDao;
         this.commentService = commentService;
         this.searchService = searchService;
         this.operationalPublisher = operationalPublisher;
+        this.voteSearchService = voteSearchService;
     }
 
     @Override
     public int insert(QuestionAnswerCommentVoteModel voteModel) {
+        RedisUtils.clear("answer_comment_vote_" + voteModel.getCreatedUserId());
         return voteDao.insert(voteModel);
     }
 
     @Override
+    @CacheEvict(key = "T(String).valueOf(#commentId).concat('-').concat(#userId)")
     public int deleteByTargetIdAndUserId(Long commentId, Long userId) {
+        RedisUtils.clear("answer_comment_vote_" + userId);
         return voteDao.deleteByCommentIdAndUserId(commentId,userId);
     }
 
-    @Override
-    public QuestionAnswerCommentVoteModel findByTargetIdAndUserId(Long commentId, Long userId) {
-        return voteDao.findByCommentIdAndUserId(commentId,userId);
-    }
+
 
     @Override
     @Transactional
+    @CacheEvict(key = "T(String).valueOf(#id).concat('-').concat(#userId)")
     public Map<String, Object> doVote(VoteType type, Long id, Long userId, Long ip) {
         try{
-            QuestionAnswerCommentVoteModel voteModel = findByTargetIdAndUserId(id,userId);
+            QuestionAnswerCommentVoteModel voteModel = voteSearchService.findByTargetIdAndUserId(id,userId);
 
             if(voteModel != null){
                 int result = deleteByTargetIdAndUserId(id,userId);
@@ -91,6 +99,7 @@ public class QuestionAnswerCommentVoteServiceImpl implements VoteService<Questio
                         type.equals(VoteType.SUPPORT) ? EntityAction.LIKE : EntityAction.DISLIKE,
                         commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
             }
+            RedisUtils.clear("answer_comment_vote_" + userId);
             return data;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

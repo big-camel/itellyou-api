@@ -1,18 +1,18 @@
 package com.itellyou.service.common.impl;
 
 import com.itellyou.dao.common.ViewInfoDao;
-import com.itellyou.model.article.ArticleDetailModel;
+import com.itellyou.model.article.ArticleInfoModel;
+import com.itellyou.model.common.ViewInfoModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.model.common.ViewInfoModel;
-import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
+import com.itellyou.service.common.ViewService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionSearchService;
-import com.itellyou.service.tag.TagSearchService;
-import com.itellyou.service.common.ViewService;
+import com.itellyou.service.tag.TagSingleService;
 import com.itellyou.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,16 +27,16 @@ public class ViewServiceImpl implements ViewService {
     private final ViewInfoDao viewDao;
     private final QuestionSearchService questionSearchService;
     private final QuestionAnswerSearchService answerSearchService;
-    private final ArticleSearchService articleSearchService;
-    private final TagSearchService tagSearchService;
+    private final ArticleSingleService articleSearchService;
+    private final TagSingleService tagSingleService;
 
     @Autowired
-    public ViewServiceImpl(ViewInfoDao viewDao, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, TagSearchService tagSearchService){
+    public ViewServiceImpl(ViewInfoDao viewDao, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSingleService articleSearchService, TagSingleService tagSingleService){
         this.viewDao = viewDao;
         this.questionSearchService = questionSearchService;
         this.answerSearchService = answerSearchService;
         this.articleSearchService = articleSearchService;
-        this.tagSearchService = tagSearchService;
+        this.tagSingleService = tagSingleService;
     }
 
     @Override
@@ -103,11 +103,11 @@ public class ViewServiceImpl implements ViewService {
                 if(answerDetailModel != null) title = answerDetailModel.getQuestion().getTitle();
                 break;
             case ARTICLE:
-                ArticleDetailModel articleDetailModel = articleSearchService.getDetail(dataKey);
+                ArticleInfoModel articleDetailModel = articleSearchService.findById(dataKey);
                 if(articleDetailModel != null) title = articleDetailModel.getTitle();
                 break;
             case TAG:
-                TagInfoModel tagInfoModel = tagSearchService.findById(dataKey);
+                TagInfoModel tagInfoModel = tagSingleService.findById(dataKey);
                 if(tagInfoModel != null) title = tagInfoModel.getName();
                 break;
         }

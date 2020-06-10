@@ -1,6 +1,6 @@
 package com.itellyou.model.article;
 
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.model.user.UserBankType;
 import lombok.AllArgsConstructor;
 import lombok.Data;

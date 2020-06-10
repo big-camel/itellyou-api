@@ -11,9 +11,10 @@ import java.util.Map;
 public interface QuestionCommentSearchService {
     QuestionCommentModel findById(Long id);
 
-    List<QuestionCommentDetailModel> search(HashSet<Long> ids, Long questionId, Long parentId, Long replyId, Long searchUserId, Long userId,
+    List<QuestionCommentDetailModel> search(HashSet<Long> ids, Long questionId, HashSet<Long> parentIds, Long replyId, Long searchUserId, Long userId,
                                             Boolean isDeleted,
                                             Integer childCount,
+                                            Boolean hasReply,
                                             Integer minComments, Integer maxComments,
                                             Integer minSupport, Integer maxSupport,
                                             Integer minOppose, Integer maxOppose,
@@ -23,9 +24,10 @@ public interface QuestionCommentSearchService {
                                             Integer offset,
                                             Integer limit);
 
-    List<QuestionCommentDetailModel> search(Long questionId, Long parentId, Long searchUserId,
+    List<QuestionCommentDetailModel> search(Long questionId, HashSet<Long> parentIds, Long searchUserId,
                                             Boolean isDeleted,
                                             Integer childCount,
+                                            Boolean hasReply,
                                             Integer minComments, Integer maxComments,
                                             Integer minSupport, Integer maxSupport,
                                             Integer minOppose, Integer maxOppose,
@@ -34,7 +36,7 @@ public interface QuestionCommentSearchService {
                                             Integer offset,
                                             Integer limit);
 
-    int count(HashSet<Long> ids, Long questionId, Long parentId, Long replyId, Long userId,
+    int count(HashSet<Long> ids, Long questionId, HashSet<Long> parentIds, Long replyId, Long userId,
               Boolean isDeleted,
               Integer minComments, Integer maxComments,
               Integer minSupport, Integer maxSupport,
@@ -42,16 +44,17 @@ public interface QuestionCommentSearchService {
               Long beginTime, Long endTime,
               Long ip);
 
-    int count(Long questionId, Long parentId,
+    int count(Long questionId, HashSet<Long> parentIds,
               Boolean isDeleted,
               Integer minComments, Integer maxComments,
               Integer minSupport, Integer maxSupport,
               Integer minOppose, Integer maxOppose,
               Long beginTime, Long endTime);
 
-    PageModel<QuestionCommentDetailModel> page(Long questionId, Long parentId, Long searchUserId,
+    PageModel<QuestionCommentDetailModel> page(Long questionId, HashSet<Long> parentIds, Long searchUserId,
                                                Boolean isDeleted,
                                                Integer childCount,
+                                               Boolean hasReply,
                                                Integer minComments, Integer maxComments,
                                                Integer minSupport, Integer maxSupport,
                                                Integer minOppose, Integer maxOppose,
@@ -61,5 +64,5 @@ public interface QuestionCommentSearchService {
                                                Integer limit);
 
     QuestionCommentDetailModel getDetail(Long id, Long questionId, Long parentId, Long replyId, Long searchUserId, Long userId,
-                                         Boolean isDeleted);
+                                         Boolean isDeleted,Boolean hasReply);
 }

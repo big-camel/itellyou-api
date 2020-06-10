@@ -12,16 +12,18 @@ import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionCommentService;
 import com.itellyou.service.question.QuestionInfoService;
-import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+@CacheConfig(cacheNames = "question_comment")
 @Service
 public class QuestionCommentServiceImpl implements QuestionCommentService {
 
@@ -29,15 +31,14 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
 
     private final QuestionCommentDao commentDao;
     private final QuestionInfoService questionInfoService;
-    private final QuestionSearchService questionSearchService;
-
+    private final QuestionSingleService questionSingleService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionCommentServiceImpl(QuestionCommentDao commentDao, QuestionInfoService questionInfoService, QuestionSearchService questionSearchService, OperationalPublisher operationalPublisher){
+    public QuestionCommentServiceImpl(QuestionCommentDao commentDao, QuestionInfoService questionInfoService, QuestionSingleService questionSingleService, OperationalPublisher operationalPublisher){
         this.commentDao = commentDao;
         this.questionInfoService = questionInfoService;
-        this.questionSearchService = questionSearchService;
+        this.questionSingleService = questionSingleService;
         this.operationalPublisher = operationalPublisher;
     }
 
@@ -45,7 +46,7 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
     @Transactional
     public QuestionCommentModel insert(Long questionId, Long parentId, Long replyId, String content , String html, Long userId, String ip) throws Exception {
         try{
-            QuestionInfoModel questionModel = questionSearchService.findById(questionId);
+            QuestionInfoModel questionModel = questionSingleService.findById(questionId);
             if(questionModel == null) throw new Exception("错误的问题ID");
             QuestionCommentModel replyCommentModel = null;
             if(replyId != null && !replyId.equals(0l)){

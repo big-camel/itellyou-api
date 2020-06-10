@@ -7,12 +7,14 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserStarDetailModel;
 import com.itellyou.service.article.ArticlePaidReadSearchService;
-import com.itellyou.service.user.UserBankLogService;
-import com.itellyou.service.user.UserStarSearchService;
+import com.itellyou.service.user.bank.UserBankLogService;
+import com.itellyou.service.user.star.UserStarSearchService;
+import com.itellyou.util.RedisUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 
 @CacheConfig(cacheNames = "article_paid_read")
@@ -30,7 +32,7 @@ public class ArticlePaidReadSearchServiceImpl implements ArticlePaidReadSearchSe
     }
 
     @Override
-    @Cacheable(key = "#articleId")
+    @Cacheable(key = "#articleId",unless = "#result == null")
     public ArticlePaidReadModel findByArticleId(Long articleId) {
         return articlePaidReadDao.findByArticleId(articleId);
     }
@@ -49,5 +51,12 @@ public class ArticlePaidReadSearchServiceImpl implements ArticlePaidReadSearchSe
             }else return false;
         }
         return true;
+    }
+
+    @Override
+    public List<ArticlePaidReadModel> search(HashSet<Long> articleIds) {
+        return RedisUtils.fetchByCache("article_paid_read",ArticlePaidReadModel.class,articleIds,(HashSet<Long> fetchIds) ->
+            articlePaidReadDao.search(fetchIds)
+        );
     }
 }

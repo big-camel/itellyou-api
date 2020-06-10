@@ -11,16 +11,19 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.article.ArticleCommentService;
 import com.itellyou.service.article.ArticleInfoService;
-import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+@CacheConfig(cacheNames = "article_comment")
 @Service
 public class ArticleCommentServiceImpl implements ArticleCommentService {
 
@@ -28,11 +31,11 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
 
     private final ArticleCommentDao commentDao;
     private final ArticleInfoService articleService;
-    private final ArticleSearchService searchService;
+    private final ArticleSingleService searchService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public ArticleCommentServiceImpl(ArticleCommentDao commentDao, ArticleInfoService articleService, ArticleSearchService searchService, OperationalPublisher operationalPublisher){
+    public ArticleCommentServiceImpl(ArticleCommentDao commentDao, ArticleInfoService articleService, ArticleSingleService searchService, OperationalPublisher operationalPublisher){
         this.commentDao = commentDao;
         this.articleService = articleService;
         this.searchService = searchService;
@@ -41,6 +44,7 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
 
     @Override
     @Transactional
+    @CacheEvict(key = "#parentId")
     public ArticleCommentModel insert(Long articleId, Long parentId, Long replyId, String content, String html, Long userId, Long ip,Boolean sendEvent) throws Exception {
         try{
             ArticleInfoModel articleModel = searchService.findById(articleId);
@@ -86,6 +90,7 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateDeleted(Long id, Boolean isDeleted,Long userId,Long ip) {
         ArticleCommentModel commentModel = commentDao.findById(id);
         if(commentModel == null) return 0;
@@ -98,11 +103,13 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateComments(Long id, Integer value) {
         return commentDao.updateComments(id,value);
     }
 
     @Override
+    @CacheEvict(key = "#id")
     public int updateVote(VoteType type, Integer value, Long id) {
         return commentDao.updateVote(type,value,id);
     }

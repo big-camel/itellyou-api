@@ -97,12 +97,12 @@ public class OperationalServiceImpl implements OperationalService {
                 if(!hashSet.contains(targetId))
                     hashSet.add(targetId);
             }else{
-                dataMap.put(type,new LinkedHashSet<Long>(){{ add(targetId);}});
+                dataMap.put(type,targetId != null ? new LinkedHashSet<Long>(){{ add(targetId);}} : null);
             }
         }
 
         if(dataMap.containsKey(EntityType.QUESTION_COMMENT)){
-            List<QuestionCommentDetailModel> questionCommentModels = questionCommentSearchService.search(dataMap.get(EntityType.QUESTION_COMMENT),null,null,null,searchUserId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+            List<QuestionCommentDetailModel> questionCommentModels = questionCommentSearchService.search(dataMap.get(EntityType.QUESTION_COMMENT),null,null,null,searchUserId,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
             for (OperationalDetailModel operationalModel : operationalDetailModelList){
                 EntityAction action = operationalModel.getAction();
                 EntityType type = operationalModel.getType();
@@ -124,7 +124,7 @@ public class OperationalServiceImpl implements OperationalService {
             }
         }
         if(dataMap.containsKey(EntityType.ANSWER_COMMENT)){
-            List<QuestionAnswerCommentDetailModel> questionAnswerCommentModels = questionAnswerCommentSearchService.search(dataMap.get(EntityType.ANSWER_COMMENT),null,null,null,searchUserId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+            List<QuestionAnswerCommentDetailModel> questionAnswerCommentModels = questionAnswerCommentSearchService.search(dataMap.get(EntityType.ANSWER_COMMENT),null,null,null,searchUserId,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
             for (OperationalDetailModel operationalModel : operationalDetailModelList){
                 EntityAction action = operationalModel.getAction();
                 EntityType type = operationalModel.getType();
@@ -146,7 +146,7 @@ public class OperationalServiceImpl implements OperationalService {
             }
         }
         if(dataMap.containsKey(EntityType.ARTICLE_COMMENT)){
-            List<ArticleCommentDetailModel> articleCommentModels = articleCommentSearchService.search(dataMap.get(EntityType.ARTICLE_COMMENT),null,null,null,searchUserId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+            List<ArticleCommentDetailModel> articleCommentModels = articleCommentSearchService.search(dataMap.get(EntityType.ARTICLE_COMMENT),null,null,null,searchUserId,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
             for (OperationalDetailModel operationalModel : operationalDetailModelList){
                 EntityAction action = operationalModel.getAction();
                 EntityType type = operationalModel.getType();

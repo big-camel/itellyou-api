@@ -1,6 +1,6 @@
 package com.itellyou.model.common;
 
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.BaseEnum;
 
 public enum NotificationDisplay implements BaseEnum<NotificationDisplay,Integer> , CacheEntity {

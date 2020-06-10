@@ -82,19 +82,30 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
     @Override
     @Async
     public void createIndex(Long id) {
-        create(searchService.getDetail(id));
+        ArticleDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled()) {
+            delete(id);
+            return;
+        }
+        create(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(Long id) {
-        update(searchService.getDetail(id));
+        ArticleDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled()) {
+            delete(id);
+            return;
+        }
+        update(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
         update(searchService.search(ids,null,null,null,null
-        ,null,true,null,null,null,null,null));
+        ,null,true,false,false,true,null,null,null,null,null,null,null,null,null,null,null,null,null
+        ,null,null,null,null));
     }
 }

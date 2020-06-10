@@ -3,7 +3,6 @@ package com.itellyou.service.thirdparty.impl;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.model.GeneratePresignedUrlRequest;
-import com.aliyun.oss.model.GetObjectRequest;
 import com.itellyou.model.thirdparty.AliConfigModel;
 import com.itellyou.model.upload.UploadConfigModel;
 import com.itellyou.model.upload.UploadType;
@@ -35,8 +34,6 @@ public class OfficePreviewServiceImpl implements OfficePreviewService {
             if (configModel == null) throw new Exception("错误的上传配置参数");
             String process = "imm/previewdoc,copy_1";
             OSS client = new OSSClientBuilder().build(configModel.getEndpoint(), aliConfigModel.getId(), aliConfigModel.getSecret());
-            GetObjectRequest getObjectRequest = new GetObjectRequest(configModel.getBucket(), key);
-            getObjectRequest.setProcess(process);
             GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(configModel.getBucket(), key);
             request.setProcess(process);
             request.setExpiration(new Date(new Date().getTime() + 3600 * 1000));

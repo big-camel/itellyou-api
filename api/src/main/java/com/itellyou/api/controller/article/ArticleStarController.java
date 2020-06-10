@@ -1,11 +1,11 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleStarModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.common.impl.StarFactory;
 import com.itellyou.util.DateUtils;
@@ -25,9 +25,9 @@ import java.util.Map;
 public class ArticleStarController {
 
     private final StarService<ArticleStarModel> starService;
-    private final ArticleSearchService searchService;
+    private final ArticleSingleService searchService;
 
-    public ArticleStarController(StarFactory starFactory, ArticleSearchService searchService){
+    public ArticleStarController(StarFactory starFactory, ArticleSingleService searchService){
         this.starService = starFactory.create(EntityType.ARTICLE);
         this.searchService = searchService;
     }

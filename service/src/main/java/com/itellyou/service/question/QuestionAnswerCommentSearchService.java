@@ -11,9 +11,9 @@ import java.util.Map;
 public interface QuestionAnswerCommentSearchService {
     QuestionAnswerCommentModel findById(Long id);
 
-    List<QuestionAnswerCommentDetailModel> search(HashSet<Long> ids, Long answerId, Long parentId, Long replyId, Long searchUserId, Long userId,
+    List<QuestionAnswerCommentDetailModel> search(HashSet<Long> ids, Long answerId, HashSet<Long> parentIds, Long replyId, Long searchUserId, Long userId,
                                                   Boolean isDeleted,
-                                                  Integer childCount,
+                                                  Integer childCount,Boolean hasReply,
                                                   Integer minComments, Integer maxComments,
                                                   Integer minSupport, Integer maxSupport,
                                                   Integer minOppose, Integer maxOppose,
@@ -23,9 +23,9 @@ public interface QuestionAnswerCommentSearchService {
                                                   Integer offset,
                                                   Integer limit);
 
-    List<QuestionAnswerCommentDetailModel> search(Long answerId, Long parentId, Long searchUserId,
+    List<QuestionAnswerCommentDetailModel> search(Long answerId, HashSet<Long> parentIds, Long searchUserId,
                                                   Boolean isDeleted,
-                                                  Integer childCount,
+                                                  Integer childCount,Boolean hasReply,
                                                   Integer minComments, Integer maxComments,
                                                   Integer minSupport, Integer maxSupport,
                                                   Integer minOppose, Integer maxOppose,
@@ -34,7 +34,7 @@ public interface QuestionAnswerCommentSearchService {
                                                   Integer offset,
                                                   Integer limit);
 
-    int count(HashSet<Long> ids, Long answerId, Long parentId, Long replyId, Long userId,
+    int count(HashSet<Long> ids, Long answerId, HashSet<Long> parentIds, Long replyId, Long userId,
               Boolean isDeleted,
               Integer minComments, Integer maxComments,
               Integer minSupport, Integer maxSupport,
@@ -42,16 +42,16 @@ public interface QuestionAnswerCommentSearchService {
               Long beginTime, Long endTime,
               Long ip);
 
-    int count(Long answerId, Long parentId,
+    int count(Long answerId, HashSet<Long> parentIds,
                     Boolean isDeleted,
                     Integer minComments, Integer maxComments,
                     Integer minSupport, Integer maxSupport,
                     Integer minOppose, Integer maxOppose,
                     Long beginTime, Long endTime);
 
-    PageModel<QuestionAnswerCommentDetailModel> page(Long answerId, Long parentId, Long searchUserId,
+    PageModel<QuestionAnswerCommentDetailModel> page(Long answerId, HashSet<Long> parentIds, Long searchUserId,
                                                            Boolean isDeleted,
-                                                           Integer childCount,
+                                                           Integer childCount,Boolean hasReply,
                                                            Integer minComments, Integer maxComments,
                                                            Integer minSupport, Integer maxSupport,
                                                            Integer minOppose, Integer maxOppose,
@@ -61,5 +61,5 @@ public interface QuestionAnswerCommentSearchService {
                                                            Integer limit);
 
     QuestionAnswerCommentDetailModel getDetail(Long id, Long answerId, Long parentId, Long replyId, Long searchUserId, Long userId,
-                                               Boolean isDeleted);
+                                               Boolean isDeleted,Boolean hasReply);
 }

@@ -1,7 +1,7 @@
 package com.itellyou.model.user;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
 import com.itellyou.util.serialize.TimestampDeserializer;

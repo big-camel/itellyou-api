@@ -75,18 +75,28 @@ public class QuestionAnswerIndexServiceImpl extends IndexServiceImpl<QuestionAns
     @Override
     @Async
     public void createIndex(Long id) {
-        create(answerSearchService.getDetail(id));
+        QuestionAnswerDetailModel detailModel = answerSearchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled() || !detailModel.isPublished()) {
+            delete(id);
+            return;
+        }
+        create(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(Long id) {
-        update(answerSearchService.getDetail(id));
+        QuestionAnswerDetailModel detailModel = answerSearchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled() || !detailModel.isPublished()) {
+            delete(id);
+            return;
+        }
+        update(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        update(answerSearchService.search(ids,null,null,null,null,true,null,null,null,null,null));
+        update(answerSearchService.search(ids,null,null,null,null,true,null,false,true,false,null,null,null,null,null));
     }
 }

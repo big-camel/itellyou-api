@@ -16,4 +16,8 @@ public class QuestionAnswerStarDetailModel extends QuestionAnswerStarModel {
     private QuestionAnswerDetailModel answer;
     @JSONField(label = "base")
     private UserInfoModel user;
+
+    public QuestionAnswerStarDetailModel(QuestionAnswerStarModel model){
+        super(model.getAnswerId(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp());
+    }
 }

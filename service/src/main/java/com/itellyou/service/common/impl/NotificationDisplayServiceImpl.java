@@ -43,7 +43,7 @@ public class NotificationDisplayServiceImpl implements NotificationDisplayServic
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public List<NotificationDisplayModel> getDefault() {
         return displayDao.getDefault();
     }

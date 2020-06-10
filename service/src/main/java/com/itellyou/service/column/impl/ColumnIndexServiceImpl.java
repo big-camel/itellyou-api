@@ -2,6 +2,7 @@ package com.itellyou.service.column.impl;
 
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnIndexModel;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.service.common.impl.IndexServiceImpl;
@@ -31,7 +32,7 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
         doc.add(new StoredField("type","column"));
         doc.add(new TextField("name", detailModel.getName(), Field.Store.YES));
         doc.add(new TextField("description", StringUtils.removeHtmlTags(detailModel.getDescription()), Field.Store.YES));
-        List<TagInfoModel> tagList = detailModel.getTags();
+        List<TagDetailModel> tagList = detailModel.getTags();
         for (TagInfoModel model : tagList){
             doc.add(new LongPoint("tags",model.getId()));
         }
@@ -62,19 +63,29 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
     @Override
     @Async
     public void createIndex(Long id) {
-        create(searchService.getDetail(id));
+        ColumnDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled()) {
+            delete(id);
+            return;
+        }
+        create(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(Long id) {
-        update(searchService.getDetail(id));
+        ColumnDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDeleted() || detailModel.isDisabled()) {
+            delete(id);
+            return;
+        }
+        update(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
         update(searchService.search(ids,null,null,null,null
-                ,null,true,null,null,null,null,null,null,null,null,null,null,null,null));
+                ,false,true,false,null,null,null,null,null,null,null,null,null,null,null));
     }
 }

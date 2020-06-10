@@ -8,7 +8,10 @@
     <delete id="deleteByArticleIdAndUserId">
         delete from article_vote where article_id=#{articleId} and created_user_id=#{userId}
     </delete>
-    <select id="findByArticleIdAndUserId" resultType="ArticleVoteModel">
-        select `type`,article_id,created_user_id,created_time,created_ip from article_vote where article_id=#{articleId} and created_user_id=#{userId}
+    <select id="search" resultType="ArticleVoteModel">
+        select `type`,article_id,created_user_id,created_time,created_ip from article_vote
+        where article_id in <foreach collection="articleIds" item="articleId" separator="," open="(" close=")" >
+            #{articleId}
+        </foreach> and created_user_id=#{userId}
     </select>
 </mapper>

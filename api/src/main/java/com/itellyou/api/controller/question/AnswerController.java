@@ -11,10 +11,7 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
-import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
-import com.itellyou.service.question.QuestionAnswerPaidReadService;
-import com.itellyou.service.question.QuestionAnswerSearchService;
-import com.itellyou.service.question.QuestionAnswerService;
+import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.IPUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +34,16 @@ public class AnswerController {
     private final QuestionAnswerSearchService searchService;
     private final UserDraftService draftService;
     private final QuestionAnswerPaidReadService answerPaidReadService;
-    private final QuestionAnswerPaidReadSearchService answerPaidReadSearchService;
+    private final QuestionAnswerSingleService answerSingleService;
 
     @Autowired
-    public AnswerController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, UserDraftService draftService, VoteFactory voteFactory, QuestionAnswerPaidReadService answerPaidReadService, QuestionAnswerPaidReadSearchService answerPaidReadSearchService){
+    public AnswerController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, UserDraftService draftService, VoteFactory voteFactory, QuestionAnswerPaidReadService answerPaidReadService, QuestionAnswerSingleService answerSingleService){
         this.voteService = voteFactory.create(EntityType.ANSWER);
         this.answerService = answerService;
         this.searchService = searchService;
         this.draftService = draftService;
         this.answerPaidReadService = answerPaidReadService;
-        this.answerPaidReadSearchService = answerPaidReadSearchService;
+        this.answerSingleService = answerSingleService;
     }
 
     @GetMapping("/list")
@@ -105,7 +102,7 @@ public class AnswerController {
             return new ResultModel(401,"未登陆");
         }
 
-        QuestionAnswerModel answerModel = searchService.findByQuestionIdAndUserId(questionId,userModel.getId());
+        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userModel.getId());
         if(answerModel != null && !answerModel.isDisabled()){
             boolean result = draftService.exists(userModel.getId(), EntityType.ANSWER,answerModel.getId());
             Map<String,Object> userAnswerMap = new HashMap<>();

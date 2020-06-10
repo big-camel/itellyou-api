@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum SysPermissionPlatform implements BaseEnum<SysPermissionPlatform,Integer> , CacheEntity {
     WEB(1,"web"),

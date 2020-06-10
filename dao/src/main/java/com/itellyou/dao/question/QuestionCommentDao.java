@@ -17,9 +17,8 @@ public interface QuestionCommentDao {
 
     QuestionCommentModel findById(Long id);
 
-    List<QuestionCommentDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("parentId") Long parentId, @Param("replyId") Long replyId, @Param("searchUserId") Long searchUserId, @Param("userId") Long userId,
+    List<QuestionCommentModel> search(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                                             @Param("isDeleted") Boolean isDeleted,
-                                            @Param("childCount") Integer childCount,
                                             @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                                             @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                                             @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
@@ -29,13 +28,23 @@ public interface QuestionCommentDao {
                                             @Param("offset") Integer offset,
                                             @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("parentId") Long parentId, @Param("replyId") Long replyId, @Param("userId") Long userId,
+    int count(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                     @Param("isDeleted") Boolean isDeleted,
                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                     @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                     @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
                     @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
                     @Param("ip") Long ip);
+
+    List<QuestionCommentModel> searchChild(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
+                                                 @Param("isDeleted") Boolean isDeleted,
+                                                 @Param("childCount") Integer childCount,
+                                                 @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+                                                 @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
+                                                 @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
+                                                 @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
+                                                 @Param("ip") Long ip,
+                                                 @Param("order") Map<String, String> order);
 
     int updateDeleted(@Param("id") Long id, @Param("isDeleted") Boolean isDeleted);
 

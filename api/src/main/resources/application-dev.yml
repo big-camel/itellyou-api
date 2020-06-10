@@ -24,7 +24,7 @@ spring:
     druid:
       url: jdbc:mysql://localhost:3306/itellyou?useUnicode=true&useAffectedRows=true&characterEncoding=utf-8&useSSL=false
       username: root
-      password: wangji520
+      password: WangJi9527
       initial-size: 10
       min-idle: 10
       max-active: 600

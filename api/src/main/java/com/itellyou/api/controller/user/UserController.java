@@ -12,6 +12,9 @@ import com.itellyou.model.user.UserRankModel;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.sys.SysPermissionService;
 import com.itellyou.service.user.*;
+import com.itellyou.service.user.bank.UserBankService;
+import com.itellyou.service.user.passport.UserLoginLogService;
+import com.itellyou.service.user.rank.UserRankService;
 import com.itellyou.util.CookieUtils;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
@@ -37,6 +40,7 @@ public class UserController {
 
     private final UserInfoService userInfoService;
     private final UserSearchService userSearchService;
+    private final UserSingleService userSingleService;
     private final UserLoginLogService userLoginLogService;
     private final SysPathService pathService;
     private final SysPermissionService permissionService;
@@ -44,9 +48,10 @@ public class UserController {
     private final UserBankService bankService;
 
     @Autowired
-    public UserController(UserInfoService userInfoService, UserSearchService userSearchService, UserLoginLogService userLoginLogService, SysPathService pathService, SysPermissionService permissionService, UserRankService userRankService, UserBankService bankService){
+    public UserController(UserInfoService userInfoService, UserSearchService userSearchService, UserSingleService userSingleService, UserLoginLogService userLoginLogService, SysPathService pathService, SysPermissionService permissionService, UserRankService userRankService, UserBankService bankService){
         this.userInfoService = userInfoService;
         this.userSearchService = userSearchService;
+        this.userSingleService = userSingleService;
         this.userLoginLogService = userLoginLogService;
         this.pathService = pathService;
         this.permissionService = permissionService;
@@ -99,7 +104,7 @@ public class UserController {
 
     @PostMapping("/query/name")
     public ResultModel queryName(@MultiRequestBody @NotBlank String name){
-        UserInfoModel userModel = userSearchService.findByName(name);
+        UserInfoModel userModel = userSingleService.findByName(name);
         if(userModel != null){
             return new ResultModel(500,"昵称不可用",name);
         }
@@ -116,7 +121,7 @@ public class UserController {
         }
         if(name != null){
             if(!StringUtils.isNotEmpty(name)) return new ResultModel(0,"昵称格式不正确",name);
-            UserInfoModel infoModel = userSearchService.findByName(name);
+            UserInfoModel infoModel = userSingleService.findByName(name);
             if(infoModel != null && !infoModel.getId().equals(userModel.getId())){
                 return new ResultModel(0,"昵称不可用",name);
             }
@@ -133,7 +138,7 @@ public class UserController {
 
         int result = userInfoService.updateByUserId(updateModel);
         if(result == 1){
-            return new ResultModel(userSearchService.findById(userModel.getId()));
+            return new ResultModel(userSingleService.findById(userModel.getId()));
         }
         return new ResultModel(0,"更新失败");
     }

@@ -1,20 +1,19 @@
 package com.itellyou.model.tag;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.common.StarModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @JSONDefault(includes = "base")
-public class TagStarModel extends StarModel {
+public class TagStarModel extends StarModel implements CacheEntity {
     private Long tagId;
     public TagStarModel(Long id, Long createdTime, Long userId, Long ip) {
         super();
@@ -22,5 +21,10 @@ public class TagStarModel extends StarModel {
         this.setCreatedUserId(userId);
         this.setCreatedTime(createdTime);
         this.setCreatedIp(ip);
+    }
+
+    @Override
+    public String cacheKey() {
+        return tagId.toString() + "-" + getCreatedUserId();
     }
 }

@@ -1,6 +1,5 @@
 package com.itellyou.dao.question;
 
-import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.sys.VoteType;
 import org.apache.ibatis.annotations.Mapper;
@@ -20,8 +19,7 @@ public interface QuestionAnswerDao {
 
     QuestionAnswerModel findById(Long id);
 
-    List<QuestionAnswerDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("questionId") Long questionId, @Param("mode") String mode, @Param("searchUserId") Long searchUserId, @Param("userId") Long userId,
-                                           @Param("hasContent") Boolean hasContent,
+    List<QuestionAnswerModel> search(@Param("ids") HashSet<Long> ids, @Param("questionIds") HashSet<Long> questionIds, @Param("mode") String mode,@Param("userId") Long userId,
                                            @Param("isAdopted") Boolean isAdopted,
                                            @Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                                            @Param("ip") Long ip, @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
@@ -34,7 +32,7 @@ public interface QuestionAnswerDao {
                                            @Param("offset") Integer offset,
                                            @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,@Param("questionId") Long questionId, @Param("mode") String mode,@Param("searchUserId") Long searchUserId, @Param("userId") Long userId,
+    int count(@Param("ids") HashSet<Long> ids, @Param("questionIds") HashSet<Long> questionIds, @Param("mode") String mode, @Param("userId") Long userId,
                     @Param("isAdopted") Boolean isAdopted,@Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                     @Param("ip") Long ip, @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                     @Param("minView") Integer minView, @Param("maxView") Integer maxView,
@@ -42,6 +40,18 @@ public interface QuestionAnswerDao {
                     @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
                     @Param("minStar") Integer minStar, @Param("maxStar") Integer maxStar,
                     @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+
+    List<QuestionAnswerModel> searchChild(@Param("ids") HashSet<Long> ids, @Param("questionIds") HashSet<Long> questionIds, @Param("mode") String mode, @Param("userId") Long userId,
+                                          @Param("childCount") Integer childCount,
+                                          @Param("isAdopted") Boolean isAdopted,
+                                          @Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
+                                          @Param("ip") Long ip, @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+                                          @Param("minView") Integer minView, @Param("maxView") Integer maxView,
+                                          @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
+                                          @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
+                                          @Param("minStar") Integer minStar, @Param("maxStar") Integer maxStar,
+                                          @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
+                                          @Param("order") Map<String, String> order);
 
     List<Map<String,String>> groupByUserId(@Param("questionId") Long questionId,@Param("isAdopted") Boolean isAdopted,
                                     @Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,@Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -80,4 +90,10 @@ public interface QuestionAnswerDao {
     int updateStarCountById(@Param("id") Long id,@Param("step") Integer step);
 
     int updateMetas(@Param("id") Long id,@Param("cover") String cover);
+
+    int updateInfo(@Param("id") Long id,
+                   @Param("description") String description,
+                   @Param("time") Long time,
+                   @Param("ip") Long ip,
+                   @Param("userId") Long userId);
 }

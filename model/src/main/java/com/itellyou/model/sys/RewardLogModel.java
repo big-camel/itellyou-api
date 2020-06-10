@@ -2,6 +2,7 @@ package com.itellyou.model.sys;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.user.UserBankType;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.*;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JSONDefault(includes = "base")
-public class RewardLogModel implements CacheEntity{
+public class RewardLogModel implements CacheEntity {
     @JSONField(label = "base")
     private Long id;
     @JSONField(label = "base",serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)

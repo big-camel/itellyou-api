@@ -6,8 +6,10 @@ import com.itellyou.service.common.impl.IndexServiceImpl;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.util.StringUtils;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.*;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -81,19 +83,29 @@ public class TagIndexServiceImpl extends IndexServiceImpl<TagDetailModel> {
     @Override
     @Async
     public void createIndex(Long id) {
-        create(searchService.getDetail(id));
+        TagDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDisabled() || !detailModel.isPublished()) {
+            delete(id);
+            return;
+        }
+        create(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(Long id) {
-        update(searchService.getDetail(id));
+        TagDetailModel detailModel = searchService.getDetail(id);
+        if(detailModel.isDisabled() || !detailModel.isPublished()) {
+            delete(id);
+            return;
+        }
+        update(detailModel);
     }
 
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        List<TagDetailModel> list = searchService.search(ids,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<TagDetailModel> list = searchService.search(ids,null,null,null,null,null,true,false,true,null,null,null,null,null,null,null,null,null,null,null,null);
         for (TagDetailModel detailModel : list){
             update(detailModel);
         }

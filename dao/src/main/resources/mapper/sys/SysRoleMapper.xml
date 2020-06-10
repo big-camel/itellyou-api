@@ -3,20 +3,20 @@
 <mapper namespace="com.itellyou.dao.sys.SysRoleDao">
     <sql id="columns">
         ${alias}id ${prefix}id,
-        ${alias}name ${prefix}name,
+        ${alias}`name` ${prefix}`name`,
         ${alias}description ${prefix}description,
         ${alias}disabled ${prefix}disabled,
-        ${alias}system ${prefix}system,
+        ${alias}`system` ${prefix}`system`,
         ${alias}created_user_id ${prefix}created_user_id,
         ${alias}created_time ${prefix}created_time,
         ${alias}created_ip ${prefix}created_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into sys_role (name,system,description,disabled,created_user_id,created_time,created_ip) values
+        insert into sys_role (`name`,`system`,description,disabled,created_user_id,created_time,created_ip) values
         (#{name},#{system},#{description},#{disabled},#{createdUserId},#{createdTime},#{createdIp})
     </insert>
     <select id="findByName" resultType="SysRoleModel">
-        select * from sys_role where name=#{name} and created_user_id=#{userId}
+        select * from sys_role where `name`=#{name} and created_user_id=#{userId}
     </select>
     <select id="findById" resultType="SysRoleModel">
         select * from sys_role where id=#{id}

@@ -24,8 +24,11 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="userId != null">
-                and ${alias}user_id = #{userId}
+            <if test="userIds != null">
+                and ${alias}user_id in
+                <foreach collection="userIds" item="userId" separator="," open="(" close=")" >
+                    #{userId}
+                </foreach>
             </if>
             <if test="followerId != null">
                 and ${alias}created_user_id = #{followerId}

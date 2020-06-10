@@ -18,7 +18,7 @@ public class GeetestConfigDefaultServiceImpl implements ConfigDefaultService<Gee
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public GeetestConfigModel getDefault() {
         return geetestConfigDao.getConfig();
     }

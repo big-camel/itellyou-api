@@ -1,17 +1,17 @@
 package com.itellyou.api.controller.article;
 
-import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.article.ArticleCommentDetailModel;
+import com.itellyou.model.article.ArticleCommentModel;
 import com.itellyou.model.article.ArticleCommentVoteModel;
+import com.itellyou.model.article.ArticleInfoModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.model.article.ArticleCommentDetailModel;
-import com.itellyou.model.article.ArticleCommentModel;
-import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticleCommentSearchService;
 import com.itellyou.service.article.ArticleCommentService;
-import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
 import com.itellyou.util.IPUtils;
@@ -20,10 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Validated
 @RestController
@@ -32,10 +29,10 @@ public class ArticleCommentController {
 
     private final ArticleCommentService commentService;
     private final ArticleCommentSearchService commentSearchService;
-    private final ArticleSearchService searchService;
+    private final ArticleSingleService searchService;
     private final VoteService<ArticleCommentVoteModel> voteService;
 
-    public ArticleCommentController(ArticleSearchService searchService, ArticleCommentSearchService commentSearchService, ArticleCommentService commentService, VoteFactory voteFactory){
+    public ArticleCommentController(ArticleSingleService searchService, ArticleCommentSearchService commentSearchService, ArticleCommentService commentService, VoteFactory voteFactory){
         this.searchService = searchService;
         this.commentSearchService = commentSearchService;
         this.commentService = commentService;
@@ -59,8 +56,9 @@ public class ArticleCommentController {
         // 查询热门评论
         Map<String,String > order = new HashMap<>();
         order.put("support","desc");
-        List<ArticleCommentDetailModel> hostList = commentSearchService.search(articleId,null,searchUserId,null,null,null,null,3,null,null,null,null,null,
+        List<ArticleCommentDetailModel> hostList = commentSearchService.search(articleId,null,searchUserId,null,null,true,null,null,3,null,null,null,null,null,
                 order,0,10);
+
         int newOffset = 0;
         int newLimit = 0;
         List<ArticleCommentDetailModel> hotData = new ArrayList<>();
@@ -78,8 +76,9 @@ public class ArticleCommentController {
         }
         newLimit = limit - hotData.size();
         // 查询评论
-        PageModel<ArticleCommentDetailModel> pageData = commentSearchService.page(articleId,0L,searchUserId,null,2,null,null,null,null,null,null,null,null,
+        PageModel<ArticleCommentDetailModel> pageData = commentSearchService.page(articleId,new HashSet<Long>(){{add(0L);}},searchUserId,null,2,true,null,null,null,null,null,null,null,null,
                 null,newOffset,newLimit);
+
         pageData.getData().addAll(0,hotData);
         pageData.setOffset(offset);
         pageData.setLimit(limit);
@@ -103,10 +102,10 @@ public class ArticleCommentController {
             limit = 80;
         }
         // 查询评论
-        PageModel<ArticleCommentDetailModel> pageData = commentSearchService.page(articleId,id,searchUserId,null,null,null,null,null,null,null,null,null,null,
+        PageModel<ArticleCommentDetailModel> pageData = commentSearchService.page(articleId,new HashSet<Long>(){{add(id);}},searchUserId,null,null,true,null,null,null,null,null,null,null,null,
                 null,offset,limit);
         if(hasDetail){
-            ArticleCommentDetailModel commentDetail = commentSearchService.getDetail(id,articleId,null,null,searchUserId,null,null);
+            ArticleCommentDetailModel commentDetail = commentSearchService.getDetail(id,articleId,null,null,searchUserId,null,null,true);
             Map<String,Object> extendData = new HashMap<>();
             extendData.put("detail",commentDetail);
             pageData.setExtend(extendData);
@@ -131,7 +130,7 @@ public class ArticleCommentController {
             }
             ArticleCommentModel commentModel = commentService.insert(articleId, parentId, replyId, content, html, userModel.getId(), IPUtils.toLong(request),true);
             if (commentModel == null) return new ResultModel(0, "评论失败");
-            ArticleCommentDetailModel detailModel = commentSearchService.getDetail(commentModel.getId(),articleId,null,null,userModel.getId(),userModel.getId(),null);
+            ArticleCommentDetailModel detailModel = commentSearchService.getDetail(commentModel.getId(),articleId,null,null,userModel.getId(),userModel.getId(),null,true);
             return new ResultModel(detailModel);
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
@@ -141,7 +140,7 @@ public class ArticleCommentController {
     @DeleteMapping("/{id:\\d+}")
     public ResultModel delete(HttpServletRequest request,UserInfoModel userModel, @PathVariable Long id, @PathVariable Long articleId){
         if(userModel == null) return new ResultModel(401,"未登陆");
-        ArticleCommentDetailModel detailModel = commentSearchService.getDetail(id,articleId,null,null,userModel.getId(),userModel.getId(),false);
+        ArticleCommentDetailModel detailModel = commentSearchService.getDetail(id,articleId,null,null,userModel.getId(),userModel.getId(),false,true);
 
         if(detailModel == null || !detailModel.getCreatedUserId().equals(userModel.getId()) || detailModel.isDeleted()){
             return new ResultModel(0,"错误的评论编号");

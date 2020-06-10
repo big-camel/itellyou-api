@@ -20,13 +20,13 @@ public class SmsConfigServiceImpl implements ConfigMapService<SmsConfigModel> {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SmsConfigModel find(String type) {
         return smsConfigDao.get(type);
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public Map<String, SmsConfigModel> getMap() {
         return smsConfigDao.getAll();
     }

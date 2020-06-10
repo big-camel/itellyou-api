@@ -1,7 +1,6 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
@@ -17,4 +16,8 @@ public class QuestionStarDetailModel extends QuestionStarModel {
     private QuestionDetailModel question;
     @JSONField(label = "base")
     private UserInfoModel user;
+
+    public QuestionStarDetailModel(QuestionStarModel model){
+        super(model.getQuestionId(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp());
+    }
 }

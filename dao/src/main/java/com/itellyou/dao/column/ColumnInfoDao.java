@@ -1,8 +1,6 @@
 package com.itellyou.dao.column;
 
-import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
-import com.itellyou.model.tag.TagInfoModel;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -20,9 +18,8 @@ public interface ColumnInfoDao {
 
     int deleteTag(Long columnId);
 
-    List<ColumnDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId, @Param("searchUserId") Long searchUserId,
+    List<ColumnInfoModel> search(@Param("ids") HashSet<Long> ids, @Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId, @Param("searchUserId") Long searchUserId,
                                    @Param("isDisabled") Boolean isDisabled, @Param("isReviewed") Boolean isReviewed, @Param("isDeleted") Boolean isDeleted,
-                                   @Param("tags") List<Long> tags,
                                    @Param("minArticles") Integer minArticles, @Param("maxArticles") Integer maxArticles,
                                    @Param("minStars") Integer minStars, @Param("maxStars") Integer maxStars,
                                    @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -33,7 +30,6 @@ public interface ColumnInfoDao {
 
     int count(@Param("ids") HashSet<Long> ids,@Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId,
                     @Param("isDisabled") Boolean isDisabled, @Param("isReviewed") Boolean isReviewed, @Param("isDeleted") Boolean isDeleted,
-                    @Param("tags") List<Long> tags,
                     @Param("minArticles") Integer minArticles, @Param("maxArticles") Integer maxArticles,
                     @Param("minStars") Integer minStars, @Param("maxStars") Integer maxStars,
                     @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,@Param("ip") Long ip);

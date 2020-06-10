@@ -11,6 +11,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.common.impl.StarFactory;
 import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionAnswerSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -30,10 +31,12 @@ public class AnswerStarController {
 
     private final StarService<QuestionAnswerStarModel> starService;
     private final QuestionAnswerSearchService searchService;
+    private final QuestionAnswerSingleService answerSingleService;
 
-    public AnswerStarController(StarFactory starFactory, QuestionAnswerSearchService searchService){
+    public AnswerStarController(StarFactory starFactory, QuestionAnswerSearchService searchService, QuestionAnswerSingleService answerSingleService){
         this.starService = starFactory.create(EntityType.ANSWER);
         this.searchService = searchService;
+        this.answerSingleService = answerSingleService;
     }
 
     @GetMapping("/star")
@@ -48,7 +51,7 @@ public class AnswerStarController {
     @PostMapping("/star")
     public ResultModel star(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
         if(userModel == null) return new ResultModel(401,"未登陆");
-        QuestionAnswerModel infoModel = searchService.findById(id);
+        QuestionAnswerModel infoModel = answerSingleService.findById(id);
         if(infoModel == null) return new ResultModel(404,"错误的id");
         if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
@@ -72,7 +75,7 @@ public class AnswerStarController {
             Long ip = IPUtils.toLong(clientIp);
             int result = starService.delete(id,userModel.getId(),ip);
             if(result != 1) throw new Exception("取消收藏失败");
-            QuestionAnswerModel infoModel = searchService.findById(id);
+            QuestionAnswerModel infoModel = answerSingleService.findById(id);
             return new ResultModel(infoModel.getStarCount());
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());

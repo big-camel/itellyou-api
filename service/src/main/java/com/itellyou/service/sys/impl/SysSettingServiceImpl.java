@@ -19,13 +19,13 @@ public class SysSettingServiceImpl implements SysSettingService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SysSettingModel findByKey(String key) {
         return settingDao.findByKey(key);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SysSettingModel findByDefault() {
         return findByKey("default");
     }

@@ -8,21 +8,21 @@ import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.model.question.QuestionAnswerModel;
 import com.itellyou.model.question.QuestionCommentModel;
 import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.ReportAction;
 import com.itellyou.model.sys.ReportModel;
 import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticleCommentSearchService;
-import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.service.question.QuestionAnswerCommentSearchService;
-import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionAnswerSingleService;
 import com.itellyou.service.question.QuestionCommentSearchService;
-import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.service.sys.ReportService;
-import com.itellyou.service.tag.TagSearchService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.tag.TagSingleService;
+import com.itellyou.service.user.UserSingleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,28 +34,28 @@ import java.util.Map;
 public class ReportServiceImpl implements ReportService {
 
     private final ReportDao reportDao;
-    private final UserSearchService userSearchService;
-    private final QuestionSearchService questionSearchService;
-    private final QuestionAnswerSearchService answerSearchService;
-    private final ArticleSearchService articleSearchService;
+    private final UserSingleService userSearchService;
+    private final QuestionSingleService questionSingleService;
+    private final QuestionAnswerSingleService answerSingleService;
+    private final ArticleSingleService articleSearchService;
     private final ColumnSearchService columnSearchService;
     private final QuestionCommentSearchService questionCommentSearchService;
     private final QuestionAnswerCommentSearchService answerCommentSearchService;
     private final ArticleCommentSearchService articleCommentSearchService;
-    private final TagSearchService tagSearchService;
+    private final TagSingleService tagSingleService;
 
     @Autowired
-    public ReportServiceImpl(ReportDao reportDao, UserSearchService userSearchService, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, ColumnSearchService columnSearchService, QuestionCommentSearchService questionCommentSearchService, QuestionAnswerCommentSearchService answerCommentSearchService, ArticleCommentSearchService articleCommentSearchService, TagSearchService tagSearchService){
+    public ReportServiceImpl(ReportDao reportDao, UserSingleService userSearchService, QuestionSingleService questionSingleService, QuestionAnswerSingleService answerSingleService, ArticleSingleService articleSearchService, ColumnSearchService columnSearchService, QuestionCommentSearchService questionCommentSearchService, QuestionAnswerCommentSearchService answerCommentSearchService, ArticleCommentSearchService articleCommentSearchService, TagSingleService tagSingleService){
         this.reportDao = reportDao;
         this.userSearchService = userSearchService;
-        this.questionSearchService = questionSearchService;
-        this.answerSearchService = answerSearchService;
+        this.questionSingleService = questionSingleService;
+        this.answerSingleService = answerSingleService;
         this.articleSearchService = articleSearchService;
         this.columnSearchService = columnSearchService;
         this.questionCommentSearchService = questionCommentSearchService;
         this.answerCommentSearchService = answerCommentSearchService;
         this.articleCommentSearchService = articleCommentSearchService;
-        this.tagSearchService = tagSearchService;
+        this.tagSingleService = tagSingleService;
     }
 
     @Override
@@ -67,11 +67,11 @@ public class ReportServiceImpl implements ReportService {
                 if(infoModel != null) targetUserId = infoModel.getId();
                 break;
             case QUESTION:
-                QuestionInfoModel questionInfoModel = questionSearchService.findById(targetId);
+                QuestionInfoModel questionInfoModel = questionSingleService.findById(targetId);
                 if(questionInfoModel != null) targetUserId = questionInfoModel.getCreatedUserId();
                 break;
             case ANSWER:
-                QuestionAnswerModel answerModel = answerSearchService.findById(targetId);
+                QuestionAnswerModel answerModel = answerSingleService.findById(targetId);
                 if(answerModel != null) targetUserId = answerModel.getCreatedUserId();
                 break;
             case ARTICLE:
@@ -95,7 +95,7 @@ public class ReportServiceImpl implements ReportService {
                 if(articleCommentModel != null) targetUserId = articleCommentModel.getCreatedUserId();
                 break;
             case TAG:
-                TagInfoModel tagInfoModel = tagSearchService.findById(targetId);
+                TagInfoModel tagInfoModel = tagSingleService.findById(targetId);
                 if(tagInfoModel != null) targetUserId = tagInfoModel.getCreatedUserId();
                 break;
 

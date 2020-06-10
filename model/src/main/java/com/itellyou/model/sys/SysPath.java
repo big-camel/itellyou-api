@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum SysPath implements BaseEnum<RewardType,Integer> , CacheEntity {
     RETAIN(0,"retain"),

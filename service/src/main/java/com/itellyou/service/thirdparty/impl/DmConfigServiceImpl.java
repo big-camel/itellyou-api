@@ -20,13 +20,13 @@ public class DmConfigServiceImpl implements ConfigMapService<DmConfigModel> {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public DmConfigModel find(String type) {
         return configDao.get(type);
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public Map<String, DmConfigModel> getMap() {
         return configDao.getAll();
     }

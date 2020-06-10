@@ -35,7 +35,7 @@ public class SysLinkServiceImpl implements SysLinkService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysLinkModel> search(Long id,
                                      String text,
                                      String link,
@@ -50,7 +50,7 @@ public class SysLinkServiceImpl implements SysLinkService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public int count(Long id, String text, String link, String target, Long userId, Long beginTime, Long endTime, Long ip) {
         return linkDao.count(id,text,link,target,userId,beginTime,endTime,ip);
     }

@@ -10,6 +10,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.common.impl.StarFactory;
 import com.itellyou.service.tag.TagSearchService;
+import com.itellyou.service.tag.TagSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -28,10 +29,12 @@ public class TagStarController {
 
     private final StarService<TagStarModel> starService;
     private final TagSearchService searchService;
+    private final TagSingleService singleService;
 
-    public TagStarController(StarFactory starFactory, TagSearchService searchService){
+    public TagStarController(StarFactory starFactory, TagSearchService searchService, TagSingleService singleService){
         this.starService = starFactory.create(EntityType.TAG);
         this.searchService = searchService;
+        this.singleService = singleService;
     }
 
     @GetMapping("/star")
@@ -46,7 +49,7 @@ public class TagStarController {
     @PostMapping("/star")
     public ResultModel star(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
         if(userModel == null) return new ResultModel(401,"未登陆");
-        TagInfoModel infoModel = searchService.findById(id);
+        TagInfoModel infoModel = singleService.findById(id);
         if(infoModel == null) return new ResultModel(404,"错误的id");
         if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
@@ -70,7 +73,7 @@ public class TagStarController {
             Long ip = IPUtils.toLong(clientIp);
             int result = starService.delete(id,userModel.getId(),ip);
             if(result != 1) throw new Exception("取消关注失败");
-            TagInfoModel infoModel = searchService.findById(id);
+            TagInfoModel infoModel = singleService.findById(id);
             return new ResultModel(infoModel.getStarCount());
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());

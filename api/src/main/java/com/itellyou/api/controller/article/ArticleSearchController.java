@@ -77,13 +77,13 @@ public class ArticleSearchController {
                 order.put("view","desc");
                 order.put("star_count","desc");
                 data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,
-                        tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,null,null,50,null,2,null,null,null,null,null,null,null,null,order,offset,limit);
+                        tagId != null ? new LinkedHashSet<Long>(){{ add(tagId);}} : null,null,null,50,null,2,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
             case "star":
                 if(userModel == null) return new ResultModel(401,"未登陆");
                 List<TagStarDetailModel> listTag = (List<TagStarDetailModel>) tagStarService.search(null,userModel.getId(),null,null,null,null,null,null);
                 if(listTag.size() < 1) return new ResultModel(404,"尚未关注标签");
-                List<Long> tags = new ArrayList<>();
+                HashSet<Long> tags = new LinkedHashSet<>();
                 for (TagStarDetailModel tagModel: listTag) {
                     tags.add(tagModel.getTagId());
                 }
@@ -99,7 +99,7 @@ public class ArticleSearchController {
                 order = new HashMap<>();
                 order.put("created_time","desc");
                 data = searchService.page(null,null,columnId,userId,searchUserId,null,false,isDisabled,isDeleted,true,
-                        tagId != null ? new ArrayList<Long>(){{ add(tagId);}} : null,
+                        tagId != null ? new LinkedHashSet<Long>(){{ add(tagId);}} : null,
                         null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
 
         }

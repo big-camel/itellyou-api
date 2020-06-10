@@ -2,15 +2,16 @@ package com.itellyou.api.controller.article;
 
 import com.itellyou.api.handler.TokenAccessDeniedException;
 import com.itellyou.model.article.ArticleInfoModel;
-import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.article.ArticleSourceType;
 import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.column.ColumnInfoModel;
+import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticlePaidReadSearchService;
-import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.article.ArticleVersionService;
+import com.itellyou.service.article.ArticleSingleService;
+import com.itellyou.service.article.ArticleVersionSearchService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +30,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/article/{articleId:\\d+}/version")
 public class ArticleVersionController {
-    private final ArticleVersionService versionService;
+    private final ArticleVersionSearchService versionService;
     private final ColumnSearchService columnSearchService;
     private final ArticlePaidReadSearchService paidReadSearchService;
-    private final ArticleSearchService articleSearchService;
+    private final ArticleSingleService articleSearchService;
 
     @Autowired
-    public ArticleVersionController(ArticleVersionService versionService, ColumnSearchService columnSearchService, ArticlePaidReadSearchService paidReadSearchService, ArticleSearchService articleSearchService){
+    public ArticleVersionController(ArticleVersionSearchService versionService, ColumnSearchService columnSearchService, ArticlePaidReadSearchService paidReadSearchService, ArticleSingleService articleSearchService){
         this.versionService = versionService;
         this.columnSearchService = columnSearchService;
         this.paidReadSearchService = paidReadSearchService;
@@ -75,10 +76,10 @@ public class ArticleVersionController {
     private String getVersionHtml(ArticleVersionModel versionModel){
         StringBuilder currentString = new StringBuilder("<div>");
         currentString.append("<h2>" + versionModel.getTitle() + "</h2>");
-        List<TagInfoModel> currentTagList = versionModel.getTags();
+        List<TagDetailModel> currentTagList = versionModel.getTags();
         currentString.append("<p class=\"info-layout\">");
         if(currentTagList != null && currentTagList.size() > 0){
-            for(TagInfoModel tagInfo : currentTagList){
+            for(TagDetailModel tagInfo : currentTagList){
                 currentString.append("<span>" + tagInfo.getName() + "</span>");
             }
             currentString.append("，");

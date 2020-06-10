@@ -2,22 +2,22 @@ package com.itellyou.api.controller.user;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.thirdparty.DmLogModel;
-import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
+import com.itellyou.model.thirdparty.DmLogModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.event.OperationalPublisher;
+import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.thirdparty.DmLogService;
 import com.itellyou.service.thirdparty.SmsLogService;
-import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserInfoService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -43,13 +43,13 @@ import java.util.Map;
 public class UserUpdateController {
 
     private final UserInfoService userInfoService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final SmsLogService smsLogService;
     private final DmLogService dmLogService;
     private final SysPathService pathService;
     private final OperationalPublisher operationalPublisher;
 
-    public UserUpdateController(UserInfoService userInfoService, UserSearchService userSearchService, SmsLogService smsLogService, DmLogService dmLogService, SysPathService pathService, OperationalPublisher operationalPublisher){
+    public UserUpdateController(UserInfoService userInfoService, UserSingleService userSearchService, SmsLogService smsLogService, DmLogService dmLogService, SysPathService pathService, OperationalPublisher operationalPublisher){
         this.userInfoService = userInfoService;
         this.userSearchService = userSearchService;
         this.smsLogService = smsLogService;

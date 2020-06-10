@@ -3,7 +3,9 @@ package com.itellyou.api.controller.tag;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagGroupModel;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.service.tag.TagGroupSearchService;
 import com.itellyou.service.tag.TagGroupService;
+import com.itellyou.service.tag.TagGroupSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -20,19 +22,23 @@ import javax.validation.constraints.NotNull;
 public class TagGroupController {
 
     private final TagGroupService groupService;
+    private final TagGroupSingleService singleService;
+    private final TagGroupSearchService searchService;
 
-    public TagGroupController(TagGroupService groupService) {
+    public TagGroupController(TagGroupService groupService, TagGroupSingleService singleService, TagGroupSearchService searchService) {
         this.groupService = groupService;
+        this.singleService = singleService;
+        this.searchService = searchService;
     }
 
     @GetMapping("/group")
     public ResultModel group(@RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit){
-        return new ResultModel(groupService.page(null,null,null,false,true,null,null,null,null,null,offset,limit));
+        return new ResultModel(searchService.page(null,null,100,null,false,true,null,null,null,null,null,offset,limit));
     }
 
     @PutMapping("/group")
     public ResultModel create(HttpServletRequest request, UserInfoModel userModel,@MultiRequestBody @NotBlank String name){
-        TagGroupModel groupModel = groupService.findByName(name);
+        TagGroupModel groupModel = singleService.findByName(name);
         if(groupModel != null){
             return new ResultModel(500,"名称已存在");
         }
@@ -48,7 +54,7 @@ public class TagGroupController {
 
     @PostMapping("/group")
     public ResultModel update(@MultiRequestBody @NotNull Long id, @MultiRequestBody @NotBlank String name){
-        TagGroupModel groupModel = groupService.findByName(name);
+        TagGroupModel groupModel = singleService.findByName(name);
         if(groupModel != null){
             return new ResultModel(500,"名称已存在");
         }

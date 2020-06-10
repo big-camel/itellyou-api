@@ -50,8 +50,11 @@
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="id != null">
-                and ${alias}id = #{id}
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
             <if test="minTagCount != null">
                 and ${alias}tag_count >= #{minTagCount}
@@ -61,16 +64,7 @@
             </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
-        select <include refid="columns">
-            <property name="alias" value="g."/>
-            <property name="prefix" value=""/>
-        </include> ,
-        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
-            <property name="alias" value="t."/>
-            <property name="prefix" value="t_"/>
-        </include>
-        from (
+    <select id="search" resultType="TagGroupModel">
         select * from tag_group
         <include refid="searchWhere">
             <property name="alias" value=""/>
@@ -83,18 +77,6 @@
         <if test="offset != null and limit != null">
             limit #{offset},#{limit}
         </if>
-        ) g left join (
-            select * from tag
-            <where>
-                <if test="isDisabled != null">
-                    and is_disabled = #{isDisabled}
-                </if>
-                <if test="isPublished != null">
-                    and is_published = #{isPublished}
-                </if>
-                and group_id != 0
-            </where>
-        ) t on t.group_id = g.id
     </select>
     <select id="count" resultType="Integer">
         select count(id) from tag_group

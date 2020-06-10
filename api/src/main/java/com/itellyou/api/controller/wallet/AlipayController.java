@@ -6,7 +6,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserPaymentModel;
 import com.itellyou.model.user.UserPaymentStatus;
 import com.itellyou.service.thirdparty.AlipayService;
-import com.itellyou.service.user.UserPaymentService;
+import com.itellyou.service.user.bank.UserPaymentService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import org.springframework.validation.annotation.Validated;

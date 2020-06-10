@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum ReportAction implements BaseEnum<ReportAction,Integer> , CacheEntity {
     PORN(1, "porn"),

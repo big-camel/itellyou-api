@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +18,8 @@ public interface QuestionAnswerVersionDao {
 
     QuestionAnswerVersionModel findByAnswerIdAndVersion(@Param("answerId") Long answerId,@Param("version") Integer version);
 
-    List<QuestionAnswerVersionModel> search(@Param("id") Long id,
-                                      @Param("answerId") Long answerId,
-                                      @Param("questionId") Long questionId,
-                                      @Param("userId") String userId,
+    List<QuestionAnswerVersionModel> search(@Param("ids") HashSet<Long> ids, @Param("answerMap") Map<Long,Integer> answerMap,
+                                      @Param("userId") Long userId,
                                       @Param("hasContent") Boolean hasContent,
                                       @Param("isReviewed") Boolean isReview,
                                       @Param("isDisabled") Boolean isDisable,
@@ -32,10 +31,9 @@ public interface QuestionAnswerVersionDao {
                                       @Param("offset") Integer offset,
                                       @Param("limit") Integer limit);
 
-    Integer getCount(@Param("id") Long id,
-                     @Param("answerId") Long answerId,
-                     @Param("questionId") Long questionId,
-                     @Param("userId") String userId,
+    Integer count(@Param("ids") HashSet<Long> ids,
+                  @Param("answerMap") Map<Long,Integer> answerMap,
+                     @Param("userId") Long userId,
                      @Param("isReviewed") Boolean isReview,
                      @Param("isDisabled") Boolean isDisable,
                      @Param("isPublished") Boolean isPublish,

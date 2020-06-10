@@ -13,7 +13,7 @@ import com.itellyou.service.question.QuestionAnswerCommentService;
 import com.itellyou.service.sys.EntityService;
 import com.itellyou.service.sys.RewardLogService;
 import com.itellyou.service.sys.RewardService;
-import com.itellyou.service.user.UserBankService;
+import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

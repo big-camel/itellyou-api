@@ -6,7 +6,7 @@ import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.sys.SysRolePermissionService;
-import com.itellyou.service.user.UserRoleService;
+import com.itellyou.service.user.access.UserRoleService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;

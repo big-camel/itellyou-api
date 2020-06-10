@@ -4,6 +4,7 @@
     <sql id="columns">
         ${alias}id ${prefix}id,
         ${alias}name ${prefix}name,
+        ${alias}description ${prefix}description,
         ${alias}group_id ${prefix}group_id,
         ${alias}star_count ${prefix}star_count,
         ${alias}question_count ${prefix}question_count,
@@ -20,8 +21,8 @@
         ${alias}updated_user_id ${prefix}updated_user_id
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into tag (`name`,group_id,star_count,question_count,article_count,version,draft,is_published,is_disabled,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
-        (#{name},#{groupId},#{starCount},#{questionCount},#{articleCount},#{version},#{draft},#{isPublished},#{isDisabled},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+        insert into tag (`name`,description,group_id,star_count,question_count,article_count,version,draft,is_published,is_disabled,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        (#{name},#{description},#{groupId},#{starCount},#{questionCount},#{articleCount},#{version},#{draft},#{isPublished},#{isDisabled},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
     </insert>
     <update id="updateGroupByGroupId">
         update tag set group_id=#{nextGroupId} where group_id=#{prevGroupId}
@@ -65,10 +66,15 @@
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="ids != null">
+            <if test="ids != null &amp;&amp; ids.size() > 0">
                 and
                 ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
-                    #{id}
+                #{id}
+            </foreach>
+            </if>
+            <if test="groupIds != null &amp;&amp; groupIds.size() > 0">
+                and ${alias}group_id <foreach collection="groupIds" item="id" open=" in (" separator="," close=")">
+                #{id}
                 </foreach>
             </if>
             <if test="minStar != null">
@@ -89,95 +95,64 @@
             <if test="maxArticle != null">
                 and ${alias}article_count &lt;= #{maxArticle}
             </if>
-            <if test="groupId != null">
-                and ${alias}group_id = #{groupId}
-            </if>
             <if test="name != null">
                 <bind name="bindName" value="name + '%'"/>
                 and ${alias}name like #{bindName}
             </if>
+            <if test="mode != 'draft'">
+                and ${alias}version > 0
+            </if>
         </where>
     </sql>
-    <resultMap id="searchMap" type="TagDetailModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="author" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
-            <id property="id" column="id"></id>
-        </association>
-        <association property="group" javaType="TagGroupModel" columnPrefix="g_" autoMapping="true">
-            <id property="id" column="id"></id>
-        </association>
-    </resultMap>
-    <select id="search" resultMap="searchMap">
-        select
-        <include refid="columns"><property name="alias" value="t."/><property name="prefix" value=""/></include>,
-        v.description,
-        <if test="hasContent != false">
-            v.content,v.html,
+    <sql id="searchOrder">
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${alias}${key} ${value}
+            </foreach>
         </if>
-        <if test="searchUserId != null">
-            case when ut.created_user_id is not null then 1 else 0 end use_star,
-        </if>
-        <choose>
-            <when test="mode == 'draft'">
-                v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
-            </when>
-            <otherwise>
-                t.updated_user_id,t.updated_time,t.updated_ip,
-            </otherwise>
-        </choose>
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="u_"/>
-        </include>,
-        <include refid="com.itellyou.dao.tag.TagGroupDao.columns">
-            <property name="alias" value="g."/>
-            <property name="prefix" value="g_"/>
-        </include>
+    </sql>
+    <select id="search" resultType="TagInfoModel">
+        select <include refid="columns"><property name="alias" value="t."/><property name="prefix" value=""/></include>
         from tag t
-        inner join tag_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                t.draft=v.version
-            </when>
-            <otherwise>
-                t.version=v.version
-            </otherwise>
-        </choose>
-        and t.id=v.tag_id
-        left join user_info u on t.created_user_id=u.id
-        left join tag_group g on t.group_id = g.id
-        <if test="searchUserId != null">
-            left join tag_star ut on ut.tag_id=t.id and ut.created_user_id=#{searchUserId}
-        </if>
         <include refid="searchWhere">
             <property name="alias" value="t."/>
         </include>
-        <if test="order != null">
-            <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                <choose>
-                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                    <otherwise>t.${key} ${value}</otherwise>
-                </choose>
-            </foreach>
-        </if>
+        <include refid="searchOrder">
+            <property name="alias" value="t."/>
+        </include>
         <if test="offset != null and limit != null">
             limit #{offset},#{limit}
         </if>
     </select>
     <select id="count" resultType="Integer">
         select count(t.id) from tag t
-        inner join tag_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                t.draft=v.version
-            </when>
-            <otherwise>
-                t.version=v.version
-            </otherwise>
-        </choose> and t.id=v.tag_id
         <include refid="searchWhere">
             <property name="alias" value="t."/>
         </include>
+    </select>
+    <select id="searchChild" resultType="TagInfoModel">
+        WITH rankCte AS (
+        SELECT
+        id,
+        rank() over ( PARTITION BY group_id
+        <if test="order == null">
+            order by id
+        </if>
+        <include refid="searchOrder">
+            <property name="alias" value=""/>
+        </include>
+        ) number
+        FROM
+        tag
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        )
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from
+        rankCte r
+        left join tag c on r.id = c.id
+        where r.number &lt;= #{childCount}
     </select>
     <select id="findById" resultType="TagInfoModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from tag where id=#{id}
@@ -220,5 +195,14 @@
             updated_user_id=#{userId}
         </set>
         where id = #{id}
+    </update>
+    <update id="updateInfo">
+        update tag <set>
+        <if test="description != null">description=#{description},</if>
+        updated_time=#{time},
+        updated_ip=#{ip},
+        updated_user_id=#{userId}
+    </set>
+        where id=#{id}
     </update>
 </mapper>

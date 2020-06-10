@@ -4,7 +4,7 @@ import com.itellyou.model.common.OperationalModel;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.common.NotificationManagerService;
-import com.itellyou.service.user.UserBankService;
+import com.itellyou.service.user.bank.UserBankService;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

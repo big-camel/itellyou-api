@@ -10,7 +10,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserDraftService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -31,25 +31,27 @@ import java.util.Map;
 @RequestMapping("/question/{questionId:\\d+}/answer")
 public class AnswerDocController {
 
-    private final QuestionAnswerService answerService;
     private final QuestionAnswerSearchService searchService;
+    private final QuestionAnswerSingleService answerSingleService;
     private final CollabInfoService collabInfoService;
-    private final QuestionAnswerVersionService versionService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final UserDraftService draftService;
     private final QuestionSearchService questionSearchService;
     private final QuestionAnswerPaidReadService answerPaidReadService;
+    private final QuestionAnswerDocService answerDocService;
+    private final QuestionAnswerVersionSearchService versionSearchService;
 
     @Autowired
-    public AnswerDocController(QuestionAnswerService answerService, QuestionAnswerSearchService searchService, CollabInfoService collabInfoService, QuestionAnswerVersionService versionService, UserSearchService userSearchService, UserDraftService draftService, QuestionSearchService questionSearchService, QuestionAnswerPaidReadService answerPaidReadService){
-        this.answerService = answerService;
+    public AnswerDocController( QuestionAnswerSearchService searchService, QuestionAnswerSingleService answerSingleService, CollabInfoService collabInfoService, UserSingleService userSearchService, UserDraftService draftService, QuestionSearchService questionSearchService, QuestionAnswerPaidReadService answerPaidReadService, QuestionAnswerDocService answerDocService, QuestionAnswerVersionSearchService versionSearchService){
         this.searchService = searchService;
+        this.answerSingleService = answerSingleService;
         this.collabInfoService = collabInfoService;
-        this.versionService = versionService;
         this.userSearchService = userSearchService;
         this.draftService = draftService;
         this.questionSearchService = questionSearchService;
         this.answerPaidReadService = answerPaidReadService;
+        this.answerDocService = answerDocService;
+        this.versionSearchService = versionSearchService;
     }
 
     @PostMapping("/create")
@@ -62,7 +64,7 @@ public class AnswerDocController {
         Long ipLong = IPUtils.toLong(clientIp);
 
         // 如果已创建过回答，就为其新增一个草稿版本
-        QuestionAnswerModel answerModel = searchService.findByQuestionIdAndUserId(questionId,userInfoModel.getId());
+        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userInfoModel.getId());
         if(answerModel != null){
             try{
                 //已发布的问答可能有其他用户在编辑中，所以不能单纯的新增一个版本
@@ -70,7 +72,7 @@ public class AnswerDocController {
                     return new ResultModel(0,"只能创建一个回答");
                 }
                 if(answerModel.isDisabled() || answerModel.isDeleted()) return new ResultModel(0,"回答状态不正确");
-                QuestionAnswerVersionModel versionModel = versionService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,StringUtils.getFragmenter(content),"一般编辑更新",save_type,ipLong,false,false);
+                QuestionAnswerVersionModel versionModel = answerDocService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,StringUtils.getFragmenter(content),"一般编辑更新",save_type,ipLong,false,false);
                 if(versionModel == null) return new ResultModel(0,"创建失败");
                 return new ResultModel(answerModel.getId());
             }catch (Exception e){
@@ -78,7 +80,7 @@ public class AnswerDocController {
             }
         }
         try{
-            Long id = answerService.create(questionId,userInfoModel.getId(),content,html,StringUtils.getFragmenter(content),"创建回答",save_type,ipLong);
+            Long id = answerDocService.create(questionId,userInfoModel.getId(),content,html,StringUtils.getFragmenter(content),"创建回答",save_type,ipLong);
             if(id == null) return new ResultModel(0,"创建失败");
             return new ResultModel(id);
         }catch (Exception e){
@@ -121,14 +123,14 @@ public class AnswerDocController {
         String clientIp = IPUtils.getClientIp(request);
         Long ipLong = IPUtils.toLong(clientIp);
         try {
-            QuestionAnswerModel answerModel = searchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null || answerModel.isDisabled() || answerModel.isDeleted()) return new ResultModel(404,"无可用回答");
             //暂时只能创建者有权限编辑
             if(!answerModel.getCreatedUserId().equals(userInfoModel.getId())){
                 return new ResultModel(401,"无权限编辑");
             }
             String description = StringUtils.getFragmenter(content);
-            QuestionAnswerVersionModel versionModel = versionService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,description,"一般编辑更新",save_type,ipLong,false,false);
+            QuestionAnswerVersionModel versionModel = answerDocService.addVersion(answerModel.getId(),questionId,userInfoModel.getId(),content,html,description,"一般编辑更新",save_type,ipLong,false,false);
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
             QuestionAnswerDetailModel detailModel = searchService.getDetail(answerModel.getId(),questionId,"draft",null,userInfoModel.getId());
 
@@ -140,7 +142,7 @@ public class AnswerDocController {
 
     @PutMapping("/{id:\\d+}/paidread")
     public ResultModel paidRead(UserInfoModel userInfoModel, @PathVariable Long id, @PathVariable Long questionId, @RequestBody Map<String ,Object> params){
-        QuestionAnswerModel infoModel = searchService.findById(id);
+        QuestionAnswerModel infoModel = answerSingleService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用回答");
             //暂时只能创建者有权限编辑
@@ -200,7 +202,7 @@ public class AnswerDocController {
                 return new ResultModel(404,"Not find");
             }
             //获取需要恢复的版本数据
-            answerVersion = versionService.findByAnswerIdAndId(version_id,detailModel.getId());
+            answerVersion = versionSearchService.findByAnswerIdAndId(version_id,detailModel.getId());
             if(answerVersion == null){
                 return  new ResultModel(404,"无可用的版本");
             }
@@ -216,7 +218,7 @@ public class AnswerDocController {
             //其它版本，需要重新创建一个新的版本
             id = detailModel.getId();
         }else{
-            QuestionAnswerModel answerModel = searchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null || answerModel.isDisabled() || answerModel.isDeleted()) return new ResultModel(404,"无可用回答");
             //暂时只能创建者有权限编辑
             if(!answerModel.getCreatedUserId().equals(userInfoModel.getId())){
@@ -225,13 +227,13 @@ public class AnswerDocController {
             id = answerModel.getId();
         }
 
-        answerVersion = answerVersion == null ? versionService.findByAnswerIdAndId(version_id,id) : answerVersion;
+        answerVersion = answerVersion == null ? versionSearchService.findByAnswerIdAndId(version_id,id) : answerVersion;
         if(answerVersion == null){
             return  new ResultModel(404,"无可用的版本");
         }
 
         try {
-            QuestionAnswerVersionModel versionModel = versionService.addVersion(id, questionId, userInfoModel.getId(), answerVersion.getContent(), answerVersion.getHtml(),answerVersion.getDescription(), "回滚到版本[" + answerVersion.getVersion() + "]", "rollback", ip ,false,true);
+            QuestionAnswerVersionModel versionModel = answerDocService.addVersion(id, questionId, userInfoModel.getId(), answerVersion.getContent(), answerVersion.getHtml(),answerVersion.getDescription(), "回滚到版本[" + answerVersion.getVersion() + "]", "rollback", ip ,false,true);
             if(versionModel == null) return new ResultModel(0,"回滚失败");
         }catch (Exception e){
             return new ResultModel(0,"回滚失败");
@@ -255,7 +257,7 @@ public class AnswerDocController {
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            QuestionAnswerVersionModel versionModel = versionService.addVersion(id, questionId, userInfoModel.getId(), detailModel.getContent(), detailModel.getHtml(),detailModel.getDescription(), remark, "publish", IPUtils.toLong(clientIp),true,true);
+            QuestionAnswerVersionModel versionModel = answerDocService.addVersion(id, questionId, userInfoModel.getId(), detailModel.getContent(), detailModel.getHtml(),detailModel.getDescription(), remark, "publish", IPUtils.toLong(clientIp),true,true);
             if(versionModel == null) return new ResultModel(0,"发布失败");
         }catch (Exception e){
             return new ResultModel(0,"发布失败");
@@ -270,7 +272,7 @@ public class AnswerDocController {
         if(collabInfoModel == null || collabInfoModel.isDisabled() == true){
             return new ResultModel(0,"错误的Token");
         }
-        QuestionAnswerModel answerModel = searchService.findById(id);
+        QuestionAnswerModel answerModel = answerSingleService.findById(id);
         if(answerModel == null || answerModel.isDisabled() || answerModel.isDeleted()){
             return new ResultModel(0,"没有可用的文档");
         }

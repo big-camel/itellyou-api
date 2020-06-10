@@ -3,6 +3,11 @@
 <mapper namespace="com.itellyou.dao.question.QuestionInfoDao">
     <sql id="columns">
         ${alias}id ${prefix}id,
+        ${alias}title ${prefix}title,
+        ${alias}description ${prefix}description,
+        ${alias}reward_type ${prefix}reward_type,
+        ${alias}reward_value ${prefix}reward_value,
+        ${alias}reward_add ${prefix}reward_add,
         ${alias}version ${prefix}version,
         ${alias}is_published ${prefix}is_published,
         ${alias}is_adopted ${prefix}is_adopted,
@@ -25,25 +30,10 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into question_info(version,is_published,is_adopted,is_disabled,is_deleted,draft,cover,adoption_id,answers,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{version},#{isPublished},#{isAdopted},#{isDisabled},#{isDeleted},#{draft},#{cover},#{adoptionId},#{answers},#{comments},#{view},#{support},#{oppose},#{starCount},
+        insert into question_info(title,description,reward_type,reward_value,reward_add,version,is_published,is_adopted,is_disabled,is_deleted,draft,cover,adoption_id,answers,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{title},#{description},#{rewardType},#{rewardValue},#{rewardAdd},#{version},#{isPublished},#{isAdopted},#{isDisabled},#{isDeleted},#{draft},#{cover},#{adoptionId},#{answers},#{comments},#{view},#{support},#{oppose},#{starCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
     </insert>
-    <resultMap id="searchMap" type="QuestionDetailModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="author"  notNullColumn="id" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-        <collection property="tags" notNullColumn="id" ofType="TagDetailModel" javaType="ArrayList" columnPrefix="t_" autoMapping="true">
-            <id property="id" column="id" />
-        </collection>
-        <collection property="answerList" ofType="QuestionAnswerDetailModel" notNullColumn="id" javaType="ArrayList" columnPrefix="as_" autoMapping="true">
-            <id property="id" column="id" />
-            <association property="author" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
-                <id property="id" column="id" />
-            </association>
-        </collection>
-    </resultMap>
     <sql id="searchWhere">
         <where>
             <if test="isDisabled != null">
@@ -71,19 +61,19 @@
                 and ${alias}created_user_id = #{userId}
             </if>
             <if test="rewardType != null">
-                and ${versionAlias}reward_type = #{rewardType}
+                and ${alias}reward_type = #{rewardType}
             </if>
             <if test="minRewardValue != null">
-                and ${versionAlias}reward_value <![CDATA[>=]]> #{minRewardValue}
+                and ${alias}reward_value <![CDATA[>=]]> #{minRewardValue}
             </if>
             <if test="maxRewardValue != null">
-                and ${versionAlias}reward_value <![CDATA[<=]]> #{maxRewardValue}
+                and ${alias}reward_value <![CDATA[<=]]> #{maxRewardValue}
             </if>
-            <if test="ids != null">
+            <if test="ids != null &amp;&amp; ids.size() > 0">
                 and
                 ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
                 #{id}
-            </foreach>
+                </foreach>
             </if>
             <if test="minAnswers != null">
                 and ${alias}answers >= #{minAnswers}
@@ -121,157 +111,33 @@
             <if test="maxStar != null">
                 and ${alias}star_count &lt;= #{maxStar}
             </if>
-            <if test="tags != null &amp;&amp; tags.size() > 0">
-                and ${tagAlias}tag in
-                <foreach collection="tags" item="id" open="(" close=")" separator=",">
-                    ${id}
-                </foreach>
+            <if test="mode != 'draft'">
+                and ${alias}version > 0
             </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
-        <if test="childCount != null &amp;&amp; childCount &gt; 0">
-            select * from (
-            select b.* , (case when @question_id=b.as_question_id then @row_num:=@row_num+1 else @row_num:=1 end) as rownum,@question_id:=b.as_question_id tmp_question_id from (
-            select t.*,
-            case when a.is_published = 1 and a.is_disabled=0 and a.is_deleted=0 then a.id else null end as_id,a.question_id as_question_id,a.is_published as_is_published,a.is_disabled as_is_disabled,
-            a.is_deleted as_is_deleted,a.is_adopted as_is_adopted,a.comments as_comments,a.view as_view,
-            a.support as_support,a.oppose as_oppose,a.star_count as_star_count,a.draft as_draft,a.cover as_cover,a.version as_version,
-            a.created_time as_created_time,a.created_user_id as_created_user_id,a.created_ip as_created_ip,
-            av.content as_content,av.html as_html,av.description as_description,a.updated_user_id as_updated_user_id,a.updated_time as_updated_time,a.updated_ip as_updated_ip,
-            <if test="searchUserId != null">
-                (case when a.created_user_id=#{searchUserId} then 1 else 0 end) as_allow_delete,
-                (case when a.created_user_id=#{searchUserId} then 0 else 1 end) as_allow_support,
-                (case when a.created_user_id=#{searchUserId} then 0 else 1 end) as_allow_oppose,
-                (case when a.created_user_id=#{searchUserId} then 1 else 0 end) as_allow_edit,
-                case when a.created_user_id=#{searchUserId} then 0 else 1 end as_allow_star,
-                (case when t.created_user_id=#{searchUserId} and t.is_adopted=0 and a.is_adopted=0 then 1 else 0 end) as_allow_adopt,
-                (case when vt.type=1 then 1 else 0 end) as_use_support,
-                (case when vt.type=0 then 1 else 0 end) as_use_oppose,
-
-            </if>
-            (case when a.created_user_id is null then null when a.created_user_id=t.created_user_id then 1 else 0 end) as_use_author,
-
-            <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-                <property name="alias" value="u."/>
-                <property name="prefix" value="as_u_"/>
-            </include>,s.path as_u_path
-            from (
-        </if>
-        select q.*,
-        <if test="childCount == null || childCount &lt;= 0">
-            null as_id,
-        </if>
-        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
-            <property name="alias" value="t."/>
-            <property name="prefix" value="t_"/>
+    <select id="search" resultType="QuestionInfoModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from question_info q
+        <include refid="searchWhere">
+            <property name="alias" value="q."/>
         </include>
-        from (
-            select q.id,q.is_published,q.is_adopted,q.is_disabled,q.is_deleted,q.adoption_id,q.answers,q.comments,q.view,q.cover,q.support,q.oppose,q.star_count,q.draft,q.version,q.created_user_id,q.created_time,q.created_ip,
-            v.id version_id,v.title,v.description,v.reward_type,v.reward_value,v.reward_add,
-            <if test="hasContent != false">
-                v.content,v.html,
-            </if>
-            <if test="searchUserId != null">
-                case when qs.created_user_id is not null then 1 else 0 end use_star,
-                case when q.created_user_id is not null and q.created_user_id=#{searchUserId} then 1 else 0 end use_author,
-            </if>
-            <choose>
-                <when test="mode == 'draft'">
-                    v.created_user_id update_user_id,v.created_time updated_time,v.created_ip updated_ip,
-                </when>
-                <otherwise>
-                    q.updated_user_id,q.updated_time,q.updated_ip,
-                </otherwise>
-            </choose>
-            <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-                <property name="alias" value="u."/>
-                <property name="prefix" value="u_"/>
-            </include>,s.path u_path
-            from question_info q
-            inner join question_version v on
-            <choose>
-                <when test="mode == 'draft'">
-                    q.draft=v.version
-                </when>
-                <otherwise>
-                    q.version=v.version
-                </otherwise>
-            </choose>
-            and q.id=v.question_id
-            <if test="tags != null &amp;&amp; tags.size() > 0">
-                left join question_version_tag vt on vt.version = v.id
-            </if>
-            left join user_info u on q.created_user_id=u.id
-            left join sys_path s on s.id=u.id and s.type=1
-            <if test="searchUserId != null">
-                left join question_star qs on qs.question_id=q.id and qs.created_user_id=#{searchUserId}
-            </if>
-            <include refid="searchWhere">
-                <property name="alias" value="q."/>
-                <property name="versionAlias" value="v."/>
-                <property name="tagAlias" value="vt."/>
-            </include>
-            <if test="tags != null &amp;&amp; tags.size() > 0">
-                group by q.id
-            </if>
-            <if test="order != null">
-                <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                    <choose>
-                        <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                        <when test="key == 'reward_value' || key == 'reward_type'">v.${key} ${value}</when>
-                        <otherwise>q.${key} ${value}</otherwise>
-                    </choose>
-                </foreach>
-            </if>
-            <if test="limit != null and offset != null">
-                limit #{offset},#{limit}
-            </if>
-        ) q
-        left join question_version_tag vt on vt.version = q.version_id
-        left join tag t on vt.tag = t.id
-
-        <if test="childCount != null &amp;&amp; childCount &gt; 0">
-            ) t
-            left join question_answer a on a.question_id = t.id
-            left join question_answer_version av on a.version=av.version and a.id=av.answer_id
-            left join user_info u on a.created_user_id=u.id
-            left join sys_path s on s.id = u.id and s.type=1
-            <if test="searchUserId != null">
-                left join question_answer_vote vt on vt.answer_id=a.id and vt.created_user_id = #{searchUserId}
-            </if>,
-            (select @row_num:=0) tmp_rownum,(select @question_id:=0) tmp_question
-            order by t.id,a.is_adopted desc,a.support desc,a.comments desc
-            ) b
-            <if test="order != null">
-                <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                    <choose>
-                        <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                        <otherwise>b.${key} ${value}</otherwise>
-                    </choose>
-                </foreach>
-            </if>
-            ) a where a.rownum &lt;= #{childCount}
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>q.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
         </if>
     </select>
     <select id="count" resultType="Integer">
-        select count(<if test="tags != null &amp;&amp; tags.size() > 0">distinct</if> q.id) from question_info q
-        inner join question_version v on
-        <choose>
-            <when test="mode == 'draft'">
-                q.draft=v.version
-            </when>
-            <otherwise>
-                q.version=v.version
-            </otherwise>
-        </choose> and q.id=v.question_id
-        <if test="tags != null &amp;&amp; tags.size() > 0">
-            left join question_version_tag vt on vt.version = v.id
-        </if>
+        select count(q.id) from question_info q
         <include refid="searchWhere">
             <property name="alias" value="q."/>
-            <property name="versionAlias" value="v."/>
-            <property name="tagAlias" value="vt."/>
         </include>
     </select>
     <select id="findById" resultType="QuestionInfoModel">
@@ -320,6 +186,19 @@
                 cover = #{cover},
             </if>
         </set>
+        where id=#{id}
+    </update>
+    <update id="updateInfo">
+        update question_info <set>
+        <if test="title != null">title=#{title},</if>
+        <if test="description != null">description=#{description},</if>
+        <if test="rewardType != null">reward_type=#{rewardType},</if>
+        <if test="rewardValue != null">reward_value=#{rewardValue},</if>
+        <if test="rewardAdd != null">reward_add=#{rewardAdd},</if>
+        updated_time=#{time},
+        updated_ip=#{ip},
+        updated_user_id=#{userId}
+    </set>
         where id=#{id}
     </update>
 </mapper>

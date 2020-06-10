@@ -15,6 +15,12 @@
     <select id="findByTypeAndId" resultType="SysPathModel">
         select * from sys_path where type=#{type} and id=#{id}
     </select>
+    <select id="search" resultType="SysPathModel">
+        select * from sys_path where type=#{type} and
+        id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
     <update id="updateByTypeAndId">
         update sys_path
         <set>path=#{path}</set>

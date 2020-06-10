@@ -33,12 +33,6 @@
         ${alias}updated_ip ${prefix}updated_ip,
         ${alias}updated_user_id ${prefix}updated_user_id
     </sql>
-    <resultMap id="searchMap" type="UserDetailModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="bank" javaType="UserBankModel" columnPrefix="b_" autoMapping="true">
-            <id property="userId" column="user_id" />
-        </association>
-    </resultMap>
     <sql id="where">
         <where>
             <if test="beginTime != null">
@@ -70,26 +64,13 @@
             </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
+    <select id="search" resultType="UserInfoModel">
         select
         <include refid="columns">
             <property name="alias" value="u."/>
             <property name="prefix" value=""/>
-        </include>,
-        <include refid="com.itellyou.dao.user.UserBankDao.columns">
-            <property name="alias" value="b."/>
-            <property name="prefix" value="b_"/>
-        </include>,
-        <if test="searchUserId != null">
-            case when s.created_user_id is not null then 1 else 0 end use_star,
-        </if>
-        p.path
+        </include>
         from user_info u
-        left join user_bank b on b.user_id = u.id
-        left join sys_path p on p.id = u.id and p.type = 1
-        <if test="searchUserId != null">
-        left join user_star s on s.user_id=u.id and s.created_user_id=#{searchUserId}
-        </if>
         <include refid="where">
             <property name="alias" value="u."/>
         </include>

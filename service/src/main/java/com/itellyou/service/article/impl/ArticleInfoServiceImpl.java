@@ -1,25 +1,21 @@
 package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleInfoDao;
-import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleSourceType;
-import com.itellyou.model.article.ArticleVersionModel;
-import com.itellyou.model.column.ColumnInfoModel;
-import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.event.ArticleEvent;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.article.ArticleInfoService;
-import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.article.ArticleVersionService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.column.ColumnInfoService;
 import com.itellyou.service.common.ViewService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.List;
-
 @CacheConfig(cacheNames = "article")
 @Service
 public class ArticleInfoServiceImpl implements ArticleInfoService {
@@ -38,8 +32,7 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
     private Logger logger = LoggerFactory.getLogger(ArticleInfoServiceImpl.class);
 
     private final ArticleInfoDao articleInfoDao;
-    private final ArticleVersionService versionService;
-    private final ArticleSearchService searchService;
+    private final ArticleSingleService articleSingleService;
     private final ViewService viewService;
     private final UserInfoService userInfoService;
     private final UserDraftService draftService;
@@ -47,11 +40,10 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public ArticleInfoServiceImpl(ArticleInfoDao articleInfoDao, ArticleVersionService versionService, ArticleSearchService searchService, ViewService viewService, UserInfoService userInfoService, UserDraftService draftService, ColumnInfoService columnInfoService, OperationalPublisher operationalPublisher){
+    public ArticleInfoServiceImpl(ArticleInfoDao articleInfoDao, ArticleSingleService articleSingleService, ViewService viewService, UserInfoService userInfoService, UserDraftService draftService, ColumnInfoService columnInfoService, OperationalPublisher operationalPublisher){
         this.articleInfoDao = articleInfoDao;
-        this.versionService = versionService;
+        this.articleSingleService = articleSingleService;
         this.viewService = viewService;
-        this.searchService = searchService;
         this.userInfoService = userInfoService;
         this.draftService = draftService;
         this.columnInfoService = columnInfoService;
@@ -65,10 +57,9 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
 
     @Override
     @Transactional
-    @CacheEvict(key = "#id")
     public int updateView(Long userId,Long id,Long ip,String os,String browser) {
         try{
-            ArticleInfoModel articleModel = searchService.findById(id);
+            ArticleInfoModel articleModel = articleSingleService.findById(id);
             if(articleModel == null) throw new Exception("错误的编号");
 
             long prevTime = viewService.insertOrUpdate(userId,EntityType.ARTICLE,id,ip,os,browser);
@@ -77,6 +68,8 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
                 if(result != 1){
                     throw new Exception("更新浏览次数失败");
                 }
+                articleModel.setView(articleModel.getView() + 1);
+                RedisUtils.setCache("article",id,articleModel);
                 operationalPublisher.publish(new ArticleEvent(this, EntityAction.VIEW,id,articleModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
             }
             return 1;
@@ -106,29 +99,6 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
     }
 
     @Override
-    @Transactional
-    public Long create(Long userId,Long columnId, ArticleSourceType sourceType,String sourceData, String title, String content, String html, String description, List<TagInfoModel> tags, String remark, String save_type, Long ip) {
-        try{
-            ArticleInfoModel infoModel = new ArticleInfoModel();
-            infoModel.setDraft(0);
-            infoModel.setCreatedIp(ip);
-            infoModel.setCreatedTime(DateUtils.getTimestamp());
-            infoModel.setCreatedUserId(userId);
-            int resultRows = insert(infoModel);
-            if(resultRows != 1)
-                throw new Exception("写入提问失败");
-            ArticleVersionModel versionModel = versionService.addVersion(infoModel.getId(),userId,columnId,sourceType,sourceData,title,content,html,description,tags,remark,1,save_type,ip,false,true);
-            if(versionModel == null)
-                throw new Exception("写入版本失败");
-            return infoModel.getId();
-        }catch (Exception e){
-            logger.error(e.getLocalizedMessage());
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return null;
-        }
-    }
-
-    @Override
     @CacheEvict(key = "#id")
     public int updateVote(VoteType type, Integer value, Long id) {
         return articleInfoDao.updateVote(type,value,id);
@@ -140,7 +110,7 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
     @CacheEvict(key = "#id")
     public int updateDeleted(boolean deleted, Long id,Long userId,Long ip) {
         try {
-            ArticleDetailModel articleInfoModel = searchService.getDetail(id,"draft");
+            ArticleInfoModel articleInfoModel = articleSingleService.findById(id);
             if(articleInfoModel == null) throw new Exception("未找到文章");
             if(!articleInfoModel.getCreatedUserId().equals(userId)) throw new Exception("无权限");
             int result = articleInfoDao.updateDeleted(deleted,id);
@@ -151,9 +121,9 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
             }
             result = userInfoService.updateArticleCount(userId,deleted ? -1 : 1);
             if(result != 1) throw new Exception("更新用户文章数量失败");
-            ColumnInfoModel columnInfoModel = articleInfoModel.getColumn();
-            if(columnInfoModel != null){
-                result = columnInfoService.updateArticles(columnInfoModel.getId(),deleted ? -1 : 1);
+            Long columnId = articleInfoModel.getColumnId();
+            if(columnId != null){
+                result = columnInfoService.updateArticles(columnId,deleted ? -1 : 1);
                 if(result != 1) throw new Exception("更新专栏文章数量失败");
             }
             operationalPublisher.publish(new ArticleEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,
@@ -166,4 +136,11 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
         }
     }
 
+    @Override
+    @CacheEvict(key = "#id")
+    public int updateInfo(Long id, String title, String description, Long columnId, ArticleSourceType sourceType, String sourceData,Long time,
+                          Long ip,
+                          Long userId) {
+        return articleInfoDao.updateInfo(id,title,description,columnId,sourceType,sourceData,time,ip,userId);
+    }
 }

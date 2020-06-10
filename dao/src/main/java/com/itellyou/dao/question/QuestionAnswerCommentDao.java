@@ -1,6 +1,5 @@
 package com.itellyou.dao.question;
 
-import com.itellyou.model.question.QuestionAnswerCommentDetailModel;
 import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.model.sys.VoteType;
 import org.apache.ibatis.annotations.Mapper;
@@ -18,9 +17,8 @@ public interface QuestionAnswerCommentDao {
 
     QuestionAnswerCommentModel findById(Long id);
 
-    List<QuestionAnswerCommentDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("answerId") Long answerId, @Param("parentId") Long parentId, @Param("replyId") Long replyId, @Param("searchUserId") Long searchUserId, @Param("userId") Long userId,
+    List<QuestionAnswerCommentModel> search(@Param("ids") HashSet<Long> ids, @Param("answerId") Long answerId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                                                   @Param("isDeleted") Boolean isDeleted,
-                                                  @Param("childCount") Integer childCount,
                                                   @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                                                   @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                                                   @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
@@ -30,13 +28,22 @@ public interface QuestionAnswerCommentDao {
                                                   @Param("offset") Integer offset,
                                                   @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids, @Param("answerId") Long answerId, @Param("parentId") Long parentId, @Param("replyId") Long replyId, @Param("userId") Long userId,
+    int count(@Param("ids") HashSet<Long> ids, @Param("answerId") Long answerId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                     @Param("isDeleted") Boolean isDeleted,
                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                     @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                     @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
                     @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
                     @Param("ip") Long ip);
+
+    List<QuestionAnswerCommentModel> searchChild(@Param("ids") HashSet<Long> ids, @Param("answerId") Long answerId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
+                                                 @Param("isDeleted") Boolean isDeleted, @Param("childCount") Integer childCount,
+                                                 @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+                                                 @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
+                                                 @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
+                                                 @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
+                                                 @Param("ip") Long ip,
+                                                 @Param("order") Map<String, String> order);
 
     int updateDeleted(@Param("id") Long id,@Param("isDeleted") Boolean isDeleted);
 

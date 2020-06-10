@@ -1,7 +1,7 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 public class QuestionAnswerModel implements CacheEntity {
     @JSONField(label = "draft,base")
     private Long id;
+    @JSONField(label = "draft,base")
+    private String description = "";
     @JSONField(label = "draft,base")
     private Long questionId;
     @JSONField(label = "base")

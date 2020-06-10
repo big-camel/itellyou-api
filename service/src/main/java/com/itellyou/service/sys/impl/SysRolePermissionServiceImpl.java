@@ -42,31 +42,31 @@ public class SysRolePermissionServiceImpl implements SysRolePermissionService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysRoleModel> findRoleByName(String permissionName) {
         return rolePermissionDao.findRoleByName(permissionName);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysRolePermissionModel> findByRoleId(Long roleId) {
         return rolePermissionDao.findByRoleId(roleId);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysRolePermissionModel> search(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return rolePermissionDao.search(roleId,permissionName,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public int count(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip) {
         return rolePermissionDao.count(roleId,permissionName,userId,beginTime,endTime,ip);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public PageModel<SysRolePermissionModel> page(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;

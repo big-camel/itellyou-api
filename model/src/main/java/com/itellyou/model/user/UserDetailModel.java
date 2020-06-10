@@ -1,7 +1,7 @@
 package com.itellyou.model.user;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
 
@@ -14,6 +14,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 @JSONDefault(includes = "base")
 public class UserDetailModel extends UserInfoModel implements Serializable, CacheEntity {
+
+    public UserDetailModel(UserInfoModel infoModel){
+        super(infoModel.getId(),infoModel.getLoginName(),infoModel.getName(),infoModel.getLoginPassword(),infoModel.getPayPassword(),infoModel.getGender(),infoModel.getBirthday(),infoModel.getMobile(),infoModel.isMobileStatus(),infoModel.getEmail(),infoModel.isEmailStatus(),infoModel.getDescription(),infoModel.getIntroduction(),infoModel.getProfession(),infoModel.getAddress(),infoModel.getAvatar(),infoModel.isDisabled(),infoModel.getId(),infoModel.getUpdatedTime(),infoModel.getUpdatedIp());
+    }
 
     @JSONField(label = "bank")
     private UserBankModel bank;

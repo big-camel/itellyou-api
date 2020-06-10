@@ -1,9 +1,8 @@
 package com.itellyou.dao.article;
 
-import com.itellyou.model.sys.VoteType;
-import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleSourceType;
+import com.itellyou.model.sys.VoteType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -17,11 +16,9 @@ import java.util.Map;
 public interface ArticleInfoDao {
     int insert(ArticleInfoModel infoModel);
 
-    List<ArticleDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("mode") String mode, @Param("columnId") Long columnId, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
+    List<ArticleInfoModel> search(@Param("ids") HashSet<Long> ids, @Param("mode") String mode, @Param("columnId") Long columnId, @Param("userId") Long userId,
                                     @Param("sourceType") ArticleSourceType sourceType,
-                                    @Param("hasContent") Boolean hasContent,
                                     @Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
-                                    @Param("tags") List<Long> tags,
                                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                                     @Param("minView") Integer minView, @Param("maxView") Integer maxView,
                                     @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
@@ -35,8 +32,6 @@ public interface ArticleInfoDao {
     int count(@Param("ids") HashSet<Long> ids, @Param("mode") String mode,@Param("columnId") Long columnId, @Param("userId") Long userId,
                     @Param("sourceType") ArticleSourceType sourceType,
                     @Param("isDisabled") Boolean isDisabled, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
-
-                    @Param("tags") List<Long> tags,
                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                     @Param("minView") Integer minView, @Param("maxView") Integer maxView,
                     @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
@@ -58,4 +53,14 @@ public interface ArticleInfoDao {
     int updateMetas(@Param("id") Long id,@Param("customDescription") String customDescription,@Param("cover") String cover);
 
     int updateDeleted(@Param("deleted") boolean deleted, @Param("id") Long id);
+
+    int updateInfo(@Param("id") Long id,
+                   @Param("title") String title,
+                   @Param("description") String description,
+                   @Param("columnId") Long columnId,
+                   @Param("sourceType") ArticleSourceType sourceType,
+                   @Param("sourceData") String sourceData,
+                   @Param("time") Long time,
+                   @Param("ip") Long ip,
+                   @Param("userId") Long userId);
 }

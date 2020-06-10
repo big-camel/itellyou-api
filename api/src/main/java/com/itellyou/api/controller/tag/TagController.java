@@ -7,6 +7,7 @@ import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.tag.TagSearchService;
+import com.itellyou.service.tag.TagSingleService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.Params;
 import com.itellyou.util.StringUtils;
@@ -26,12 +27,14 @@ public class TagController {
     private final TagSearchService searchService;
     private final UserDraftService draftService;
     private final TagInfoService tagService;
+    private final TagSingleService tagSingleService;
 
     @Autowired
-    public TagController(TagSearchService searchService, UserDraftService draftService, TagInfoService tagService){
+    public TagController(TagSearchService searchService, UserDraftService draftService, TagInfoService tagService, TagSingleService tagSingleService){
         this.searchService = searchService;
         this.draftService = draftService;
         this.tagService = tagService;
+        this.tagSingleService = tagSingleService;
     }
 
     @GetMapping("/search")
@@ -75,7 +78,7 @@ public class TagController {
 
     @GetMapping("/query")
     public ResultModel query(@RequestParam String name){
-        TagInfoModel tagModel = searchService.findByName(name);
+        TagInfoModel tagModel = tagSingleService.findByName(name);
         if(tagModel == null) return new ResultModel(0,"无记录");
         return new ResultModel(tagModel);
     }
@@ -86,7 +89,7 @@ public class TagController {
             return new ResultModel(401,"未登陆");
         }
 
-        TagInfoModel infoModel = searchService.findById(id);
+        TagInfoModel infoModel = tagSingleService.findById(id);
         if(infoModel != null && !infoModel.isDisabled()){
             boolean result = draftService.exists(userModel.getId(), EntityType.TAG,infoModel.getId());
             Map<String,Object> userAnswerMap = new HashMap<>();
@@ -112,7 +115,7 @@ public class TagController {
     public ResultModel update(@PathVariable Long id, @RequestBody Map<String,Object> params){
         String name = Params.getOrDefault(params,"name",String.class,null);
         if(StringUtils.isNotEmpty(name)){
-            TagInfoModel tagModel = searchService.findByName(name);
+            TagInfoModel tagModel = tagSingleService.findByName(name);
             if(tagModel != null) {
                 return new ResultModel(500,"名称已存在");
             }

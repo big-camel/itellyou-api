@@ -43,15 +43,6 @@
             from question_version where question_id=#{questionId}
         </if>
     </insert>
-    <insert id="insertTag">
-        insert into question_version_tag(version,tag) values
-        <foreach collection="tags" item="tag" separator=",">
-            (#{version},#{tag.id})
-        </foreach>
-    </insert>
-    <delete id="deleteTag">
-        delete from question_version_tag where version=#{version}
-    </delete>
     <sql id="where">
         <where>
             <if test="isReviewed != null">
@@ -72,61 +63,48 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="questionId != null">
-                and ${alias}question_id = #{questionId}
+            <if test="questionMap != null &amp;&amp; questionMap.size() > 0">
+                <foreach collection="questionMap.entrySet()" item="value" index="key" separator=" or " open=" and (" close=")">
+                    ${alias}question_id=#{key}
+                    <if test="value != null">
+                        and ${alias}version=#{value}
+                    </if>
+                </foreach>
             </if>
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
-            <if test="id != null">
-                and ${alias}id = #{id}
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                    ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
         </where>
     </sql>
-    <resultMap id="searchMap" type="QuestionVersionModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="author" javaType="UserInfoModel" columnPrefix="user_" autoMapping="true" />
-        <collection property="tags" ofType="TagInfoModel" javaType="ArrayList" columnPrefix="tag_" autoMapping="true" />
-    </resultMap>
-    <select id="search" resultMap="searchMap">
-        select v.*,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="user_"/>
-        </include>,
-        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
-            <property name="alias" value="t."/>
-            <property name="prefix" value="tag_"/>
+    <select id="search" resultType="QuestionVersionModel">
+        select
+        <trim suffixOverrides=",">
+            id,question_id,version,is_reviewed,is_disabled,is_published,save_type,remark,reward_type,reward_value,reward_add,created_time,created_ip,created_user_id,title,description,
+            <if test="hasContent != false">
+                content,
+                html
+            </if>
+        </trim>
+        from question_version
+        <include refid="where">
+            <property name="alias" value=""/>
         </include>
-        from (
-            select
-            <trim suffixOverrides=",">
-                id,question_id,version,is_reviewed,is_disabled,is_published,save_type,remark,reward_type,reward_value,reward_add,created_time,created_ip,created_user_id,
-                <if test="hasContent != false">
-                    title,
-                    content,
-                    html,
-                    description
-                </if>
-            </trim>
-            from question_version
-            <include refid="where">
-                <property name="alias" value=""/>
-            </include>
-            <if test="order != null">
-                <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                    ${key} ${value}
-                </foreach>
-            </if>
-            <if test="limit != null and offset != null">
-                limit #{offset},#{limit}
-            </if>
-        ) v
-        left join user_info u on v.created_user_id=u.id
-        left join question_version_tag vt on vt.version = v.id
-        left join tag t on vt.tag = t.id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
     </select>
-    <select id="getCount" resultType="java.lang.Integer">
+    <select id="count" resultType="java.lang.Integer">
         select count(v.id) from from question_version v
         <include refid="where">
             <property name="alias" value="v."/>

@@ -1,6 +1,5 @@
 package com.itellyou.dao.user;
 
-import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -31,8 +30,7 @@ public interface UserInfoDao {
 
     UserInfoModel findById(Long id);
 
-    List<UserDetailModel> search(@Param("ids") HashSet<Long> ids,
-                                @Param("searchUserId") Long searchUserId,
+    List<UserInfoModel> search(@Param("ids") HashSet<Long> ids,
                                 @Param("loginName") String loginName, @Param("name") String name,
                                  @Param("mobile") String mobile, @Param("email") String email,
                                 @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

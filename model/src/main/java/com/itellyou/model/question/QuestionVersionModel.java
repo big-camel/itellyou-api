@@ -2,8 +2,9 @@ package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.sys.RewardType;
-import com.itellyou.model.tag.TagInfoModel;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,14 +16,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionVersionModel {
+public class QuestionVersionModel implements CacheEntity {
     private Long id;
     private Long questionId = 0l;
     private String title = "";
     private String content = "";
     private String html = "";
     private String description = "";
-    private List<TagInfoModel> tags = new ArrayList<>();
+    private List<TagDetailModel> tags = new ArrayList<>();
     private Integer version = 0;
     private boolean isReviewed = false;
     private boolean isDisabled = false;
@@ -46,4 +47,9 @@ public class QuestionVersionModel {
     private Long updatedUserId;
     @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp;
+
+    @Override
+    public String cacheKey() {
+        return id.toString();
+    }
 }

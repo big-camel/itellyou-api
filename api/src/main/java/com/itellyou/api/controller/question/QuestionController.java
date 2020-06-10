@@ -8,6 +8,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.BrowserUtils;
 import com.itellyou.util.IPUtils;
@@ -31,13 +32,15 @@ public class QuestionController {
     private final QuestionSearchService questionSearchService;
     private final QuestionAnswerService answerService;
     private final UserDraftService draftService;
+    private final QuestionSingleService questionSingleService;
 
     @Autowired
-    public QuestionController(QuestionInfoService questionService,QuestionSearchService questionSearchService, QuestionAnswerService answerService, UserDraftService draftService){
+    public QuestionController(QuestionInfoService questionService, QuestionSearchService questionSearchService, QuestionAnswerService answerService, UserDraftService draftService, QuestionSingleService questionSingleService){
         this.questionService = questionService;
         this.questionSearchService = questionSearchService;
         this.answerService = answerService;
         this.draftService = draftService;
+        this.questionSingleService = questionSingleService;
     }
 
     @GetMapping("/{id:\\d+}/view")
@@ -78,7 +81,7 @@ public class QuestionController {
             return new ResultModel(401,"未登陆");
         }
 
-        QuestionInfoModel infoModel = questionSearchService.findById(id);
+        QuestionInfoModel infoModel = questionSingleService.findById(id);
         if(infoModel != null && !infoModel.isDisabled()){
             boolean result = draftService.exists(userModel.getId(), EntityType.QUESTION,infoModel.getId());
             Map<String,Object> userAnswerMap = new HashMap<>();

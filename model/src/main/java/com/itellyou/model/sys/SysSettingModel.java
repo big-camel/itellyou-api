@@ -1,5 +1,6 @@
 package com.itellyou.model.sys;
 
+import com.itellyou.util.CacheEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

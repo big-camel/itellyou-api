@@ -9,7 +9,7 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.common.impl.StarFactory;
-import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -27,11 +27,11 @@ import java.util.Map;
 public class QuestionStarController {
 
     private final StarService<QuestionStarModel> starService;
-    private final QuestionSearchService questionSearchService;
+    private final QuestionSingleService questionSingleService;
 
-    public QuestionStarController(StarFactory starFactory, QuestionSearchService questionSearchService){
+    public QuestionStarController(StarFactory starFactory, QuestionSingleService questionSingleService){
         this.starService = starFactory.create(EntityType.QUESTION);
-        this.questionSearchService = questionSearchService;
+        this.questionSingleService = questionSingleService;
     }
 
     @GetMapping("/star")
@@ -46,7 +46,7 @@ public class QuestionStarController {
     @PostMapping("/star")
     public ResultModel star(HttpServletRequest request, UserInfoModel userModel, @MultiRequestBody @NotNull Long id){
         if(userModel == null) return new ResultModel(401,"未登陆");
-        QuestionInfoModel infoModel = questionSearchService.findById(id);
+        QuestionInfoModel infoModel = questionSingleService.findById(id);
         if(infoModel == null) return new ResultModel(404,"错误的id");
         if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
@@ -70,7 +70,7 @@ public class QuestionStarController {
             Long ip = IPUtils.toLong(clientIp);
             int result = starService.delete(id,userModel.getId(),ip);
             if(result != 1) throw new Exception("取消关注失败");
-            QuestionInfoModel infoModel = questionSearchService.findById(id);
+            QuestionInfoModel infoModel = questionSingleService.findById(id);
             return new ResultModel(infoModel.getStarCount());
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());

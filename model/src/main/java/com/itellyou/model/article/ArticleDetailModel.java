@@ -1,13 +1,12 @@
 package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
 import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.column.ColumnInfoModel;
+import com.itellyou.model.column.ColumnDetailModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.EnumSerializer;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -21,19 +20,11 @@ import java.util.List;
 @JSONDefault(includes = "base")
 public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity {
     @JSONField(label = "draft,base")
-    private String title = "";
-    @JSONField(label = "draft,base")
     private String content = "";
     @JSONField(label = "draft,base")
     private String html = "";
-    @JSONField(label = "draft,base")
-    private String description = "";
     @JSONField(label = "base")
     private boolean useStar;
-    @JSONField(label = "draft,base", serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)
-    private ArticleSourceType sourceType=ArticleSourceType.ORIGINAL;
-    @JSONField(label = "draft,base")
-    private String sourceData="";
     @JSONField(label = "draft,base")
     private List<TagDetailModel> tags = new ArrayList<>();
     @JSONField(label = "draft,base")
@@ -41,7 +32,7 @@ public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity 
     @JSONField(label = "collab")
     private CollabInfoModel collab;
     @JSONField(label = "base")
-    private ColumnInfoModel column;
+    private ColumnDetailModel column;
     @JSONField(label = "base")
     private boolean useSupport;
     @JSONField(label = "base")
@@ -56,6 +47,10 @@ public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity 
     private boolean allowStar;
     @JSONField(label = "draft,base")
     private ArticlePaidReadModel paidRead;
+
+    public ArticleDetailModel(ArticleInfoModel model){
+        super(model.getId(),model.getColumnId(),model.getSourceType(),model.getSourceData(),model.getTitle(),model.getDescription(),model.getDraft(),model.isPublished(),model.isDisabled(),model.isDeleted(),model.getCustomDescription(),model.getCover(),model.getDraft(),model.getCommentCount(),model.getView(),model.getSupport(),model.getOppose(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+    }
 
     @Override
     public String cacheKey() {

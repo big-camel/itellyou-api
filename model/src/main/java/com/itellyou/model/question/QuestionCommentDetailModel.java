@@ -1,6 +1,7 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
@@ -13,7 +14,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @JSONDefault(includes = "base")
-public class QuestionCommentDetailModel extends QuestionCommentModel {
+public class QuestionCommentDetailModel extends QuestionCommentModel implements CacheEntity {
     @JSONField(label = "base")
     private QuestionCommentDetailModel reply;
     @JSONField(label = "base")
@@ -39,4 +40,12 @@ public class QuestionCommentDetailModel extends QuestionCommentModel {
     @JSONField(label = "base")
     private boolean allowReply;
 
+    public QuestionCommentDetailModel(QuestionCommentModel model){
+        super(model.getId(),model.getQuestionId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getComments(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+    }
+
+    @Override
+    public String cacheKey() {
+        return this.getId().toString();
+    }
 }

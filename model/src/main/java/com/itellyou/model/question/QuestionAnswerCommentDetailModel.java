@@ -39,4 +39,7 @@ public class QuestionAnswerCommentDetailModel extends QuestionAnswerCommentModel
     @JSONField(label = "base")
     private boolean allowReply;
 
+    public QuestionAnswerCommentDetailModel(QuestionAnswerCommentModel model){
+        super(model.getId(),model.getAnswerId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getComments(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+    }
 }

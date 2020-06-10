@@ -13,14 +13,6 @@
     <delete id="delete">
         delete from tag_star where tag_id=#{tagId} and created_user_id=#{userId}
     </delete>
-    <resultMap id="searchMap" type="TagStarDetailModel" autoMapping="true">
-        <association property="tag"  notNullColumn="id" javaType="TagInfoModel" columnPrefix="t_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-        <association property="user"  notNullColumn="id" javaType="UserInfoModel" columnPrefix="u_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-    </resultMap>
     <sql id="where">
         <where>
             <if test="beginTime != null">
@@ -32,40 +24,30 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="tagId != null">
-                and ${alias}tag_id = #{tagId}
+            <if test="tagIds != null &amp;&amp; tagIds.size() > 0">
+                and ${alias}tag_id in
+                <foreach collection="tagIds" item="tagId" separator="," open="(" close=")" >
+                    #{tagId}
+                </foreach>
             </if>
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
+    <select id="search" resultType="TagStarModel">
         select
         <include refid="columns">
             <property name="alias" value="s."/>
             <property name="prefix" value=""/>
-        </include>,
-        <include refid="com.itellyou.dao.tag.TagInfoDao.columns">
-            <property name="alias" value="t."/>
-            <property name="prefix" value="t_"/>
-        </include>,1 t_use_star,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="u_"/>
         </include>
         from tag_star s
-        inner join tag t on t.id = s.tag_id
-        left join user_info u on u.id = s.created_user_id
         <include refid="where">
             <property name="alias" value="s."/>
         </include>
         <if test="order != null">
             <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                <choose>
-                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                    <otherwise>s.${key} ${value}</otherwise>
-                </choose>
+                s.${key} ${value}
             </foreach>
         </if>
         <if test="limit != null and offset != null">
@@ -75,7 +57,6 @@
     <select id="count" resultType="Integer">
         select count(*)
         from tag_star s
-        inner join tag t on t.id = s.tag_id
         <include refid="where">
             <property name="alias" value="s."/>
         </include>

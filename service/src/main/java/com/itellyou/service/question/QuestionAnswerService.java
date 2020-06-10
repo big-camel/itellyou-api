@@ -25,9 +25,11 @@ public interface QuestionAnswerService {
     QuestionAnswerDetailModel delete(Long id,Long questionId,Long userId,Long ip) throws Exception;
     QuestionAnswerDetailModel revokeDelete(Long id,Long questionId,Long userId,Long ip) throws Exception;
 
-    Long create(Long questionId, Long userId, String content, String html,String description,String remark, String save_type, Long ip) throws Exception;
-
     int updateVote(VoteType type,Integer value,Long id);
 
     int updateMetas(Long id, String cover);
+
+    int updateInfo(Long id, String description, Long time,
+                   Long ip,
+                   Long userId);
 }

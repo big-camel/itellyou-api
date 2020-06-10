@@ -1,8 +1,7 @@
 package com.itellyou.service.question;
 
-import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.RewardType;
 
 import java.util.HashSet;
@@ -16,7 +15,7 @@ public interface QuestionSearchService {
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     List<Long> tags,
+                                     HashSet<Long> tags,
                                      Integer minComments, Integer maxComments,
                                      Integer minAnswers, Integer maxAnswers,
                                      Integer minView, Integer maxView,
@@ -29,7 +28,7 @@ public interface QuestionSearchService {
               RewardType rewardType,
               Double minRewardValue,
               Double maxRewardValue,
-              List<Long> tags,
+              HashSet<Long> tags,
               Integer minComments, Integer maxComments,
               Integer minAnswers, Integer maxAnswers,
               Integer minView, Integer maxView,
@@ -47,7 +46,7 @@ public interface QuestionSearchService {
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     List<Long> tags,
+                                     HashSet<Long> tags,
                                      Integer minComments, Integer maxComments,
                                      Integer minAnswers, Integer maxAnswers,
                                      Integer minView, Integer maxView,
@@ -62,7 +61,7 @@ public interface QuestionSearchService {
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     List<Long> tags,
+                                     HashSet<Long> tags,
                                      Integer minComments, Integer maxComments,
                                      Integer minAnswers, Integer maxAnswers,
                                      Integer minView, Integer maxView,
@@ -75,7 +74,7 @@ public interface QuestionSearchService {
               RewardType rewardType,
               Double minRewardValue,
               Double maxRewardValue,
-              List<Long> tags,
+              HashSet<Long> tags,
               Integer minComments, Integer maxComments,
               Integer minAnswers, Integer maxAnswers,
               Integer minView, Integer maxView,
@@ -98,7 +97,7 @@ public interface QuestionSearchService {
                                         RewardType rewardType,
                                         Double minRewardValue,
                                         Double maxRewardValue,
-                                        List<Long> tags,
+                                        HashSet<Long> tags,
                                         Integer minComments, Integer maxComments,
                                         Integer minAnswers, Integer maxAnswers,
                                         Integer minView, Integer maxView,
@@ -122,6 +121,4 @@ public interface QuestionSearchService {
     QuestionDetailModel getDetail(Long id, Long userId);
 
     QuestionDetailModel getDetail(Long id);
-
-    QuestionInfoModel findById(Long id);
 }

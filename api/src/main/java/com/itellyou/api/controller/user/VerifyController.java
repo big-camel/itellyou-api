@@ -9,7 +9,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserVerifyModel;
 import com.itellyou.service.thirdparty.DmLogService;
 import com.itellyou.service.thirdparty.SmsLogService;
-import com.itellyou.service.user.UserVerifyService;
+import com.itellyou.service.user.passport.UserVerifyService;
 import com.itellyou.util.CookieUtils;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;

@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum SysPermissionType implements BaseEnum<SysPermissionType,Integer> , CacheEntity {
     NEGOTIATED(0,"negotiated"),

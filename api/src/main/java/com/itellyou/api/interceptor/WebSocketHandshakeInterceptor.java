@@ -1,7 +1,7 @@
 package com.itellyou.api.interceptor;
 
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.user.UserTokenService;
+import com.itellyou.service.user.passport.UserTokenService;
 import com.itellyou.util.CookieUtils;
 import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

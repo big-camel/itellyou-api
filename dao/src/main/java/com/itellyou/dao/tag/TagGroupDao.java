@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -23,19 +24,22 @@ public interface TagGroupDao {
 
     int deleteById(Long id);
 
-    List<TagGroupModel> search(@Param("id") Long id,
-                                @Param("userId") Long userId,
-                                @Param("ip") Long ip,
-                                @Param("isDisabled") Boolean isDisabled,
-                                @Param("isPublished") Boolean isPublished,
-                                @Param("minTagCount") Integer minTagCount, @Param("maxTagCount") Integer maxTagCount,
-                                @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
-                                @Param("order") Map<String,String> order,
-                                @Param("offset") Integer offset,
-                                @Param("limit") Integer limit);
+    List<TagGroupModel> search(@Param("ids") HashSet<Long> ids,
+                               @Param("userId") Long userId,
+                               @Param("ip") Long ip,
+                               @Param("isDisabled") Boolean isDisabled,
+                               @Param("isPublished") Boolean isPublished,
+                               @Param("minTagCount") Integer minTagCount, @Param("maxTagCount") Integer maxTagCount,
+                               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
+                               @Param("order") Map<String,String> order,
+                               @Param("offset") Integer offset,
+                               @Param("limit") Integer limit);
 
-    int count(@Param("id") Long id,@Param("userId") Long userId,
-               @Param("ip") Long ip,
-               @Param("minTagCount") Integer minTagCount, @Param("maxTagCount") Integer maxTagCount,
-               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+    int count(@Param("ids") HashSet<Long> ids,
+              @Param("userId") Long userId,
+              @Param("ip") Long ip,
+              @Param("isDisabled") Boolean isDisabled,
+              @Param("isPublished") Boolean isPublished,
+              @Param("minTagCount") Integer minTagCount, @Param("maxTagCount") Integer maxTagCount,
+              @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 }

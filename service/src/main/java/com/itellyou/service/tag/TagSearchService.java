@@ -10,11 +10,7 @@ import java.util.Map;
 
 public interface TagSearchService {
 
-    int exists(List<Long> ids);
-
-    int exists(Long... ids);
-
-    List<TagDetailModel> search(HashSet<Long> ids, String name, String mode, Long groupId, Long userId,
+    List<TagDetailModel> search(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId,
                                 Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isPublished, Long ip,
                                 Integer minStar, Integer maxStar,
                                 Integer minQuestion, Integer maxQuestion,
@@ -24,7 +20,7 @@ public interface TagSearchService {
                                 Integer offset,
                                 Integer limit);
 
-    int count(HashSet<Long> ids, String name, String mode, Long groupId, Long userId, Boolean isDisabled, Boolean isPublished, Long ip,
+    int count(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId, Boolean isDisabled, Boolean isPublished, Long ip,
               Integer minStar, Integer maxStar,
               Integer minQuestion, Integer maxQuestion,
               Integer minArticle, Integer maxArticle,
@@ -48,9 +44,20 @@ public interface TagSearchService {
                                    Integer offset,
                                    Integer limit);
 
-    TagInfoModel findById(Long id);
-
-    TagInfoModel findByName(String name);
+    List<TagInfoModel> searchChild(HashSet<Long> ids,
+                                   String name,
+                                   String mode,
+                                   HashSet<Long> groupIds,
+                                   Integer childCount,
+                                   Long userId,
+                                   Boolean isDisabled,
+                                   Boolean isPublished,
+                                   Long ip,
+                                   Integer minStar, Integer maxStar,
+                                   Integer minQuestion, Integer maxQuestion,
+                                   Integer minArticle, Integer maxArticle,
+                                   Long beginTime, Long endTime,
+                                   Map<String,String> order);
 
     TagDetailModel getDetail(Long id, Long userId, String mode, Long searchUserId, Boolean hasContent);
 

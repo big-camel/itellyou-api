@@ -1,8 +1,8 @@
 package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
-import com.itellyou.model.tag.TagInfoModel;
+import com.itellyou.util.CacheEntity;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.serialize.*;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class ArticleVersionModel implements CacheEntity {
     private String content = "";
     private String html = "";
     private String description = "";
-    private List<TagInfoModel> tags;
+    private List<TagDetailModel> tags;
     private Integer version = 0;
     private boolean isReviewed = false;
     private boolean isDisabled = false;

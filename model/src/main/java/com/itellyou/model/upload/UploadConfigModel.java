@@ -1,6 +1,6 @@
 package com.itellyou.model.upload;
 
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

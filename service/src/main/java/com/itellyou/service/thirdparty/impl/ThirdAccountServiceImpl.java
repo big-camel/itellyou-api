@@ -74,7 +74,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public Map<String, ThirdAccountModel> searchByUserId(Long userId) {
         Map<ThirdAccountType, ThirdAccountModel> thirdAccountModelMap = accountDao.searchByUserId(userId);
         Map<String, ThirdAccountModel> stringMap = new HashMap<>();

@@ -14,8 +14,6 @@ import lombok.*;
 @JSONDefault(includes = "base")
 public class TagDetailModel extends TagInfoModel {
     @JSONField(label = "draft,base")
-    private String description = "";
-    @JSONField(label = "draft,base")
     private String content = "";
     @JSONField(label = "draft,base")
     private String html = "";
@@ -29,4 +27,8 @@ public class TagDetailModel extends TagInfoModel {
     private TagGroupModel group;
     @JSONField(label = "collab")
     private CollabInfoModel collab;
+
+    public TagDetailModel(TagInfoModel model){
+        super(model.getId(),model.getName(),model.getDescription(),model.getGroupId(),model.isPublished(),model.isDisabled(),model.getStarCount(),model.getArticleCount(),model.getQuestionCount(),model.getVersion(),model.getDraft(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+    }
 }

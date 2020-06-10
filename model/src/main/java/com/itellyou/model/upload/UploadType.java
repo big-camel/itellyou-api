@@ -1,6 +1,6 @@
 package com.itellyou.model.upload;
 
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.BaseEnum;
 
 public enum UploadType implements BaseEnum<UploadType,String> , CacheEntity {

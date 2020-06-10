@@ -2,6 +2,7 @@ package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
 import com.itellyou.util.serialize.TimestampDeserializer;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionAnswerVersionModel {
+public class QuestionAnswerVersionModel implements CacheEntity {
     private Long id;
     private Long answerId = 0l;
     private String content = "";
@@ -38,4 +39,9 @@ public class QuestionAnswerVersionModel {
     private Long updatedUserId;
     @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp;
+
+    @Override
+    public String cacheKey() {
+        return id.toString();
+    }
 }

@@ -1,40 +1,33 @@
 package com.itellyou.service.question.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.itellyou.dao.question.QuestionInfoDao;
 import com.itellyou.dao.question.QuestionVersionDao;
-import com.itellyou.model.event.QuestionEvent;
-import com.itellyou.model.event.TagIndexEvent;
-import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.question.QuestionVersionModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserBankType;
-import com.itellyou.model.user.UserDraftModel;
-import com.itellyou.service.event.OperationalPublisher;
-import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionTagService;
 import com.itellyou.service.question.QuestionVersionService;
-import com.itellyou.service.tag.TagInfoService;
-import com.itellyou.service.user.UserBankService;
-import com.itellyou.service.user.UserDraftService;
-import com.itellyou.service.user.UserInfoService;
+import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 
+@CacheConfig(cacheNames = "question_version")
 @Service
 public class QuestionVersionServiceImpl implements QuestionVersionService {
 
@@ -42,31 +35,19 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     private final QuestionVersionDao versionDao;
     private final QuestionInfoDao infoDao;
-    private final UserInfoService userService;
     private final UserBankService bankService;
-
-    private final TagInfoService tagService;
-
-    private final UserDraftService draftService;
-    private final QuestionSearchService searchService;
-
-    private final OperationalPublisher operationalPublisher;
+    private final QuestionTagService questionTagService;
 
     @Autowired
-    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao, QuestionInfoDao infoDao, UserInfoService userService, UserBankService bankService, TagInfoService tagService, UserDraftService draftService, QuestionSearchService searchService, OperationalPublisher operationalPublisher){
+    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao, QuestionInfoDao infoDao, UserBankService bankService, QuestionTagService questionTagService){
         this.versionDao = questionVersionDao;
         this.infoDao = infoDao;
-        this.userService = userService;
+        this.questionTagService = questionTagService;
         this.bankService = bankService;
-        this.tagService = tagService;
-        this.draftService = draftService;
-        this.searchService = searchService;
-        this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = "question",key = "#questionVersionModel.questionId")
     public int insert(QuestionVersionModel questionVersionModel) {
         try{
             int rows = versionDao.insert(questionVersionModel);
@@ -75,9 +56,13 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             }
             Integer version = versionDao.findVersionById(questionVersionModel.getId());
             questionVersionModel.setVersion(version);
-            List<TagInfoModel> tags = questionVersionModel.getTags();
+            List<TagDetailModel> tags = questionVersionModel.getTags();
             if(tags != null && tags.size() > 0){
-                rows = insertTag(questionVersionModel.getId(),tags);
+                HashSet<Long> tagIds = new LinkedHashSet<>();
+                for (TagDetailModel tagDetailModel : tags){
+                    tagIds.add(tagDetailModel.getId());
+                }
+                rows = questionTagService.addAll(questionVersionModel.getId(),tagIds);
                 if(rows != tags.size()){
                     throw new Exception("写入版本标签失败");
                 }
@@ -92,7 +77,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "question",key = "#versionModel.questionId")
+    @Caching( evict = { @CacheEvict(key = "#versionModel.id"), @CacheEvict(key = "T(String).valueOf(#versionModel.questionId).concat('-').concat(#versionModel.version)")})
     public int update(QuestionVersionModel versionModel) {
         try{
             int rows = versionDao.update(versionModel);
@@ -104,11 +89,15 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
                 versionModel.setVersion(version);
             }
 
-            List<TagInfoModel> tags = versionModel.getTags();
+            List<TagDetailModel> tags = versionModel.getTags();
             if(tags != null){
-                deleteTag(versionModel.getId());
+                questionTagService.clear(versionModel.getId());
                 if(tags.size() > 0){
-                    rows = insertTag(versionModel.getId(),tags);
+                    HashSet<Long> tagIds = new LinkedHashSet<>();
+                    for (TagDetailModel tagDetailModel : tags){
+                        tagIds.add(tagDetailModel.getId());
+                    }
+                    rows = questionTagService.addAll(versionModel.getId(),tagIds);
                     if(rows != tags.size()){
                         throw new Exception("更新版本标签失败");
                     }
@@ -120,60 +109,6 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
-    }
-
-    @Override
-    public int insertTag(Long version, Long tag) {
-        TagInfoModel tagInfo = new TagInfoModel();
-        tagInfo.setId(tag);
-        return versionDao.insertTag(version,tagInfo);
-    }
-
-    @Override
-    public int insertTag(Long version, List<TagInfoModel> tags) {
-        TagInfoModel[] tagArray = new TagInfoModel[tags.size()];
-        tags.toArray(tagArray);
-        return versionDao.insertTag(version,tagArray);
-    }
-
-    @Override
-    public int insertTag(Long version, TagInfoModel... tags) {
-        return versionDao.insertTag(version,tags);
-    }
-
-    @Override
-    public int deleteTag(Long version) {
-        return versionDao.deleteTag(version);
-    }
-
-    @Override
-    public Integer findVersionById(Long id) {
-        return versionDao.findVersionById(id);
-    }
-
-    @Override
-    public List<QuestionVersionModel> searchByQuestionId(Long questionId,Boolean hasContent) {
-        Map<String, String> order = new HashMap<>();
-        order.put("created_time","desc");
-        return versionDao.search(null,questionId,null,hasContent,null,null,null,null,null,null,order,null,null);
-    }
-
-    @Override
-    public List<QuestionVersionModel> searchByQuestionId(Long questionId){
-        return searchByQuestionId(questionId,false);
-    }
-
-    @Override
-    public QuestionVersionModel findById(Long id) {
-        return findByQuestionIdAndId(id,null);
-    }
-
-    @Override
-    public QuestionVersionModel findByQuestionIdAndId(Long id, Long questionId) {
-        List<QuestionVersionModel> list = versionDao.search(id,questionId,null,true,null,null,null,null,null,null,null,null,null);
-        if(list == null || list.size() == 0)
-            return null;
-        return list.get(0);
     }
 
 
@@ -195,6 +130,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
     @Override
     @Transactional
+    @Caching( evict = { @CacheEvict(key = "#versionModel.id"), @CacheEvict(key = "T(String).valueOf(#versionModel.questionId).concat('-').concat(#versionModel.version)")})
     public int updateVersion(QuestionVersionModel versionModel) {
         try{
             Long versionId = versionModel.getId();
@@ -252,157 +188,6 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
             logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
-        }
-    }
-
-    private List<Long> findNotExistTag(List<TagInfoModel> source,List<TagInfoModel> target){
-        List<Long> list = new ArrayList<>();
-        for(TagInfoModel sourceTag:source){
-            boolean exist = false;
-            if(target != null){
-                for(TagInfoModel targetTag:target){
-                    if(sourceTag.getId().equals(targetTag.getId())){
-                        exist = true;
-                        break;
-                    }
-                }
-            }
-            if(!exist){
-                list.add(sourceTag.getId());
-            }
-        }
-        return list;
-    }
-
-
-    @Override
-    @Transactional
-    @CacheEvict(value = "question",key = "#id")
-    public QuestionVersionModel addVersion(Long id, Long userId, String title, String content, String html, String description, RewardType rewardType, Double rewardValue, Double rewardAdd, List<TagInfoModel> tags, String remark, Integer version, String save_type, Long ip, Boolean isPublish, Boolean force) throws Exception {
-        try {
-            QuestionVersionModel versionModel = new QuestionVersionModel();
-            versionModel.setQuestionId(id);
-            QuestionDetailModel detailModel = searchService.getDetail(id, "draft",userId);
-            if(detailModel == null)
-            {
-                QuestionInfoModel infoModel = searchService.findById(id);
-                if(infoModel != null){
-                    detailModel = new QuestionDetailModel();
-                    detailModel.setId(infoModel.getId());
-                    detailModel.setCreatedUserId(infoModel.getCreatedUserId());
-                }
-            }
-            if (force) {
-                versionModel.setTitle(title);
-                versionModel.setContent(content);
-                versionModel.setHtml(html);
-            } else {
-                if (StringUtils.isNotEmpty(title) && !title.equals(detailModel.getTitle())) {
-                    versionModel.setTitle(title);
-                }
-                if (StringUtils.isNotEmpty(content)&& !content.equals(detailModel.getContent())) {
-                    versionModel.setContent(content);
-                    versionModel.setHtml(html);
-                    if(!StringUtils.isNotEmpty(versionModel.getTitle())){
-                        versionModel.setTitle(detailModel.getTitle());
-                    }
-                }else if(StringUtils.isNotEmpty(versionModel.getTitle())){
-                    versionModel.setContent(detailModel.getContent());
-                    versionModel.setHtml(detailModel.getHtml());
-                }
-            }
-            if(detailModel == null) return null;
-            List<TagInfoModel> oldTags = new ArrayList<>();
-            for (TagDetailModel tagDetail : detailModel.getTags()){
-                oldTags.add(new TagInfoModel(tagDetail.getId(),tagDetail.getName(),tagDetail.getGroupId()));
-            }
-
-            List<Long> addTags = tags != null ? findNotExistTag(tags,oldTags) : new ArrayList<>();
-            List<Long> delTags = tags != null ? findNotExistTag(oldTags,tags) : new ArrayList<>();
-            // 当有新内容更新时才需要新增版本
-            if (StringUtils.isNotEmpty(versionModel.getTitle())|| StringUtils.isNotEmpty(versionModel.getContent())) {
-                if(isPublish == true){
-                    versionModel.setRewardType(rewardType == null ? detailModel.getRewardType() : rewardType);
-                    versionModel.setRewardValue(rewardValue == null ? detailModel.getRewardValue() : rewardValue);
-                    versionModel.setDescription(description);
-                    versionModel.setRewardAdd(rewardAdd == null ? 0.0 : rewardAdd);
-                    versionModel.setTags(tags);
-
-                    if(addTags != null && addTags.size() > 0){
-                        int result = tagService.updateQuestionCountById(addTags,1);
-                        if(result != addTags.size()) throw new Exception("更新标签提问数量失败");
-                    }
-                    if(delTags != null && delTags.size() > 0){
-                        int result = tagService.updateQuestionCountById(delTags,-1);
-                        if(result != delTags.size()) throw new Exception("更新标签提问数量失败");
-                    }
-                    if(StringUtils.isEmpty(detailModel.getCover())){
-                        JSONObject coverObj = StringUtils.getEditorContentCover(content);
-                        if(coverObj != null){
-                            int result = infoDao.updateMetas(id,coverObj.getString("src"));
-                            if(result != 1) throw new Exception("更新封面失败");
-                        }
-                    }
-                }else{
-                    versionModel.setDescription(description == null ? detailModel.getDescription() : description);
-                    versionModel.setRewardType(rewardType == null ? detailModel.getRewardType() : rewardType);
-                    versionModel.setRewardValue(rewardValue == null ? detailModel.getRewardValue() : rewardValue);
-                    versionModel.setRewardAdd(rewardAdd == null ? 0.0 : rewardAdd);
-                    versionModel.setTags(tags == null ? oldTags : tags);
-                }
-
-                versionModel.setPublished(isPublish);
-                versionModel.setVersion(version);
-                versionModel.setRemark(remark);
-                versionModel.setSaveType(save_type);
-                versionModel.setCreatedTime(DateUtils.getTimestamp());
-                versionModel.setCreatedUserId(userId);
-                versionModel.setCreatedIp(ip);
-
-                int rows = isPublish == true ? updateVersion(versionModel) : updateDraft(versionModel);
-                if (rows != 1)
-                    throw new Exception("新增版本失败");
-                //第一次发布，更新用户的问题数量
-                if(isPublish == true && detailModel.isPublished() == false){
-                    int result = userService.updateQuestionCount(detailModel.getCreatedUserId(),1);
-                    if(result != 1) throw new Exception("更新用户问题数量失败");
-                }
-            }
-            String url = "/question/" + id.toString();
-            String draftTitle = versionModel.getTitle();
-            if(StringUtils.isEmpty(draftTitle)) draftTitle = "无标题";
-            UserDraftModel draftModel = new UserDraftModel(detailModel.getCreatedUserId(),url,draftTitle,StringUtils.getFragmenter(versionModel.getContent()), EntityType.QUESTION,id,DateUtils.getTimestamp(),ip,userId);
-            draftService.insertOrUpdate(draftModel);
-
-            if(isPublish){
-                if(!detailModel.isPublished()){
-                    operationalPublisher.publish(new QuestionEvent(this, EntityAction.PUBLISH,
-                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
-                }else{
-                    operationalPublisher.publish(new QuestionEvent(this, EntityAction.UPDATE,
-                            detailModel.getId(),detailModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
-                }
-                HashSet<Long> tagIds = new HashSet<>();
-                if(addTags != null && addTags.size() > 0){
-                    for(Long i : addTags){
-                        if(!tagIds.contains(i)) tagIds.add(i);
-                    }
-                }
-                if(delTags != null && delTags.size() > 0){
-                    for(Long i : delTags){
-                        if(!tagIds.contains(i)) tagIds.add(i);
-                    }
-                }
-
-                if(tagIds.size() > 0){
-                    operationalPublisher.publish(new TagIndexEvent(this,tagIds));
-                }
-            }
-            return versionModel;
-        }catch (Exception e){
-            logger.error(e.getLocalizedMessage());
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            throw e;
         }
     }
 }

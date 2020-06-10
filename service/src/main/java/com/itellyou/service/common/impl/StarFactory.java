@@ -7,7 +7,7 @@ import com.itellyou.service.common.StarService;
 import com.itellyou.service.question.impl.QuestionAnswerStarServiceImpl;
 import com.itellyou.service.question.impl.QuestionStarServiceImpl;
 import com.itellyou.service.tag.impl.TagStarServiceImpl;
-import com.itellyou.service.user.impl.UserStarServiceImpl;
+import com.itellyou.service.user.star.impl.UserStarServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

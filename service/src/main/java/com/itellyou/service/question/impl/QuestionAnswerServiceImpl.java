@@ -4,7 +4,6 @@ import com.itellyou.dao.question.QuestionAnswerDao;
 import com.itellyou.model.event.AnswerEvent;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
-import com.itellyou.model.question.QuestionAnswerVersionModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
@@ -15,9 +14,9 @@ import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.common.ViewService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.*;
-import com.itellyou.service.user.UserBankService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
+import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import org.slf4j.Logger;
@@ -36,24 +35,24 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionAnswerDao answerDao;
-    private final QuestionAnswerVersionService versionService;
     private final QuestionAnswerSearchService answerSearchService;
     private final ViewService viewService;
     private final QuestionInfoService questionService;
     private final QuestionSearchService questionSearchService;
+    private final QuestionAnswerSingleService answerSingleService;
     private final UserBankService bankService;
     private final UserInfoService userInfoService;
     private final UserDraftService draftService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionAnswerServiceImpl(QuestionAnswerDao answerDao, QuestionAnswerVersionService versionService, QuestionAnswerSearchService answerSearchService, ViewService viewService, QuestionInfoService questionService, QuestionSearchService questionSearchService, UserBankService bankService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
+    public QuestionAnswerServiceImpl(QuestionAnswerDao answerDao, QuestionAnswerSearchService answerSearchService, ViewService viewService, QuestionInfoService questionService, QuestionSearchService questionSearchService, QuestionAnswerSingleService answerSingleService, UserBankService bankService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.answerDao = answerDao;
         this.viewService = viewService;
-        this.versionService = versionService;
         this.answerSearchService = answerSearchService;
         this.questionService = questionService;
         this.questionSearchService = questionSearchService;
+        this.answerSingleService = answerSingleService;
         this.bankService = bankService;
         this.userInfoService = userInfoService;
         this.draftService = draftService;
@@ -69,7 +68,7 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     @CacheEvict(key = "#id")
     public int updateView(Long userId,Long id,Long ip,String os,String browser) throws Exception {
         try{
-            QuestionAnswerModel answerModel = answerSearchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null) throw new Exception("错误的编号");
             long prevTime = viewService.insertOrUpdate(userId,EntityType.ANSWER,id,ip,os,browser);
 
@@ -124,7 +123,7 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     @CacheEvict(key = "#id")
     public QuestionDetailModel adopt(Long id, Long userId, String ip) throws Exception {
         try {
-            QuestionAnswerModel answerModel = answerSearchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null) throw new Exception("不存在的回答");
             if(answerModel.isAdopted() || answerModel.isDisabled() || answerModel.isDeleted() || !answerModel.isPublished()) throw new Exception("错误的回答状态");
 
@@ -159,7 +158,7 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     @CacheEvict(key = "#id")
     public QuestionAnswerDetailModel delete(Long id,Long questionId, Long userId,Long ip) throws Exception {
         try{
-            QuestionAnswerModel answerModel = answerSearchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null || !answerModel.getCreatedUserId().equals(userId) || !answerModel.getQuestionId().equals(questionId)){
                 throw new Exception("错误的回答Id");
             }
@@ -193,7 +192,7 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     @CacheEvict(key = "#id")
     public QuestionAnswerDetailModel revokeDelete(Long id, Long questionId, Long userId,Long ip) throws Exception {
         try{
-            QuestionAnswerModel answerModel = answerSearchService.findById(id);
+            QuestionAnswerModel answerModel = answerSingleService.findById(id);
             if(answerModel == null || !answerModel.getCreatedUserId().equals(userId) || !answerModel.getQuestionId().equals(questionId)){
                 throw new Exception("错误的回答Id");
             }
@@ -223,31 +222,6 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     }
 
     @Override
-    @Transactional
-    public Long create(Long questionId, Long userId, String content, String html,String description, String remark, String save_type, Long ip) throws Exception {
-
-        try{
-            QuestionAnswerModel answerModel = new QuestionAnswerModel();
-            answerModel.setQuestionId(questionId);
-            answerModel.setDraft(0);
-            answerModel.setCreatedIp(ip);
-            answerModel.setCreatedTime(DateUtils.getTimestamp());
-            answerModel.setCreatedUserId(userId);
-            int resultRows = insert(answerModel);
-            if(resultRows != 1)
-                throw new Exception("写入回答失败");
-            QuestionAnswerVersionModel versionModel = versionService.addVersion(answerModel.getId(),questionId,userId,content,html,description,remark,1,save_type,ip,false,true);
-            if(versionModel == null)
-                throw new Exception("写入版本失败");
-            return answerModel.getId();
-        }catch (Exception e){
-            logger.error(e.getLocalizedMessage());
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return null;
-        }
-    }
-
-    @Override
     @CacheEvict(key = "#id")
     public int updateVote(VoteType type, Integer value, Long id) {
         return answerDao.updateVote(type,value,id);
@@ -257,6 +231,12 @@ public class QuestionAnswerServiceImpl implements QuestionAnswerService {
     @CacheEvict(key = "#id")
     public int updateMetas(Long id, String cover) {
         return answerDao.updateMetas(id,cover);
+    }
+
+    @Override
+    @CacheEvict(key = "#id")
+    public int updateInfo(Long id, String description, Long time, Long ip, Long userId) {
+        return answerDao.updateInfo(id,description,time,ip,userId);
     }
 
 }

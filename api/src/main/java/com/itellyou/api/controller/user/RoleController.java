@@ -5,8 +5,8 @@ import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserRoleModel;
 import com.itellyou.service.sys.SysRoleService;
-import com.itellyou.service.user.UserRoleService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.access.UserRoleService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -26,11 +26,11 @@ import java.util.Map;
 @RequestMapping("/user/role")
 public class RoleController {
 
-    private final UserSearchService searchService;
+    private final UserSingleService searchService;
     private final UserRoleService userRoleService;
     private final SysRoleService roleService;
 
-    public RoleController(UserSearchService searchService, UserRoleService userRoleService, SysRoleService roleService) {
+    public RoleController(UserSingleService searchService, UserRoleService userRoleService, SysRoleService roleService) {
         this.searchService = searchService;
         this.userRoleService = userRoleService;
         this.roleService = roleService;

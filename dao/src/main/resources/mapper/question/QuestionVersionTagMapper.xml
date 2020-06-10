@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.question.QuestionVersionTagDao">
+    <insert id="add">
+        insert into question_version_tag values(#{versionId},#{tagId})
+    </insert>
+    <insert id="addAll">
+        insert into question_version_tag values
+        <foreach collection="tagIds" item="tag" separator=",">
+            (#{versionId},#{tag})
+        </foreach>
+    </insert>
+    <delete id="clear">
+        delete from question_version_tag where version=#{versionId}
+    </delete>
+    <delete id="remove">
+        delete from question_version_tag where version=#{versionId} and tag=#{tagId}
+    </delete>
+    <select id="searchTags" resultType="QuestionVersionTagModel">
+        select version version_id,tag tag_id from question_version_tag  where version in
+        <foreach collection="versionIds" item="versionId" separator="," open="(" close=")" >
+            #{versionId}
+        </foreach>
+    </select>
+    <select id="searchTagId" resultType="Long">
+        select tag from question_version_tag where version=#{versionId}
+    </select>
+</mapper>

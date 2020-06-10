@@ -11,8 +11,8 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerCommentService;
-import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerService;
+import com.itellyou.service.question.QuestionAnswerSingleService;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,22 +31,23 @@ public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentSe
 
     private final QuestionAnswerCommentDao commentDao;
     private final QuestionAnswerService answerService;
-    private final QuestionAnswerSearchService answerSearchService;
+    private final QuestionAnswerSingleService answerSingleService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionAnswerCommentServiceImpl(QuestionAnswerCommentDao commentDao, QuestionAnswerService answerService, QuestionAnswerSearchService answerSearchService, OperationalPublisher operationalPublisher){
+    public QuestionAnswerCommentServiceImpl(QuestionAnswerCommentDao commentDao, QuestionAnswerService answerService,  QuestionAnswerSingleService answerSingleService, OperationalPublisher operationalPublisher){
         this.commentDao = commentDao;
         this.answerService = answerService;
-        this.answerSearchService = answerSearchService;
+        this.answerSingleService = answerSingleService;
         this.operationalPublisher = operationalPublisher;
     }
 
     @Override
     @Transactional
+    @CacheEvict(key = "#parentId")
     public QuestionAnswerCommentModel insert(Long answerId,Long parentId,Long replyId,String content , String html,Long userId,Long ip,Boolean sendEvent) throws Exception {
         try{
-            QuestionAnswerModel answerModel = answerSearchService.findById(answerId);
+            QuestionAnswerModel answerModel = answerSingleService.findById(answerId);
             if(answerModel == null) throw new Exception("错误的回答ID");
             QuestionAnswerCommentModel replyCommentModel = null;
             if(replyId != null && !replyId.equals(0l)){

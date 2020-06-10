@@ -1,7 +1,7 @@
 package com.itellyou.model.tag;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.sys.CacheEntity;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
@@ -20,6 +20,8 @@ public class TagInfoModel implements CacheEntity {
     private Long id;
     @JSONField(label = "base")
     private String name;
+    @JSONField(label = "draft,base")
+    private String description = "";
     private Long groupId=0l;
     @JSONField(label = "draft,base")
     private boolean isPublished = false;

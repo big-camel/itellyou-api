@@ -1,17 +1,16 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionInfoDao;
-import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.event.QuestionEvent;
 import com.itellyou.model.question.QuestionInfoModel;
-import com.itellyou.model.question.QuestionVersionModel;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.RewardType;
-import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.common.ViewService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.service.question.QuestionVersionService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.List;
-
 @CacheConfig(cacheNames = "question")
 @Service
 public class QuestionInfoServiceImpl implements QuestionInfoService {
@@ -34,24 +31,21 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionInfoDao questionInfoDao;
-
     private final QuestionVersionService versionService;
-
     private final ViewService viewService;
-
-
     private final QuestionSearchService questionSearchService;
-
+    private final QuestionSingleService questionSingleService;
     private final UserInfoService userInfoService;
     private final UserDraftService draftService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionInfoServiceImpl(QuestionInfoDao questionInfoDao, QuestionVersionService versionService, ViewService viewService, QuestionSearchService questionSearchService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
+    public QuestionInfoServiceImpl(QuestionInfoDao questionInfoDao, QuestionVersionService versionService, ViewService viewService, QuestionSearchService questionSearchService, QuestionSingleService questionSingleService, UserInfoService userInfoService, UserDraftService draftService, OperationalPublisher operationalPublisher){
         this.questionInfoDao = questionInfoDao;
         this.versionService = versionService;
         this.viewService = viewService;
         this.questionSearchService = questionSearchService;
+        this.questionSingleService = questionSingleService;
         this.userInfoService = userInfoService;
         this.draftService = draftService;
         this.operationalPublisher = operationalPublisher;
@@ -69,7 +63,7 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
     public int updateView(Long userId,Long id,Long ip,String os,String browser) {
 
         try{
-            QuestionInfoModel questionModel = questionSearchService.findById(id);
+            QuestionInfoModel questionModel = questionSingleService.findById(id);
             if(questionModel == null) throw new Exception("错误的编号");
             long prevTime = viewService.insertOrUpdate(userId,EntityType.QUESTION,id,ip,os,browser);
 
@@ -115,33 +109,10 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
 
     @Override
     @Transactional
-    public Long create(Long userId, String title, String content, String html, String description, RewardType rewardType, Double rewardValue, Double rewardAdd, List<TagInfoModel> tags, String remark, String save_type, Long ip) throws Exception {
-        try{
-            QuestionInfoModel infoModel = new QuestionInfoModel();
-            infoModel.setDraft(0);
-            infoModel.setCreatedIp(ip);
-            infoModel.setCreatedTime(DateUtils.getTimestamp());
-            infoModel.setCreatedUserId(userId);
-            int resultRows = insert(infoModel);
-            if(resultRows != 1)
-                throw new Exception("写入提问失败");
-            QuestionVersionModel versionModel = versionService.addVersion(infoModel.getId(),userId,title,content,html,description,rewardType,rewardValue,rewardAdd,tags,remark,1,save_type,ip,false,true);
-            if(versionModel == null)
-                throw new Exception("写入版本失败");
-            return infoModel.getId();
-        }catch (Exception e){
-            logger.error(e.getLocalizedMessage());
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return null;
-        }
-    }
-
-    @Override
-    @Transactional
     @CacheEvict(key = "#id")
     public int updateDeleted(boolean deleted, Long id,Long userId,Long ip) {
         try {
-            QuestionInfoModel questionInfoModel = questionSearchService.findById(id);
+            QuestionInfoModel questionInfoModel = questionSingleService.findById(id);
             if(questionInfoModel == null) throw new Exception("未找到问题");
             if(!questionInfoModel.getCreatedUserId().equals(userId)) throw new Exception("无权限");
             int result = questionInfoDao.updateDeleted(deleted,id);
@@ -165,5 +136,11 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
     @CacheEvict(key = "#id")
     public int updateMetas(Long id, String cover) {
         return questionInfoDao.updateMetas(id,cover);
+    }
+
+    @Override
+    @CacheEvict(key = "#id")
+    public int updateInfo(Long id, String title, String description, RewardType rewardType, Double rewardAdd, Double rewardValue, Long time, Long ip, Long userId) {
+        return questionInfoDao.updateInfo(id,title,description,rewardType,rewardAdd,rewardValue,time,ip,userId);
     }
 }

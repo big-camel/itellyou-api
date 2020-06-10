@@ -22,4 +22,14 @@
         <property name="prefix" value=""/>
     </include> from question_answer_paid_read where answer_id=#{answerId}
     </select>
+    <select id="search" resultType="QuestionAnswerPaidReadModel">
+        select <include refid="columns">
+        <property name="alias" value=""/>
+        <property name="prefix" value=""/>
+    </include> from question_answer_paid_read
+        where answer_id
+        <foreach collection="answerIds" item="id" open=" in (" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 </mapper>

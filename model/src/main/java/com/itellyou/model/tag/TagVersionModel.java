@@ -2,6 +2,7 @@ package com.itellyou.model.tag;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
 import com.itellyou.util.serialize.TimestampDeserializer;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TagVersionModel {
+public class TagVersionModel implements CacheEntity {
     private Long id;
     private Long tagId=0l;
     private String content = "";
@@ -39,4 +40,9 @@ public class TagVersionModel {
     private Long updatedUserId;
     @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp;
+
+    @Override
+    public String cacheKey() {
+        return id.toString();
+    }
 }

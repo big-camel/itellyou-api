@@ -17,7 +17,7 @@ public class GithubConfigServiceImpl implements ConfigDefaultService<GithubConfi
         this.configDao = configDao;
     }
 
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public GithubConfigModel getDefault(){
         return configDao.get();
     }

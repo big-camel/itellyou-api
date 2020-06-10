@@ -5,19 +5,19 @@ import com.alibaba.fastjson.TypeReference;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.SysPermissionModel;
 import com.itellyou.model.sys.SysPermissionPlatform;
-import com.itellyou.service.sys.SysPermissionService;
-import com.itellyou.service.user.UserLoginService;
-import com.itellyou.service.user.UserSearchService;
-import com.itellyou.util.annotation.MultiRequestBody;
-import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.thirdparty.GeetestResultModel;
+import com.itellyou.model.thirdparty.SmsLogModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.thirdparty.SmsLogService;
+import com.itellyou.service.sys.SysPermissionService;
 import com.itellyou.service.thirdparty.GeetestService;
+import com.itellyou.service.thirdparty.SmsLogService;
+import com.itellyou.service.user.passport.UserLoginService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.IPUtils;
+import com.itellyou.util.StringUtils;
+import com.itellyou.util.annotation.MultiRequestBody;
 import com.itellyou.util.validation.Mobile;
 import com.itellyou.util.validation.MobileValidator;
-import com.itellyou.util.StringUtils;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,14 +36,14 @@ import java.util.Map;
 @RequestMapping("/user/login")
 public class LoginController {
 
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final GeetestService geetestService;
     private final UserLoginService loginService;
     private final SmsLogService smsLogService;
     private final SysPermissionService permissionService;
 
     @Autowired
-    public LoginController(UserSearchService userSearchService, GeetestService geetestService, UserLoginService loginService, SmsLogService smsLogService, SysPermissionService permissionService){
+    public LoginController(UserSingleService userSearchService, GeetestService geetestService, UserLoginService loginService, SmsLogService smsLogService, SysPermissionService permissionService){
         this.userSearchService = userSearchService;
         this.geetestService = geetestService;
         this.loginService = loginService;

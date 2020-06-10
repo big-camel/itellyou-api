@@ -11,7 +11,7 @@ import java.util.Map;
 public interface ColumnSearchService {
     List<ColumnDetailModel> search(HashSet<Long> ids, String name, Long userId,Long memberId, Long searchUserId,
                                    Boolean isDisabled, Boolean isReviewed, Boolean isDeleted,
-                                   List<Long> tags,
+                                   HashSet<Long> tags,
                                    Integer minArticles, Integer maxArticles,
                                    Integer minStars, Integer maxStars,
                                    Long beginTime, Long endTime,
@@ -22,14 +22,14 @@ public interface ColumnSearchService {
 
     int count(HashSet<Long> ids, String name, Long userId,Long memberId,
               Boolean isDisabled, Boolean isReviewed, Boolean isDeleted,
-              List<Long> tags,
+              HashSet<Long> tags,
               Integer minArticles, Integer maxArticles,
               Integer minStars, Integer maxStars,
               Long beginTime, Long endTime, Long ip);
 
     PageModel<ColumnDetailModel> page(HashSet<Long> ids, String name, Long userId,Long memberId, Long searchUserId,
                                       Boolean isDisabled, Boolean isReviewed, Boolean isDeleted,
-                                      List<Long> tags,
+                                      HashSet<Long> tags,
                                       Integer minArticles, Integer maxArticles,
                                       Integer minStars, Integer maxStars,
                                       Long beginTime, Long endTime,

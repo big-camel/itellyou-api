@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.column.ColumnTagDao">
+    <insert id="add">
+        insert into column_tag values(#{columnId},#{tagId})
+    </insert>
+    <insert id="addAll">
+        insert into column_tag values
+        <foreach collection="tagIds" item="tag" separator=",">
+            (#{articleId},#{tag})
+        </foreach>
+    </insert>
+    <delete id="clear">
+        delete from column_tag where column_id=#{columnId}
+    </delete>
+    <delete id="remove">
+        delete from column_tag where column_id=#{columnId} and tag_id=#{tagId}
+    </delete>
+    <select id="searchTags" resultType="ColumnTagModel">
+        select column_id,tag_id from column_tag  where column_id in
+        <foreach collection="columnIds" item="column" separator="," open="(" close=")" >
+            #{column}
+        </foreach>
+    </select>
+    <select id="searchTagId" resultType="Long">
+        select tag_id from column_tag  where column_id in
+        <foreach collection="columnIds" item="column" separator="," open="(" close=")" >
+            #{column}
+        </foreach>
+    </select>
+    <select id="searchColumnId" resultType="Long">
+        select column_id from column_tag where tag_id in
+        <foreach collection="tagIds" item="tag" separator="," open="(" close=")" >
+            #{tag}
+        </foreach>
+    </select>
+</mapper>

@@ -18,8 +18,18 @@
     </delete>
     <select id="findByArticleId" resultType="ArticlePaidReadModel">
         select <include refid="columns">
-        <property name="alias" value=""/>
-        <property name="prefix" value=""/>
-    </include> from article_paid_read where article_id=#{articleId}
+            <property name="alias" value=""/>
+            <property name="prefix" value=""/>
+        </include> from article_paid_read where article_id=#{articleId}
+    </select>
+    <select id="search" resultType="ArticlePaidReadModel">
+        select <include refid="columns">
+                <property name="alias" value=""/>
+                <property name="prefix" value=""/>
+            </include> from article_paid_read
+            where article_id
+                <foreach collection="articleIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
     </select>
 </mapper>

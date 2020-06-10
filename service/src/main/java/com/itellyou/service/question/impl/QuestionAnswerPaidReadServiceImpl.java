@@ -13,7 +13,7 @@ import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
 import com.itellyou.service.question.QuestionAnswerPaidReadService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
-import com.itellyou.service.user.UserBankService;
+import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

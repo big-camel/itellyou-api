@@ -1,19 +1,16 @@
 package com.itellyou.service.question;
 
-import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.sys.PageModel;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public interface QuestionAnswerSearchService {
-    QuestionAnswerModel findByQuestionIdAndUserId(Long questionId, Long userId);
 
-    QuestionAnswerModel findById(Long id);
-
-    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments,
+    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments,
                                            Integer minView, Integer maxView,
                                            Integer minSupport, Integer maxSupport,
                                            Integer minOppose, Integer maxOppose,
@@ -23,20 +20,20 @@ public interface QuestionAnswerSearchService {
                                            Integer offset,
                                            Integer limit);
 
-    int count(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments,
+    int count(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long userId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments,
                     Integer minView, Integer maxView,
                     Integer minSupport, Integer maxSupport,
                     Integer minOppose, Integer maxOppose,
                     Integer minStar, Integer maxStar,
                     Long beginTime, Long endTime);
 
-    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted,
+    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted,
                                            Long beginTime, Long endTime,
                                            Map<String, String> order,
                                            Integer offset,
                                            Integer limit);
 
-    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent,
+    List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent,
                                            Long beginTime, Long endTime,
                                            Map<String, String> order,
                                            Integer offset,
@@ -61,7 +58,7 @@ public interface QuestionAnswerSearchService {
                                            Integer offset,
                                            Integer limit);
 
-    int count(Long questionId, Long searchUserId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Integer minComments, Integer maxComments,
+    int count(Long questionId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Integer minComments, Integer maxComments,
                     Integer minView, Integer maxView,
                     Integer minSupport, Integer maxSupport,
                     Integer minOppose, Integer maxOppose,
@@ -79,7 +76,7 @@ public interface QuestionAnswerSearchService {
                                            Integer offset,
                                            Integer limit);
 
-    int count(Long questionId, Long searchUserId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime);
+    int count(Long questionId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime);
 
     PageModel<QuestionAnswerDetailModel> page(Long questionId, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted,
                                                     Long beginTime, Long endTime,
@@ -87,8 +84,20 @@ public interface QuestionAnswerSearchService {
                                                     Integer offset,
                                                     Integer limit);
 
-    PageModel<QuestionAnswerDetailModel> page(HashSet<Long> ids, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit);
+    PageModel<QuestionAnswerDetailModel> page(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit);
 
+    List<QuestionAnswerModel> searchChild(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long userId,
+                                          Integer childCount,
+                                          Boolean isAdopted,
+                                          Boolean isDisabled, Boolean isPublished, Boolean isDeleted,
+                                          Long ip, Integer minComments, Integer maxComments,
+                                          Integer minView, Integer maxView,
+                                          Integer minSupport, Integer maxSupport,
+                                          Integer minOppose, Integer maxOppose,
+                                          Integer minStar, Integer maxStar,
+                                          Long beginTime, Long endTime,
+                                          Map<String, String> order);
+    
     QuestionAnswerDetailModel getDetail(Long id, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted);
     QuestionAnswerDetailModel getDetail(Long id, Long questionId, String mode, Long searchUserId, Long userId, Boolean hasContent);
     QuestionAnswerDetailModel getDetail(Long id, Long questionId, String mode, Long searchUserId, Long userId);

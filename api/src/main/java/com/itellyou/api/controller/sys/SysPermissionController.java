@@ -4,7 +4,7 @@ import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.sys.*;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.sys.SysPermissionService;
-import com.itellyou.service.user.UserRoleService;
+import com.itellyou.service.user.access.UserRoleService;
 import com.itellyou.util.Params;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;

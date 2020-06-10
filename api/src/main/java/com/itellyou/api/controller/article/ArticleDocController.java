@@ -3,13 +3,13 @@ package com.itellyou.api.controller.article;
 import com.itellyou.model.article.*;
 import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.tag.TagInfoModel;
+import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.*;
 import com.itellyou.service.collab.CollabInfoService;
-import com.itellyou.service.tag.TagSearchService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.tag.TagSingleService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -22,9 +22,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 @Validated
@@ -33,23 +33,25 @@ import java.util.Map;
 public class ArticleDocController {
     private final ArticleInfoService articleInfoService;
     private final ArticleSearchService articleSearchService;
-    private final ArticleVersionService articleVersionService;
+    private final ArticleSingleService articleSingleService;
+    private final ArticleVersionSearchService articleVersionSearchService;
+    private final ArticleDocService articleDocService;
     private final CollabInfoService collabInfoService;
-    private final ArticleVersionService versionService;
-    private final TagSearchService tagSearchService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final ArticlePaidReadService paidReadService;
+    private final TagSingleService tagSingleService;
 
     @Autowired
-    public ArticleDocController(ArticleInfoService articleInfoService, ArticleVersionService articleVersionService, ArticleSearchService articleSearchService, CollabInfoService collabInfoService, ArticleVersionService versionService, TagSearchService tagSearchService, UserSearchService userSearchService, ArticlePaidReadService paidReadService){
+    public ArticleDocController(ArticleInfoService articleInfoService, ArticleSearchService articleSearchService, ArticleSingleService articleSingleService, ArticleVersionSearchService articleVersionSearchService, ArticleDocService articleDocService, CollabInfoService collabInfoService, UserSingleService userSearchService, ArticlePaidReadService paidReadService, TagSingleService tagSingleService){
         this.articleInfoService = articleInfoService;
         this.articleSearchService = articleSearchService;
-        this.articleVersionService = articleVersionService;
+        this.articleVersionSearchService = articleVersionSearchService;
+        this.articleSingleService = articleSingleService;
+        this.articleDocService = articleDocService;
         this.collabInfoService = collabInfoService;
-        this.versionService = versionService;
-        this.tagSearchService = tagSearchService;
         this.userSearchService = userSearchService;
         this.paidReadService = paidReadService;
+        this.tagSingleService = tagSingleService;
     }
 
     @PostMapping("/create")
@@ -62,7 +64,7 @@ public class ArticleDocController {
 
         try{
             if(sourceType == null) sourceType = ArticleSourceType.ORIGINAL.toString();
-            Long id = articleInfoService.create(userInfoModel.getId(),columnId,ArticleSourceType.valueOf(sourceType.toUpperCase()),sourceData,title,content,html, StringUtils.getFragmenter(content),null
+            Long id = articleDocService.create(userInfoModel.getId(),columnId,ArticleSourceType.valueOf(sourceType.toUpperCase()),sourceData,title,content,html, StringUtils.getFragmenter(content),null
                     ,"创建文章",save_type,ipLong);
             if(id == null) return new ResultModel(0,"创建失败");
             return new ResultModel(id);
@@ -105,7 +107,7 @@ public class ArticleDocController {
         }
         String clientIp = IPUtils.getClientIp(request);
         Long ipLong = IPUtils.toLong(clientIp);
-        ArticleInfoModel infoModel = articleSearchService.findById(id);
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用文章");
             //暂时只能创建者有权限编辑
@@ -113,7 +115,7 @@ public class ArticleDocController {
                 return new ResultModel(401,"无权限编辑");
             }
 
-            ArticleVersionModel versionModel = articleVersionService.addVersion(id,userInfoModel.getId(),null,null,null,title,content,html,StringUtils.getFragmenter(content),null,
+            ArticleVersionModel versionModel = articleDocService.addVersion(id,userInfoModel.getId(),null,null,null,title,content,html,StringUtils.getFragmenter(content),null,
                     "一般编辑更新",null,save_type,ipLong,false,false);
             if(versionModel == null) return new ResultModel(0,"更新内容失败");
             ArticleDetailModel detailModel = articleSearchService.getDetail(id,"draft",userInfoModel.getId());
@@ -128,10 +130,8 @@ public class ArticleDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-       /** if(StringUtils.isEmpty(customDescription) && StringUtils.isEmpty(cover)){
-            return new ResultModel(500,"参数错误");
-        }**/
-        ArticleInfoModel infoModel = articleSearchService.findById(id);
+
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用问题");
             //暂时只能创建者有权限编辑
@@ -150,7 +150,7 @@ public class ArticleDocController {
 
     @PutMapping("/{id:\\d+}/paidread")
     public ResultModel paidRead(UserInfoModel userInfoModel, @PathVariable Long id, @RequestBody Map<String ,Object> params){
-        ArticleInfoModel infoModel = articleSearchService.findById(id);
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         try{
             if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用文章");
             //暂时只能创建者有权限编辑
@@ -197,20 +197,24 @@ public class ArticleDocController {
         if(userInfoModel == null){
             return new ResultModel(401,"未登录");
         }
-        ArticleInfoModel infoModel = articleSearchService.findById(id);
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()) return new ResultModel(404,"无可用提问");
         //暂时只能创建者有权限编辑
         if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
             return new ResultModel(401,"无权限编辑");
         }
-        ArticleVersionModel articleVersion = versionService.findByArticleIdAndId(version_id,id);
+        ArticleVersionModel articleVersion = articleVersionSearchService.findByArticleIdAndId(version_id,id);
         if(articleVersion == null || articleVersion.isDisabled()){
             return  new ResultModel(0,"无记录，错误的ID");
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            ArticleVersionModel versionModel = articleVersionService.addVersion(id,userInfoModel.getId(),articleVersion.getColumnId(),articleVersion.getSourceType(),articleVersion.getSourceData(),
-                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),articleVersion.getDescription(),articleVersion.getTags(),
+            HashSet<Long> tagIds = new LinkedHashSet<>();
+            for(TagDetailModel tagDetailModel : articleVersion.getTags()){
+                tagIds.add(tagDetailModel.getId());
+            }
+            ArticleVersionModel versionModel = articleDocService.addVersion(id,userInfoModel.getId(),articleVersion.getColumnId(),articleVersion.getSourceType(),articleVersion.getSourceData(),
+                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),articleVersion.getDescription(),tagIds,
                     "回滚到版本[" + articleVersion.getVersion() + "]",null,"rollback",
                     IPUtils.toLong(clientIp),false,true);
 
@@ -233,24 +237,22 @@ public class ArticleDocController {
         }
 
         if(tags.length > 0){
-            int rows = tagSearchService.exists(tags);
+            int rows = tagSingleService.exists(tags);
             if(rows != tags.length){
                 return new ResultModel(0,"标签数据错误");
             }
         }
 
-        List<TagInfoModel> listTag = new ArrayList<>();
+        HashSet<Long> tagIds = new LinkedHashSet<>();
         for(Object tagId : tags){
-            TagInfoModel tag = new TagInfoModel();
-            tag.setId((Long) tagId);
-            listTag.add(tag);
+            tagIds.add((Long)tagId);
         }
 
         String clientIp = IPUtils.getClientIp(request);
         try {
             String description = articleVersion.getDescription();
-            ArticleVersionModel versionModel = articleVersionService.addVersion(id,userInfoModel.getId(),columnId,ArticleSourceType.valueOf(sourceType.toUpperCase()),sourceData,
-                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),description,listTag,
+            ArticleVersionModel versionModel = articleDocService.addVersion(id,userInfoModel.getId(),columnId,ArticleSourceType.valueOf(sourceType.toUpperCase()),sourceData,
+                    articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),description,tagIds,
                     remark,null,"publish",
                     IPUtils.toLong(clientIp),true,true);
 
@@ -268,7 +270,7 @@ public class ArticleDocController {
         if(collabInfoModel == null || collabInfoModel.isDisabled() == true){
             return new ResultModel(0,"错误的Token");
         }
-        ArticleInfoModel infoModel = articleSearchService.findById(id);
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         if(infoModel == null || infoModel.isDisabled() || infoModel.isDeleted()){
             return new ResultModel(0,"错误的文档");
         }

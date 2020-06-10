@@ -4,11 +4,15 @@ import com.itellyou.dao.sys.SysPathDao;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.service.sys.SysPathService;
+import com.itellyou.util.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
 
 @CacheConfig(cacheNames = "sys_path")
 @Service
@@ -43,5 +47,10 @@ public class SysPathServiceImpl implements SysPathService {
     @CacheEvict
     public int updateByTypeAndId(SysPathModel model) {
         return pathDao.updateByTypeAndId(model);
+    }
+
+    @Override
+    public List<SysPathModel> search(SysPath type, HashSet<Long> ids) {
+        return RedisUtils.fetchByCache("sys_path",SysPathModel.class,ids,(HashSet<Long> fetchIds) -> pathDao.search(type,fetchIds));
     }
 }

@@ -12,6 +12,8 @@ import com.itellyou.service.thirdparty.SmsLogService;
 import com.itellyou.service.thirdparty.ThirdAccountService;
 import com.itellyou.service.thirdparty.ThirdLogService;
 import com.itellyou.service.user.*;
+import com.itellyou.service.user.passport.UserLoginService;
+import com.itellyou.service.user.passport.UserRegisterService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -41,11 +43,11 @@ public class AlipayOAuthController {
     private final UserLoginService loginService;
     private final AlipayService alipayService;
     private final SmsLogService smsLogService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final UserRegisterService userRegisterService;
     private final static String ALIPAY_USER_SESSION_KEY = "alipay_user";
 
-    public AlipayOAuthController(ThirdAccountService accountService, ThirdLogService logService, UserLoginService loginService, AlipayService alipayService, SmsLogService smsLogService, UserSearchService userSearchService, UserRegisterService userRegisterService) {
+    public AlipayOAuthController(ThirdAccountService accountService, ThirdLogService logService, UserLoginService loginService, AlipayService alipayService, SmsLogService smsLogService, UserSingleService userSearchService, UserRegisterService userRegisterService) {
         this.accountService = accountService;
         this.logService = logService;
         this.loginService = loginService;

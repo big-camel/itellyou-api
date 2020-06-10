@@ -2,8 +2,8 @@ package com.itellyou.api.handler;
 
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.user.UserRoleService;
-import com.itellyou.service.user.UserTokenService;
+import com.itellyou.service.user.access.UserRoleService;
+import com.itellyou.service.user.passport.UserTokenService;
 import com.itellyou.util.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;

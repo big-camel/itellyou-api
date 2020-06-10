@@ -10,7 +10,5 @@ public interface VoteService<T> {
 
     int deleteByTargetIdAndUserId(Long targetId,Long userId);
 
-    T findByTargetIdAndUserId(Long targetId, Long userId);
-
     Map<String,Object> doVote(VoteType type, Long id, Long userId, Long ip);
 }

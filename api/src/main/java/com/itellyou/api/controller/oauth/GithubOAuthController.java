@@ -7,6 +7,8 @@ import com.itellyou.model.thirdparty.*;
 import com.itellyou.model.user.*;
 import com.itellyou.service.thirdparty.*;
 import com.itellyou.service.user.*;
+import com.itellyou.service.user.passport.UserLoginService;
+import com.itellyou.service.user.passport.UserRegisterService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
@@ -36,11 +38,11 @@ public class GithubOAuthController {
     private final UserLoginService loginService;
     private final GithubService githubService;
     private final SmsLogService smsLogService;
-    private final UserSearchService userSearchService;
+    private final UserSingleService userSearchService;
     private final UserRegisterService userRegisterService;
     private final static String GITHUB_USER_SESSION_KEY = "github_user";
 
-    public GithubOAuthController(ThirdAccountService accountService, ThirdLogService logService, UserLoginService loginService, GithubService githubService, SmsLogService smsLogService, UserSearchService userSearchService, UserRegisterService userRegisterService) {
+    public GithubOAuthController(ThirdAccountService accountService, ThirdLogService logService, UserLoginService loginService, GithubService githubService, SmsLogService smsLogService, UserSingleService userSearchService, UserRegisterService userRegisterService) {
         this.accountService = accountService;
         this.logService = logService;
         this.loginService = loginService;

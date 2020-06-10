@@ -10,6 +10,12 @@
     <select id="findByUserId" resultType="UserBankModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from user_bank where user_id=#{userId}
     </select>
+    <select id="search" resultType="UserBankModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from user_bank
+        where user_id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
     <insert id="insert">
         insert into user_bank(user_id,cash,credit,score) values (#{userId},#{cash},#{credit},#{score})
     </insert>

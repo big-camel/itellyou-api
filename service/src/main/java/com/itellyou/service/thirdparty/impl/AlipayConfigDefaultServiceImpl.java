@@ -18,7 +18,7 @@ public class AlipayConfigDefaultServiceImpl implements ConfigDefaultService<AliP
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public AliPayConfigModel getDefault() {
         return configDao.getDefault();
     }

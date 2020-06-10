@@ -2,20 +2,23 @@ package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
 import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.sys.SysPath;
+import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.user.UserRankService;
+import com.itellyou.model.user.UserStarModel;
+import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.bank.UserBankService;
+import com.itellyou.service.user.rank.UserRankService;
+import com.itellyou.service.user.star.UserStarSingleService;
+import com.itellyou.util.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @CacheConfig(cacheNames = "user_info")
 @Service
@@ -23,47 +26,17 @@ public class UserSearchServiceImpl implements UserSearchService {
     private final UserInfoDao infoDao;
 
     private final UserRankService rankService;
+    private final UserBankService bankService;
+    private final SysPathService pathService;
+    private final UserStarSingleService starSingleService;
 
     @Autowired
-    public UserSearchServiceImpl(UserInfoDao infoDao, UserRankService rankService){
+    public UserSearchServiceImpl(UserInfoDao infoDao, UserRankService rankService, UserBankService bankService, SysPathService pathService, UserStarSingleService starSingleService){
         this.infoDao = infoDao;
         this.rankService = rankService;
-    }
-
-    @Override
-    public UserInfoModel findByName(String name) {
-        return infoDao.findByName(name);
-    }
-
-    @Override
-    public UserInfoModel findByLoginName(String loginName) {
-        return infoDao.findByLoginName(loginName);
-    }
-
-    @Override
-    public UserInfoModel findByMobile(String mobile) {
-        return findByMobile(mobile,null);
-    }
-
-    @Override
-    public UserInfoModel findByMobile(String mobile,Integer mobileStatus) {
-        return infoDao.findByMobile(mobile,mobileStatus);
-    }
-
-    @Override
-    public UserInfoModel findByEmail(String email,Integer emailStatus) {
-        return infoDao.findByEmail(email,emailStatus);
-    }
-
-    @Override
-    public UserInfoModel findByEmail(String email) {
-        return findByEmail(email,null);
-    }
-
-    @Override
-    @Cacheable
-    public UserInfoModel findById(Long id) {
-        return infoDao.findById(id);
+        this.bankService = bankService;
+        this.pathService = pathService;
+        this.starSingleService = starSingleService;
     }
 
     @Override
@@ -76,11 +49,50 @@ public class UserSearchServiceImpl implements UserSearchService {
                                         Map<String, String> order,
                                         Integer offset,
                                         Integer limit){
-        List<UserDetailModel> detailModels = infoDao.search(ids,searchUserId,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit);
+
+        List<UserDetailModel> detailModels = new ArrayList<>();
+
+        List<UserInfoModel> infoModels = RedisUtils.fetchByCache("user_info",UserInfoModel.class,ids,(HashSet<Long> fetchIds) ->
+                infoDao.search(fetchIds,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit));
+        if(infoModels.size() == 0) return detailModels;
+        HashSet<Long> fetchIds = new LinkedHashSet<>();
+        for (UserInfoModel infoModel : infoModels){
+            UserDetailModel detailModel = new UserDetailModel(infoModel);
+            fetchIds.add(infoModel.getId());
+
+            detailModels.add(detailModel);
+        }
+        // 一次获取路径信息
+        List<SysPathModel> pathModels = fetchIds.size() > 0 ? pathService.search(SysPath.USER,fetchIds) : new ArrayList<>();
+        // 一次获取需要的银行信息
+        List<UserBankModel> bankModels = fetchIds.size() > 0 ? bankService.search(fetchIds) : new ArrayList<>();
+        // 一次查出是否关注
+        List<UserStarModel> starModels = new ArrayList<>();
+        if(searchUserId != null){
+            starModels = starSingleService.search(fetchIds,searchUserId);
+        }
         for (UserDetailModel detailModel : detailModels){
-            UserBankModel bankModel = detailModel.getBank();
-            if(bankModel != null){
-                detailModel.setRank(rankService.find(bankModel.getScore()));
+            // 设置银行信息
+            for (UserBankModel bankModel : bankModels){
+                if(bankModel.getUserId().equals(detailModel.getId())){
+                    detailModel.setBank(bankModel);
+                    detailModel.setRank(rankService.find(bankModel.getScore()));
+                    break;
+                }
+            }
+            // 设置路径
+            for (SysPathModel pathModel : pathModels){
+                if(pathModel.getId().equals(detailModel.getId())){
+                    detailModel.setPath(pathModel.getPath());
+                    break;
+                }
+            }
+            // 设置关注
+            for (UserStarModel starModel : starModels){
+                if(starModel.getUserId().equals(detailModel.getId())){
+                    detailModel.setUseStar(true);
+                    break;
+                }
             }
         }
         return detailModels;
@@ -102,7 +114,7 @@ public class UserSearchServiceImpl implements UserSearchService {
 
     @Override
     public UserDetailModel find(Long id, Long searchId) {
-        List<UserDetailModel> detailModels = search(new LinkedHashSet<Long>(){{add(id);}},searchId,null,null,null,null,null,null,null,null,0,1);
+        List<UserDetailModel> detailModels = search(id != null ? new LinkedHashSet<Long>(){{add(id);}} : null,searchId,null,null,null,null,null,null,null,null,0,1);
         if(detailModels != null && detailModels.size() > 0) return detailModels.get(0);
         return null;
     }

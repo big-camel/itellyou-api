@@ -13,20 +13,6 @@
     <delete id="delete">
         delete from question_answer_star where answer_id=#{answerId} and created_user_id=#{userId}
     </delete>
-    <resultMap id="searchMap" type="QuestionAnswerStarDetailModel" autoMapping="true">
-        <association property="answer"  notNullColumn="id" javaType="QuestionAnswerDetailModel" columnPrefix="q_" autoMapping="true">
-            <id property="id" column="id" />
-            <association property="question" javaType="QuestionDetailModel" columnPrefix="d_" autoMapping="true">
-                <id property="id" column="id" />
-            </association>
-            <association property="author"  notNullColumn="id" javaType="UserDetailModel" columnPrefix="y_" autoMapping="true">
-                <id property="id" column="id" />
-            </association>
-        </association>
-        <association property="user"  notNullColumn="id" javaType="UserDetailModel" columnPrefix="u_" autoMapping="true">
-            <id property="id" column="id" />
-        </association>
-    </resultMap>
     <sql id="where">
         <where>
             <if test="beginTime != null">
@@ -38,49 +24,30 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="answerId != null">
-                and ${alias}answer_id = #{answerId}
+            <if test="answerIds != null &amp;&amp; answerIds.size() > 0">
+                and ${alias}answer_id in
+                <foreach collection="answerIds" item="answerId" separator="," open="(" close=")" >
+                    #{answerId}
+                </foreach>
             </if>
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}
             </if>
         </where>
     </sql>
-    <select id="search" resultMap="searchMap">
+    <select id="search" resultType="QuestionAnswerStarModel">
         select
         <include refid="columns">
             <property name="alias" value="s."/>
             <property name="prefix" value=""/>
-        </include>,
-        <include refid="com.itellyou.dao.question.QuestionAnswerDao.columns">
-            <property name="alias" value="q."/>
-            <property name="prefix" value="q_"/>
-        </include>,1 q_use_star,
-        i.id q_d_id,w.title q_d_title,w.description q_d_description,v.description q_description,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="u_"/>
-        </include>,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="y."/>
-            <property name="prefix" value="q_y_"/>
         </include>
         from question_answer_star s
-        inner join question_answer q on q.id = s.answer_id
-        inner join question_answer_version v on v.answer_id = q.id and v.version = q.version
-        left join question_info i on q.question_id=i.id
-        left join question_version w on i.id = w.question_id and i.version = w.version
-        left join user_info y on y.id = q.created_user_id
-        left join user_info u on u.id = s.created_user_id
         <include refid="where">
             <property name="alias" value="s."/>
         </include>
         <if test="order != null">
             <foreach collection="order" index="key" item="value" open="order by " separator=",">
-                <choose>
-                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
-                    <otherwise>s.${key} ${value}</otherwise>
-                </choose>
+                s.${key} ${value}
             </foreach>
         </if>
         <if test="limit != null and offset != null">
@@ -90,7 +57,6 @@
     <select id="count" resultType="Integer">
         select count(*)
         from question_answer_star s
-        inner join question_answer q on q.id = s.answer_id
         <include refid="where">
             <property name="alias" value="s."/>
         </include>

@@ -1,6 +1,7 @@
 package com.itellyou.model.sys;
 
 import com.itellyou.util.BaseEnum;
+import com.itellyou.util.CacheEntity;
 
 public enum EntityType implements BaseEnum<EntityType,Integer> , CacheEntity {
     DEFAULT(0, "default"),

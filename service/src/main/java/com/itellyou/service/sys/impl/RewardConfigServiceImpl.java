@@ -22,13 +22,13 @@ public class RewardConfigServiceImpl implements RewardConfigService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public Map<RewardType,RewardConfigModel> findById(String id) {
         return rewardConfigDao.findById(id);
     }
 
     @Override
-    @Cacheable(key = "#root.methodName")
+    @Cacheable(key = "#root.methodName",unless = "#result == null")
     public Map<RewardType,RewardConfigModel> findByDefault() {
         return findById("default");
     }

@@ -42,25 +42,25 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public SysPermissionModel findByName(String name) {
         return permissionDao.findByName(name);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public List<SysPermissionModel> search(Long userId,SysPermissionPlatform platform,SysPermissionType type, SysPermissionMethod method, String name, Map<String, String> order, Integer offset, Integer limit) {
         return permissionDao.search(userId,platform,type,method,name,order,offset,limit);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public int count(Long userId,SysPermissionPlatform platform, SysPermissionType type, SysPermissionMethod method, String name) {
         return permissionDao.count(userId,platform,type,method,name);
     }
 
     @Override
-    @Cacheable
+    @Cacheable(unless = "#result == null")
     public PageModel<SysPermissionModel> page(Long userId,SysPermissionPlatform platform, SysPermissionType type, SysPermissionMethod method, String name, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;

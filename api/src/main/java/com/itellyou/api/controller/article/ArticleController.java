@@ -11,6 +11,7 @@ import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.article.ArticleInfoService;
 import com.itellyou.service.article.ArticlePaidReadService;
 import com.itellyou.service.article.ArticleSearchService;
+import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
 import com.itellyou.service.user.UserDraftService;
@@ -31,14 +32,16 @@ import java.util.Map;
 public class ArticleController {
 
     private final ArticleSearchService searchService;
+    private final ArticleSingleService articleSingleService;
     private final ArticleInfoService infoService;
     private final VoteService<ArticleVoteModel> voteService;
     private final UserDraftService draftService;
     private final ArticlePaidReadService articlePaidReadService;
 
     @Autowired
-    public ArticleController(ArticleSearchService searchService, ArticleInfoService infoService, UserDraftService draftService, VoteFactory voteFactory, ArticlePaidReadService articlePaidReadService){
+    public ArticleController(ArticleSearchService searchService, ArticleSingleService articleSingleService, ArticleInfoService infoService, UserDraftService draftService, VoteFactory voteFactory, ArticlePaidReadService articlePaidReadService){
         this.searchService = searchService;
+        this.articleSingleService = articleSingleService;
         this.infoService = infoService;
         this.draftService = draftService;
         this.voteService = voteFactory.create(EntityType.ARTICLE);
@@ -70,7 +73,7 @@ public class ArticleController {
             return new ResultModel(401,"未登陆");
         }
 
-        ArticleInfoModel infoModel = searchService.findById(id);
+        ArticleInfoModel infoModel = articleSingleService.findById(id);
         if(infoModel != null && !infoModel.isDisabled()){
             boolean result = draftService.exists(userModel.getId(), EntityType.ARTICLE,infoModel.getId());
             Map<String,Object> userAnswerMap = new HashMap<>();

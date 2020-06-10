@@ -65,41 +65,37 @@
         <if test="ip != null">
             and ${alias}created_ip = #{ip}
         </if>
-        <if test="answerId != null">
-            and ${alias}answer_id = #{answerId}
+        <if test="answerMap != null &amp;&amp; answerMap.size() > 0">
+            <foreach collection="answerMap.entrySet()" item="value" index="key" separator=" or " open=" and (" close=")">
+                ${alias}answer_id=#{key}
+                <if test="value != null">
+                    and ${alias}version=#{value}
+                </if>
+            </foreach>
         </if>
         <if test="userId != null">
             and ${alias}created_user_id = #{userId}
         </if>
-        <if test="id != null">
-            and ${alias}id = #{id}
+        <if test="ids != null &amp;&amp; ids.size() > 0">
+            and
+            ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
         </if>
     </sql>
-    <resultMap id="searchMap" type="QuestionAnswerVersionModel" autoMapping="true">
-        <id property="id" column="id" />
-        <association property="author" javaType="UserInfoModel" columnPrefix="user_" autoMapping="true" />
-    </resultMap>
-    <select id="search" resultMap="searchMap">
-        select v.id,v.answer_id,v.version,v.is_reviewed,v.is_disabled,v.is_published,v.save_type,v.remark,v.created_time,v.created_ip,v.created_user_id,
+    <select id="search" resultType="QuestionAnswerVersionModel">
+        select v.id,v.answer_id,v.version,v.is_reviewed,v.is_disabled,v.is_published,v.save_type,v.remark,v.created_time,v.created_ip,v.created_user_id,v.description
         <if test="hasContent != false">
-            v.content,
-            v.html,
-            v.description,
+            ,v.content,
+            v.html
+
         </if>
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="user_"/>
-        </include>
         from question_answer_version v
-        left join question_answer a on v.answer_id = a.id
-        left join user_info u on v.created_user_id=u.id
+
         <where>
             <include refid="where">
                 <property name="alias" value="v."/>
             </include>
-            <if test="questionId != null">
-                and a.question_id = #{questionId}
-            </if>
         </where>
         <if test="order != null">
             <foreach collection="order" index="key" item="value" open="order by " separator=",">
@@ -110,16 +106,12 @@
             limit #{offset},#{limit}
         </if>
     </select>
-    <select id="getCount" resultType="java.lang.Integer">
+    <select id="count" resultType="java.lang.Integer">
         select count(v.id) from from question_answer_version v
-        left join question_answer a on v.answer_id = a.id
         <where>
             <include refid="where">
                 <property name="alias" value="v."/>
             </include>
-            <if test="questionId != null">
-                and a.question_id = #{questionId}
-            </if>
         </where>
     </select>
 </mapper>

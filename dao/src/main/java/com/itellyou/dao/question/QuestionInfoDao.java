@@ -1,6 +1,5 @@
 package com.itellyou.dao.question;
 
-import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.sys.RewardType;
 import org.apache.ibatis.annotations.Mapper;
@@ -16,14 +15,11 @@ import java.util.Map;
 public interface QuestionInfoDao {
     int insert(QuestionInfoModel questionInfoModel);
 
-    List<QuestionDetailModel> search(@Param("ids") HashSet<Long> ids, @Param("mode") String mode, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
-                                     @Param("hasContent") Boolean hasContent,
+    List<QuestionInfoModel> search(@Param("ids") HashSet<Long> ids, @Param("mode") String mode, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
                                      @Param("isDisabled") Boolean isDisabled, @Param("isAdopted") Boolean isAdopted, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                                      @Param("ip") Long ip,
-                                     @Param("childCount") Integer childCount,
                                      @Param("rewardType") RewardType rewardType,
                                      @Param("minRewardValue") Double minRewardValue, @Param("maxRewardValue") Double maxRewardValue,
-                                     @Param("tags") List<Long> tags,
                                      @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                                      @Param("minAnswers") Integer minAnswers, @Param("maxAnswers") Integer maxAnswers,
                                      @Param("minView") Integer minView, @Param("maxView") Integer maxView,
@@ -39,7 +35,6 @@ public interface QuestionInfoDao {
                     @Param("ip") Long ip,
                     @Param("rewardType") RewardType rewardType,
                     @Param("minRewardValue") Double minRewardValue, @Param("maxRewardValue") Double maxRewardValue,
-                    @Param("tags") List<Long> tags,
                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
                     @Param("minAnswers") Integer minAnswers, @Param("maxAnswers") Integer maxAnswers,
                     @Param("minView") Integer minView, @Param("maxView") Integer maxView,
@@ -59,4 +54,14 @@ public interface QuestionInfoDao {
     int updateStarCountById(@Param("id") Long id,@Param("step") Integer step);
     int updateDeleted(@Param("deleted") boolean deleted, @Param("id") Long id);
     int updateMetas(@Param("id") Long id,@Param("cover") String cover);
+
+    int updateInfo(@Param("id") Long id,
+                   @Param("title") String title,
+                   @Param("description") String description,
+                   @Param("rewardType") RewardType rewardType,
+                   @Param("rewardAdd") Double rewardAdd,
+                   @Param("rewardValue") Double rewardValue,
+                   @Param("time") Long time,
+                   @Param("ip") Long ip,
+                   @Param("userId") Long userId);
 }

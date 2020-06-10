@@ -1,6 +1,7 @@
 package com.itellyou.model.question;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JSONDefault(includes = "base")
-public class QuestionCommentModel {
+public class QuestionCommentModel implements CacheEntity {
     @JSONField(label = "base")
     private Long id;
     private Long questionId;
@@ -42,4 +43,9 @@ public class QuestionCommentModel {
     private Long updatedUserId = 0l;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp = 0l;
+
+    @Override
+    public String cacheKey() {
+        return id.toString();
+    }
 }
