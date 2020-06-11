@@ -12,6 +12,7 @@ import com.itellyou.util.RedisUtils;
 import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,14 +29,17 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     private final QuestionAnswerStarSingleService starSingleService;
     private final QuestionAnswerVoteService answerVoteService;
 
+    private final QuestionSearchService questionSearchService;
+
     @Autowired
-    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService, QuestionAnswerVersionSearchService versionSearchService, QuestionAnswerStarSingleService starSingleService, QuestionAnswerVoteService answerVoteService){
+    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService, QuestionAnswerVersionSearchService versionSearchService, QuestionAnswerStarSingleService starSingleService, QuestionAnswerVoteService answerVoteService,@Lazy QuestionSearchService questionSearchService){
         this.answerDao = answerDao;
         this.userSearchService = userSearchService;
         this.paidReadSearchService = paidReadSearchService;
         this.versionSearchService = versionSearchService;
         this.starSingleService = starSingleService;
         this.answerVoteService = answerVoteService;
+        this.questionSearchService = questionSearchService;
     }
 
     @Override
@@ -77,7 +81,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
         // 一次查出需要的作者
         List<UserDetailModel> userDetailModels = authorIds.size() > 0 ? userSearchService.search(authorIds,null,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
         // 一次查出需要的问题
-        //List<QuestionDetailModel> questionDetailModels = questionSearchService.search(fetchQuestionIds,null,null,searchUserId,false,null,null,null,null,null,null);
+        List<QuestionDetailModel> questionDetailModels = questionSearchService.search(fetchQuestionIds,null,null,searchUserId,false,null,null,null,null,null,null);
         // 一次查出需要的付费设置
         paidReadModels = paidReadSearchService.search(fetchIds);
         // 一次查出需要的版本信息
@@ -91,7 +95,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
         }
         for (QuestionAnswerDetailModel detailModel : detailModels){
             // 设置问题
-            /**for (QuestionDetailModel questionDetailModel : questionDetailModels){
+            for (QuestionDetailModel questionDetailModel : questionDetailModels){
                 if(questionDetailModel.getId().equals(detailModel.getQuestionId())){
                     detailModel.setQuestion(questionDetailModel);
                     detailModel.setUseAuthor(questionDetailModel.getCreatedUserId().equals(detailModel.getCreatedUserId()));
@@ -100,7 +104,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
                     }
                     break;
                 }
-            }**/
+            }
             // 设置版本信息
             for(QuestionAnswerVersionModel versionModel : versionModels){
                 if(versionModel.getAnswerId().equals(detailModel.getId())) {

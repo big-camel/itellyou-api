@@ -22,7 +22,7 @@
         select * from sys_role where id=#{id}
     </select>
     <delete id="delete">
-        delete from sys_role where id=#{id} and created_user_id=#{userId} and system=0
+        delete from sys_role where id=#{id} and created_user_id=#{userId} and `system`=0
     </delete>
     <update id="update">
         update sys_role
@@ -37,7 +37,7 @@
                 disabled = #{disabled},
             </if>
         </set>
-        where id=#{id} and system=0
+        where id=#{id} and `system`=0
     </update>
     <sql id="where">
         <where>
@@ -51,7 +51,7 @@
                 and ${alias}created_ip = #{ip}
             </if>
             <if test="system != null">
-                and ${alias}system=#{system}
+                and ${alias}`system`=#{system}
             </if>
             <if test="id != null">
                 and ${alias}id = #{id}

@@ -16,7 +16,9 @@ import java.io.Serializable;
 public class UserDetailModel extends UserInfoModel implements Serializable, CacheEntity {
 
     public UserDetailModel(UserInfoModel infoModel){
-        super(infoModel.getId(),infoModel.getLoginName(),infoModel.getName(),infoModel.getLoginPassword(),infoModel.getPayPassword(),infoModel.getGender(),infoModel.getBirthday(),infoModel.getMobile(),infoModel.isMobileStatus(),infoModel.getEmail(),infoModel.isEmailStatus(),infoModel.getDescription(),infoModel.getIntroduction(),infoModel.getProfession(),infoModel.getAddress(),infoModel.getAvatar(),infoModel.isDisabled(),infoModel.getId(),infoModel.getUpdatedTime(),infoModel.getUpdatedIp());
+        super(infoModel.getId(),infoModel.getLoginName(),infoModel.getLoginPassword(),infoModel.getPayPassword(),infoModel.getName(),infoModel.getGender(),infoModel.getBirthday(),infoModel.getMobile(),infoModel.isMobileStatus(),infoModel.getEmail(),infoModel.isEmailStatus(),
+                infoModel.getDescription(),infoModel.getIntroduction(),infoModel.getProfession(),infoModel.getAddress(),infoModel.getAvatar(),infoModel.isDisabled(),
+                infoModel.getStarCount(),infoModel.getFollowerCount(),infoModel.getQuestionCount(),infoModel.getAnswerCount(),infoModel.getArticleCount(),infoModel.getColumnCount(),infoModel.getCollectionCount(),infoModel.getCreatedTime(),infoModel.getCreatedUserId(),infoModel.getCreatedIp(),infoModel.getUpdatedTime(),infoModel.getUpdatedUserId(),infoModel.getUpdatedIp());
     }
 
     @JSONField(label = "bank")
