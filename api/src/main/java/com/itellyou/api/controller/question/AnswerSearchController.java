@@ -1,17 +1,18 @@
 package com.itellyou.api.controller.question;
 
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Validated
 @RestController
@@ -19,9 +20,11 @@ import java.util.Map;
 public class AnswerSearchController {
 
     private final QuestionAnswerSearchService searchService;
+    private final QuestionSearchService questionSearchService;
 
-    public AnswerSearchController(QuestionAnswerSearchService searchService){
+    public AnswerSearchController(QuestionAnswerSearchService searchService, QuestionSearchService questionSearchService){
         this.searchService = searchService;
+        this.questionSearchService = questionSearchService;
     }
 
     @GetMapping("/list")
@@ -32,6 +35,21 @@ public class AnswerSearchController {
         order.put("created_time","desc");
         PageModel<QuestionAnswerDetailModel> pageData = searchService.page(null,searchUserId, userId,true,null,false,true,false,null,null,
                 order,offset,limit);
+        HashSet<Long> questionIds = new LinkedHashSet<>();
+        for (QuestionAnswerDetailModel detailModel : pageData.getData()){
+            if(!questionIds.contains(detailModel.getQuestionId())){
+                questionIds.add(detailModel.getQuestionId());
+            }
+        }
+        List<QuestionDetailModel> questionDetailModels = questionSearchService.search(questionIds,null,null,searchUserId,false,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        for (QuestionAnswerDetailModel detailModel : pageData.getData()){
+            for (QuestionDetailModel questionDetailModel : questionDetailModels){
+                if(questionDetailModel.getId().equals(detailModel.getQuestionId())){
+                    detailModel.setQuestion(questionDetailModel);
+                    break;
+                }
+            }
+        }
         return new ResultModel(pageData,new Labels.LabelModel(QuestionAnswerDetailModel.class,"base","question"));
     }
 

@@ -31,3 +31,5 @@ set i.description = v.description;
 update tag i
     inner join tag_version v on i.id = v.tag_id and i.version = v.version
 set i.description = v.description;
+
+UPDATE `itellyou`.`sys_permission` SET `platform` = 2, `type` = 1, `method` = 2, `data` = '/report/post', `remark` = '请求举报' WHERE `name` = 'api_report_post';

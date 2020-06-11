@@ -51,6 +51,7 @@ public class SysPathServiceImpl implements SysPathService {
 
     @Override
     public List<SysPathModel> search(SysPath type, HashSet<Long> ids) {
-        return RedisUtils.fetchByCache("sys_path",SysPathModel.class,ids,(HashSet<Long> fetchIds) -> pathDao.search(type,fetchIds));
+        return RedisUtils.fetchByCache("sys_path",SysPathModel.class,ids,(HashSet<Long> fetchIds) -> pathDao.search(type,fetchIds),
+                (SysPathModel model, Long id) -> id != null && model.cacheKey().equals(id.toString() + "-" + type.getName()));
     }
 }
