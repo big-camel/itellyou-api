@@ -19,6 +19,6 @@ public class SysPathModel implements CacheEntity {
 
     @Override
     public String cacheKey() {
-        return new StringBuilder(String.valueOf(id)).append("-").append(type.getValue()).toString();
+        return new StringBuilder(String.valueOf(id)).append("-").append(type.toString()).toString();
     }
 }

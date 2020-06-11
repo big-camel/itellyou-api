@@ -38,7 +38,7 @@ public class SysPathServiceImpl implements SysPathService {
     }
 
     @Override
-    @Cacheable(key = "T(String).valueOf(#id).concat('-').concat(#type)" , condition = "#id > 0",unless="#result == null")
+    @Cacheable(key = "T(String).valueOf(#id).concat('-').concat(#type.name)" , condition = "#id > 0",unless="#result == null")
     public SysPathModel findByTypeAndId(SysPath type, Long id) {
         return pathDao.findByTypeAndId(type,id);
     }
