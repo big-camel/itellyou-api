@@ -117,7 +117,7 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         HashSet<Long> tagIds = new LinkedHashSet<>();
         Map<Long, List<ArticleVersionTagModel>> tagVersionIdList = new HashMap<>();
         Map<Long, List<ArticleTagModel>> tagArticleIdList = new HashMap<>();
-        if("draft".equals(mode)){
+        if("draft".equals(mode) && versionIds.size() > 0){
             tagVersionIdList = versionTagService.searchTags(versionIds);
             for (Map.Entry<Long, List<ArticleVersionTagModel>> mapEntry : tagVersionIdList.entrySet()){
                 for (ArticleVersionTagModel articleVersionTagModel : mapEntry.getValue()){
@@ -125,7 +125,7 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
                 }
             }
         }
-        else{
+        else if(fetchIds.size() > 0){
             tagArticleIdList = articleTagService.searchTags(fetchIds);
             for (Map.Entry<Long, List<ArticleTagModel>> mapEntry : tagArticleIdList.entrySet()){
                 for (ArticleTagModel articleTagModel : mapEntry.getValue()){

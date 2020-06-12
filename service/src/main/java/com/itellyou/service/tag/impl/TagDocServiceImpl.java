@@ -11,6 +11,7 @@ import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.tag.*;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import com.itellyou.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,7 @@ public class TagDocServiceImpl implements TagDocService {
             TagVersionModel versionModel = addVersion(infoModel.getId(),userId,content,html,icon,description,remark,1,save_type,ip,true,true);
             if(versionModel == null)
                 throw new Exception("写入版本失败");
+            RedisUtils.removeCache("tag",infoModel.getId());
             return infoModel.getId();
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

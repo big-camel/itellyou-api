@@ -20,6 +20,7 @@ import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import com.itellyou.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,7 @@ public class ArticleDocServiceImpl implements ArticleDocService {
             ArticleVersionModel versionModel = addVersion(infoModel.getId(),userId,columnId,sourceType,sourceData,title,content,html,description,tagIds,remark,1,save_type,ip,false,true);
             if(versionModel == null)
                 throw new Exception("写入版本失败");
+            RedisUtils.removeCache("article",infoModel.getId());
             return infoModel.getId();
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

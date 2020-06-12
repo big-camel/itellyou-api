@@ -94,7 +94,7 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
         HashSet<Long> tagIds = new LinkedHashSet<>();
         Map<Long, List<QuestionVersionTagModel>> tagVersionIdList = new HashMap<>();
         Map<Long, List<QuestionTagModel>> tagQuestionIdList = new HashMap<>();
-        if("draft".equals(mode)){
+        if("draft".equals(mode) && versionIds.size() > 0){
             tagVersionIdList = versionTagService.searchTags(versionIds);
             for (Map.Entry<Long, List<QuestionVersionTagModel>> mapEntry : tagVersionIdList.entrySet()){
                 for (QuestionVersionTagModel questionVersionTagModel : mapEntry.getValue()){
@@ -102,7 +102,7 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
                 }
             }
         }
-        else{
+        else if(fetchIds.size() > 0){
             tagQuestionIdList = questionTagService.searchTags(fetchIds);
             for (Map.Entry<Long, List<QuestionTagModel>> mapEntry : tagQuestionIdList.entrySet()){
                 for (QuestionTagModel questionTagModel : mapEntry.getValue()){

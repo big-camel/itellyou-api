@@ -14,6 +14,7 @@ import com.itellyou.service.question.*;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
 import com.itellyou.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,7 @@ public class QuestionAnswerDocServiceImpl implements QuestionAnswerDocService {
             QuestionAnswerVersionModel versionModel = addVersion(answerModel.getId(),questionId,userId,content,html,description,remark,1,save_type,ip,false,true);
             if(versionModel == null)
                 throw new Exception("写入版本失败");
+            RedisUtils.removeCache("question_answer",answerModel.getId());
             return answerModel.getId();
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
