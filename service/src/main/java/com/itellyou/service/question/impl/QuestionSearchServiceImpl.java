@@ -83,7 +83,11 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
         }
 
         // 一次查出需要的版本信息
+        HashSet<Long> versionIds = new LinkedHashSet<>();
         versionModels = versionMap.size() > 0 ? versionSearchService.searchByQuestionMap(versionMap,hasContent) : new ArrayList<>();
+        for (QuestionVersionModel versionModel : versionModels){
+            versionIds.add(versionModel.getId());
+        }
         // 一次查出需要的作者
         List<UserDetailModel> userDetailModels = authorIds.size() > 0 ? userSearchService.search(authorIds,searchUserId,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
         // 一次查出需要的标签id列表
@@ -91,7 +95,7 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
         Map<Long, List<QuestionVersionTagModel>> tagVersionIdList = new HashMap<>();
         Map<Long, List<QuestionTagModel>> tagQuestionIdList = new HashMap<>();
         if("draft".equals(mode)){
-            tagVersionIdList = versionTagService.searchTags(fetchIds);
+            tagVersionIdList = versionTagService.searchTags(versionIds);
             for (Map.Entry<Long, List<QuestionVersionTagModel>> mapEntry : tagVersionIdList.entrySet()){
                 for (QuestionVersionTagModel questionVersionTagModel : mapEntry.getValue()){
                     tagIds.add(questionVersionTagModel.getTagId());
@@ -120,6 +124,8 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
             answerOrder.put("is_adopted","desc");
             answerOrder.put("support","desc");
             answerOrder.put("comments","desc");
+            // 不加会导致 childCount 失效
+            answerOrder.put("id","asc");
             List<QuestionAnswerModel> answerModels = answerSearchService.searchChild(null,fetchIds,null,null,childCount,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,answerOrder);
             HashSet<Long> answerIds = new LinkedHashSet<>();
             for (QuestionAnswerModel answerModel : answerModels){

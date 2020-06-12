@@ -11,6 +11,7 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.question.QuestionTagService;
 import com.itellyou.service.question.QuestionVersionService;
+import com.itellyou.service.question.QuestionVersionTagService;
 import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
@@ -36,14 +37,14 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
     private final QuestionVersionDao versionDao;
     private final QuestionInfoDao infoDao;
     private final UserBankService bankService;
-    private final QuestionTagService questionTagService;
+    private final QuestionVersionTagService questionVersionTagService;
 
     @Autowired
-    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao, QuestionInfoDao infoDao, UserBankService bankService, QuestionTagService questionTagService){
+    public QuestionVersionServiceImpl(QuestionVersionDao questionVersionDao, QuestionInfoDao infoDao, UserBankService bankService, QuestionTagService questionTagService, QuestionVersionTagService questionVersionTagService){
         this.versionDao = questionVersionDao;
         this.infoDao = infoDao;
-        this.questionTagService = questionTagService;
         this.bankService = bankService;
+        this.questionVersionTagService = questionVersionTagService;
     }
 
     @Override
@@ -62,7 +63,7 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
                 for (TagDetailModel tagDetailModel : tags){
                     tagIds.add(tagDetailModel.getId());
                 }
-                rows = questionTagService.addAll(questionVersionModel.getId(),tagIds);
+                rows = questionVersionTagService.addAll(questionVersionModel.getId(),tagIds);
                 if(rows != tags.size()){
                     throw new Exception("写入版本标签失败");
                 }
@@ -91,13 +92,13 @@ public class QuestionVersionServiceImpl implements QuestionVersionService {
 
             List<TagDetailModel> tags = versionModel.getTags();
             if(tags != null){
-                questionTagService.clear(versionModel.getId());
+                questionVersionTagService.clear(versionModel.getId());
                 if(tags.size() > 0){
                     HashSet<Long> tagIds = new LinkedHashSet<>();
                     for (TagDetailModel tagDetailModel : tags){
                         tagIds.add(tagDetailModel.getId());
                     }
-                    rows = questionTagService.addAll(versionModel.getId(),tagIds);
+                    rows = questionVersionTagService.addAll(versionModel.getId(),tagIds);
                     if(rows != tags.size()){
                         throw new Exception("更新版本标签失败");
                     }

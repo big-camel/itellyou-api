@@ -205,10 +205,16 @@ public class QuestionDocController {
         UserBankModel bankModel = bankService.findByUserId(userInfoModel.getId());
         Object objValue = reward.get("value");
         Double rewardValue =  objValue == null ? 0 : Math.abs(Double.parseDouble(objValue.toString()));
+        // 已采纳的问题，不再设置悬赏
+        if(questionVersion.isAdopted()){
+            rewardType =  RewardType.DEFAULT;
+            rewardValue = 0.0;
+        }
         if(rewardType == RewardType.DEFAULT){
             rewardValue = 0.0;
         }else if(rewardType == RewardType.CREDIT){
             RewardConfigModel config = rewardConfig.get(RewardType.CREDIT);
+            if(config == null) config = rewardConfig.get(RewardType.CREDIT.toString());
             if(rewardValue < config.getMin()){
                 return new ResultModel(0,"积分悬赏最低" + rewardValue + config.getUnit());
             }
@@ -220,6 +226,7 @@ public class QuestionDocController {
             }
         }else if(rewardType == RewardType.CASH){
             RewardConfigModel config = rewardConfig.get(RewardType.CASH);
+            if(config == null) config = rewardConfig.get(RewardType.CASH.toString());
             if(rewardValue < config.getMin()){
                 return new ResultModel(0,"现金悬赏最低" + rewardValue + config.getUnit());
             }

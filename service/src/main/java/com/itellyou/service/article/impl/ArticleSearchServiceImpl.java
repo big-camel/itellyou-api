@@ -104,7 +104,11 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         // 一次查出需要的付费设置
         paidReadModels = paidReadSearchService.search(fetchIds);
         // 一次查出需要的版本信息
+        HashSet<Long> versionIds = new LinkedHashSet<>();
         versionModels = versionMap.size() > 0 ? versionSearchService.searchByArticleMap(versionMap,hasContent) : new ArrayList<>();
+        for (ArticleVersionModel versionModel : versionModels){
+            versionIds.add(versionModel.getId());
+        }
         // 一次查出需要的专栏
         List<ColumnDetailModel> columnDetailModels = columnIds.size() > 0 ? columnSearchService.search(columnIds,null,null,null,searchUserId,null,null,null,null,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
         // 一次查出需要的作者
@@ -114,7 +118,7 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         Map<Long, List<ArticleVersionTagModel>> tagVersionIdList = new HashMap<>();
         Map<Long, List<ArticleTagModel>> tagArticleIdList = new HashMap<>();
         if("draft".equals(mode)){
-            tagVersionIdList = versionTagService.searchTags(fetchIds);
+            tagVersionIdList = versionTagService.searchTags(versionIds);
             for (Map.Entry<Long, List<ArticleVersionTagModel>> mapEntry : tagVersionIdList.entrySet()){
                 for (ArticleVersionTagModel articleVersionTagModel : mapEntry.getValue()){
                     tagIds.add(articleVersionTagModel.getTag());
