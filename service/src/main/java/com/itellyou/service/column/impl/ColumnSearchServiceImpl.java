@@ -54,7 +54,9 @@ public class ColumnSearchServiceImpl implements ColumnSearchService {
     public List<ColumnDetailModel> search(HashSet<Long> ids, String name, Long userId,Long memberId, Long searchUserId, Boolean isDisabled, Boolean isReviewed, Boolean isDeleted, HashSet<Long> tags, Integer minArticles, Integer maxArticles, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
-
+        if(tags != null && ids.size() == 0){
+            return new LinkedList<>();
+        }
         List<ColumnInfoModel> infoModels = RedisUtils.fetchByCache("column",ColumnInfoModel.class,ids,(HashSet<Long> fetchIds) ->
                 columnInfoDao.search(fetchIds,name,userId,memberId,searchUserId,isDisabled,isReviewed,isDeleted,minArticles,maxArticles,minStars,maxStars,beginTime,endTime,ip,order,offset,limit)
         );
@@ -108,17 +110,14 @@ public class ColumnSearchServiceImpl implements ColumnSearchService {
             List<TagDetailModel> detailTags = new LinkedList<>();
             // 获取标签对应的专栏
             for (TagDetailModel tagDetailModel : tagDetailModels){
-                Long columnId = null;
                 for (Map.Entry<Long, List<ColumnTagModel>> mapEntry : tagIdList.entrySet()){
                     for (ColumnTagModel columnTagModel : mapEntry.getValue()){
                         if(columnTagModel.getTagId().equals(tagDetailModel.getId())){
-                            columnId = columnTagModel.getColumnId();
-                            break;
+                            if(detailModel.getId().equals(columnTagModel.getColumnId())){
+                                detailTags.add(tagDetailModel);
+                            }
                         }
                     }
-                }
-                if(detailModel.getId().equals(columnId)){
-                    detailTags.add(tagDetailModel);
                 }
             }
             // 设置是否关注
@@ -138,6 +137,9 @@ public class ColumnSearchServiceImpl implements ColumnSearchService {
     public int count(HashSet<Long> ids,String name, Long userId,Long memberId, Boolean isDisabled, Boolean isReviewed, Boolean isDeleted, HashSet<Long> tags, Integer minArticles, Integer maxArticles, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Long ip) {
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
+        if(tags != null && ids.size() == 0){
+            return 0;
+        }
         return columnInfoDao.count(ids,name,userId,memberId,isDisabled,isReviewed,isDeleted,minArticles,maxArticles,minStars,maxStars,beginTime,endTime,ip);
     }
 

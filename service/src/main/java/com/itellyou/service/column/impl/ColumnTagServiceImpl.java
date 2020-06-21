@@ -76,7 +76,7 @@ public class ColumnTagServiceImpl implements ColumnTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_column",key = "#methodName",unless = "#result == null")
+    @Cacheable(value = "tag_column",key = "T(String).valueOf(methodName).concat('_hashset')",unless = "#result == null")
     public HashSet<Long> searchColumnId(HashSet<Long> tagId) {
         return columnTagDao.searchColumnId(tagId);
     }

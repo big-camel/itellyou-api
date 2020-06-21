@@ -51,6 +51,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
     }
 
     @Override
+    @CacheEvict(key = "#model.userId")
     public int insert(ThirdAccountModel model) throws Exception {
         return accountDao.insert(model);
     }
@@ -152,6 +153,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
     }
 
     @Override
+    @CacheEvict(key = "#userId")
     public int bindAlipay(Long userId, String token, Long ip) throws Exception {
         AlipaySystemOauthTokenResponse tokenResponse = alipayService.getOAuthToken(token);
         if(tokenResponse == null || !tokenResponse.isSuccess()) {
@@ -181,6 +183,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
     }
 
     @Override
+    @CacheEvict(key = "#userId")
     public int bindGithub(Long userId, String token, Long ip) throws Exception {
         String accessToken = githubService.getOAuthToken(token);
         if(StringUtils.isEmpty(accessToken)) {

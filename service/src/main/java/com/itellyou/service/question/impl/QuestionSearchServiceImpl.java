@@ -57,7 +57,9 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
 
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
-
+        if(tags != null && ids.size() == 0){
+            return new LinkedList<>();
+        }
         List<QuestionInfoModel> infoModels = RedisUtils.fetchByCache("question",QuestionInfoModel.class,ids,(HashSet<Long> fetchIds) ->
                 questionInfoDao.search(fetchIds,mode,userId,searchUserId,isDisabled,isAdopted,isPublished,isDeleted,ip,rewardType,minRewardValue,maxRewardValue,minComments,maxComments,minAnswers,maxAnswers,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit)
         );
@@ -164,7 +166,6 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
             List<TagDetailModel> detailTags = new LinkedList<>();
             // 获取标签对应的问题
             for (TagDetailModel tagDetailModel : tagDetailModels){
-                Long questionId = null;
                 if("draft".equals(mode)) {
                     for (Map.Entry<Long, List<QuestionVersionTagModel>> mapEntry : tagVersionIdList.entrySet()) {
                         for (QuestionVersionTagModel questionVersionTagModel : mapEntry.getValue()) {
@@ -172,8 +173,9 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
                                 Long versionId = questionVersionTagModel.getVersionId();
                                 for(QuestionVersionModel versionModel : versionModels){
                                     if(versionId.equals(versionModel.getId())){
-                                        questionId = versionModel.getQuestionId();
-                                        break;
+                                        if(detailModel.getId().equals( versionModel.getQuestionId())){
+                                            detailTags.add(tagDetailModel);
+                                        }
                                     }
                                 }
                                 break;
@@ -184,14 +186,12 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
                     for (Map.Entry<Long, List<QuestionTagModel>> mapEntry : tagQuestionIdList.entrySet()) {
                         for (QuestionTagModel questionTagModel : mapEntry.getValue()) {
                             if (questionTagModel.getTagId().equals(tagDetailModel.getId())) {
-                                questionId = questionTagModel.getQuestionId();
-                                break;
+                                if(detailModel.getId().equals( questionTagModel.getQuestionId())){
+                                    detailTags.add(tagDetailModel);
+                                }
                             }
                         }
                     }
-                }
-                if(detailModel.getId().equals(questionId)){
-                    detailTags.add(tagDetailModel);
                 }
             }
             detailModel.setTags(detailTags);
@@ -223,6 +223,9 @@ public class QuestionSearchServiceImpl implements QuestionSearchService {
                            Double maxRewardValue, HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minAnswers, Integer maxAnswers, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime) {
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
+        if(tags != null && ids.size() == 0){
+            return 0;
+        }
         return questionInfoDao.count(ids,mode,userId,isDisabled,isAdopted,isPublished,isDeleted,ip,rewardType,minRewardValue,maxRewardValue,minComments,maxComments,minAnswers,maxAnswers,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
     }
 

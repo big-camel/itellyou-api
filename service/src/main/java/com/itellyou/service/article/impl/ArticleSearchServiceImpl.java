@@ -63,7 +63,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
-
+        if(tags != null && ids.size() == 0){
+            return new LinkedList<>();
+        }
         List<ArticleInfoModel> infoModels = RedisUtils.fetchByCache("article",ArticleInfoModel.class,ids,(HashSet<Long> fetchIds) ->
                         articleInfoDao.search(fetchIds,mode,columnId,userId,sourceType,isDisabled,isPublished,isDeleted, minComments, maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,ip,order,offset,limit)
                 );
@@ -206,7 +208,6 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
             List<TagDetailModel> detailTags = new LinkedList<>();
             // 获取标签对应的文章
             for (TagDetailModel tagDetailModel : tagDetailModels){
-                Long articleId = null;
                 if("draft".equals(mode)) {
                     for (Map.Entry<Long, List<ArticleVersionTagModel>> mapEntry : tagVersionIdList.entrySet()) {
                         for (ArticleVersionTagModel articleVersionTagModel : mapEntry.getValue()) {
@@ -214,8 +215,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
                                 Long versionId = articleVersionTagModel.getVersion();
                                 for(ArticleVersionModel versionModel : versionModels){
                                     if(versionId.equals(versionModel.getId())){
-                                        articleId = versionModel.getArticleId();
-                                        break;
+                                        if(detailModel.getId().equals(versionModel.getArticleId())){
+                                            detailTags.add(tagDetailModel);
+                                        }
                                     }
                                 }
                                 break;
@@ -226,14 +228,12 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
                     for (Map.Entry<Long, List<ArticleTagModel>> mapEntry : tagArticleIdList.entrySet()) {
                         for (ArticleTagModel articleTagModel : mapEntry.getValue()) {
                             if (articleTagModel.getTagId().equals(tagDetailModel.getId())) {
-                                articleId = articleTagModel.getArticleId();
-                                break;
+                                if(detailModel.getId().equals(articleTagModel.getArticleId())){
+                                    detailTags.add(tagDetailModel);
+                                }
                             }
                         }
                     }
-                }
-                if(detailModel.getId().equals(articleId)){
-                    detailTags.add(tagDetailModel);
                 }
             }
             detailModel.setTags(detailTags);
@@ -266,6 +266,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
     public int count(HashSet<Long> ids, String mode,Long columnId, Long userId, ArticleSourceType sourceType, Boolean isDisabled,Boolean isDeleted, Boolean isPublished,HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Long ip) {
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
+        if(tags != null && ids.size() == 0){
+            return 0;
+        }
         return articleInfoDao.count(ids,mode,columnId,userId,sourceType,isDisabled,isPublished,isDeleted,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,ip);
     }
 

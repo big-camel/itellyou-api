@@ -119,8 +119,8 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
         }
 
         // 一次取出所有标签
-        List<TagDetailModel> tagDetailModels = searchService.search(tagFetchIds,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
-        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,null,null,null,null,null,null,null,null,null,null,null);
+        List<TagDetailModel> tagDetailModels = searchService.search(tagFetchIds,null,null,null,null,userId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (TagStarDetailModel detailModel : detailModels){
             for (TagDetailModel tagDetailModel :  tagDetailModels){
                 if(tagDetailModel.getId().equals(detailModel.getTagId())){
