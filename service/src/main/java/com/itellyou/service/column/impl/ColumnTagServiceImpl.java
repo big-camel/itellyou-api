@@ -3,6 +3,8 @@ package com.itellyou.service.column.impl;
 import com.itellyou.dao.column.ColumnTagDao;
 import com.itellyou.model.column.ColumnTagModel;
 import com.itellyou.service.column.ColumnTagService;
+import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -76,8 +78,18 @@ public class ColumnTagServiceImpl implements ColumnTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_column",key = "T(String).valueOf(methodName).concat('_hashset')",unless = "#result == null")
     public HashSet<Long> searchColumnId(HashSet<Long> tagId) {
-        return columnTagDao.searchColumnId(tagId);
+        StringBuilder keySb = new StringBuilder();
+        for (Long id : tagId){
+            keySb.append(id);
+        }
+        String key = StringUtils.md5(keySb.toString());
+        HashSet<Long> ids = RedisUtils.getCache("tag_column",key,HashSet.class);
+        if(ids == null || ids.size() == 0)
+        {
+            ids = columnTagDao.searchColumnId(tagId);
+            RedisUtils.setCache("tag_column",key,ids);
+        }
+        return ids;
     }
 }

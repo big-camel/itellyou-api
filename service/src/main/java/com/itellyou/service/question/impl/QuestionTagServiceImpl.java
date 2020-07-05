@@ -3,6 +3,8 @@ package com.itellyou.service.question.impl;
 import com.itellyou.dao.question.QuestionTagDao;
 import com.itellyou.model.question.QuestionTagModel;
 import com.itellyou.service.question.QuestionTagService;
+import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -71,8 +73,18 @@ public class QuestionTagServiceImpl implements QuestionTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_question",key = "T(String).valueOf(methodName).concat('_hashset')",unless = "#result == null")
     public HashSet<Long> searchQuestionId(HashSet<Long> tagId) {
-        return questionTagDao.searchQuestionId(tagId);
+        StringBuilder keySb = new StringBuilder();
+        for (Long id : tagId){
+            keySb.append(id);
+        }
+        String key = StringUtils.md5(keySb.toString());
+        HashSet<Long> ids = RedisUtils.getCache("tag_question",key,HashSet.class);
+        if(ids == null || ids.size() == 0)
+        {
+            ids = questionTagDao.searchQuestionId(tagId);
+            RedisUtils.setCache("tag_question",key,ids);
+        }
+        return ids;
     }
 }

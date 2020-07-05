@@ -3,6 +3,8 @@ package com.itellyou.service.article.impl;
 import com.itellyou.dao.article.ArticleTagDao;
 import com.itellyou.model.article.ArticleTagModel;
 import com.itellyou.service.article.ArticleTagService;
+import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -71,8 +73,18 @@ public class ArticleTagServiceImpl implements ArticleTagService {
     }
 
     @Override
-    @Cacheable(value = "tag_article",key = "T(String).valueOf(methodName).concat('_hashset')",unless = "#result == null")
     public HashSet<Long> searchArticleId(HashSet<Long> tagId) {
-        return articleTagDao.searchArticleId(tagId);
+        StringBuilder keySb = new StringBuilder();
+        for (Long id : tagId){
+            keySb.append(id);
+        }
+        String key = StringUtils.md5(keySb.toString());
+        HashSet<Long> ids = RedisUtils.getCache("tag_article",key,HashSet.class);
+        if(ids == null || ids.size() == 0)
+        {
+            ids = articleTagDao.searchArticleId(tagId);
+            RedisUtils.setCache("tag_article",key,ids);
+        }
+        return ids;
     }
 }
