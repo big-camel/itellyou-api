@@ -5,6 +5,8 @@ import com.itellyou.service.article.impl.ArticleCommentVoteServiceImpl;
 import com.itellyou.service.article.impl.ArticleVoteServiceImpl;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.question.impl.*;
+import com.itellyou.service.software.impl.SoftwareCommentVoteServiceImpl;
+import com.itellyou.service.software.impl.SoftwareVoteServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +20,22 @@ public class VoteFactory {
     private QuestionCommentVoteServiceImpl questionCommentVoteService;
     private QuestionAnswerVoteServiceImpl questionAnswerVoteService;
     private QuestionAnswerCommentVoteServiceImpl questionAnswerCommentVoteService;
+    private SoftwareCommentVoteServiceImpl softwareCommentVoteService;
+    private SoftwareVoteServiceImpl softwareVoteService;
 
     private static VoteFactory instance = new VoteFactory();
 
     public VoteFactory(){}
 
     @Autowired
-    public VoteFactory(ArticleCommentVoteServiceImpl articleCommentVoteService, ArticleVoteServiceImpl articleVoteService, QuestionCommentVoteServiceImpl questionCommentVoteService, QuestionAnswerVoteServiceImpl questionAnswerVoteService, QuestionAnswerCommentVoteServiceImpl questionAnswerCommentVoteService) {
+    public VoteFactory(ArticleCommentVoteServiceImpl articleCommentVoteService, ArticleVoteServiceImpl articleVoteService, QuestionCommentVoteServiceImpl questionCommentVoteService, QuestionAnswerVoteServiceImpl questionAnswerVoteService, QuestionAnswerCommentVoteServiceImpl questionAnswerCommentVoteService,SoftwareCommentVoteServiceImpl softwareCommentVoteService,SoftwareVoteServiceImpl softwareVoteService) {
         this.articleCommentVoteService = articleCommentVoteService;
         this.articleVoteService = articleVoteService;
         this.questionCommentVoteService = questionCommentVoteService;
         this.questionAnswerVoteService = questionAnswerVoteService;
         this.questionAnswerCommentVoteService = questionAnswerCommentVoteService;
+        this.softwareCommentVoteService = softwareCommentVoteService;
+        this.softwareVoteService = softwareVoteService;
     }
 
     @PostConstruct
@@ -40,6 +46,8 @@ public class VoteFactory {
         instance.questionCommentVoteService = questionCommentVoteService;
         instance.questionAnswerVoteService = questionAnswerVoteService;
         instance.questionAnswerCommentVoteService = questionAnswerCommentVoteService;
+        instance.softwareCommentVoteService = softwareCommentVoteService;
+        instance.softwareVoteService = softwareVoteService;
     }
 
     public static VoteFactory getInstance(){
@@ -52,6 +60,10 @@ public class VoteFactory {
             return voteFactory.articleVoteService;
         if(type.equals(EntityType.ARTICLE_COMMENT))
             return voteFactory.articleCommentVoteService;
+        if(type.equals(EntityType.SOFTWARE))
+            return voteFactory.softwareVoteService;
+        if(type.equals(EntityType.SOFTWARE_COMMENT))
+            return voteFactory.softwareCommentVoteService;
         if(type.equals(EntityType.QUESTION_COMMENT))
             return voteFactory.questionCommentVoteService;
         if(type.equals(EntityType.ANSWER))

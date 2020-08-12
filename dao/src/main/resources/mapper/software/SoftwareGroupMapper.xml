@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareGroupDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}`name` ${prefix}`name`,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into software_group(`name`,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values(#{name},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+    </insert>
+    <insert id="addAll">
+        insert into software_group(`name`,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        <foreach collection="collection" item="group" separator=",">
+            (#{group.name},#{group.createdTime},#{group.createdIp},#{group.createdUserId},#{group.updatedTime},#{group.updatedIp},#{group.updatedUserId})
+        </foreach>
+    </insert>
+    <delete id="clear">
+        delete from software_group
+    </delete>
+    <delete id="remove">
+        delete from software_group where id=#{id}
+    </delete>
+    <sql id="searchWhere">
+        <where>
+            <if test="name != null">
+                and ${alias}`name` = #{name}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="searchAll" resultType="SoftwareGroupModel">
+        select * from software_group
+    </select>
+    <select id="search" resultType="SoftwareGroupModel">
+        select * from software_group g
+        <include refid="searchWhere">
+            <property name="alias" value="g."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>g.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(g.id) from software_group g
+        <include refid="searchWhere">
+            <property name="alias" value="g."/>
+        </include>
+    </select>
+</mapper>

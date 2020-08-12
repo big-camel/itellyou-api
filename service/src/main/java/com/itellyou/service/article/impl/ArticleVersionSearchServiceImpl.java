@@ -40,13 +40,17 @@ public class ArticleVersionSearchServiceImpl implements ArticleVersionSearchServ
     @Override
     public List<ArticleVersionModel> search(HashSet<Long> ids, Map<Long, Integer> articleMap, Long userId, ArticleSourceType sourceType, Boolean hasContent, Boolean isReview, Boolean isDisable, Boolean isPublish, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<ArticleVersionModel> versionModels = RedisUtils.fetchByCache("article_version", ArticleVersionModel.class,ids,(HashSet<Long> fetchIds) ->
-                versionDao.search(fetchIds,articleMap,userId,sourceType,hasContent,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
+                versionDao.search(fetchIds,articleMap,userId,sourceType,true,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
         );
         if(versionModels.size() == 0) return versionModels;
         HashSet<Long> authorIds = new LinkedHashSet<>();
         HashSet<Long> fetchIds = new LinkedHashSet<>();
         for (ArticleVersionModel versionModel : versionModels){
             fetchIds.add(versionModel.getId());
+            if(hasContent != null && hasContent == false) {
+                versionModel.setContent("");
+                versionModel.setHtml("");
+            }
             if(!authorIds.contains(versionModel.getCreatedUserId())) authorIds.add(versionModel.getCreatedUserId());
         }
         // 一次查出需要的作者

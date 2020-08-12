@@ -4,6 +4,7 @@ import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionDetailModel;
+import com.itellyou.model.software.SoftwareDetailModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserDetailModel;
@@ -11,6 +12,7 @@ import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.service.software.SoftwareSearchService;
 import com.itellyou.service.sys.EntityService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserSearchService;
@@ -27,14 +29,16 @@ public class EntityServiceImpl implements EntityService {
     private final QuestionSearchService questionSearchService;
     private final QuestionAnswerSearchService answerSearchService;
     private final ArticleSearchService articleSearchService;
+    private final SoftwareSearchService softwareSearchService;
     private final ColumnSearchService columnSearchService;
     private final TagSearchService tagSearchService;
     private final UserSearchService userSearchService;
 
-    public EntityServiceImpl(QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, ColumnSearchService columnSearchService, TagSearchService tagSearchService, UserSearchService userSearchService) {
+    public EntityServiceImpl(QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, SoftwareSearchService softwareSearchService, ColumnSearchService columnSearchService, TagSearchService tagSearchService, UserSearchService userSearchService) {
         this.questionSearchService = questionSearchService;
         this.answerSearchService = answerSearchService;
         this.articleSearchService = articleSearchService;
+        this.softwareSearchService = softwareSearchService;
         this.columnSearchService = columnSearchService;
         this.tagSearchService = tagSearchService;
         this.userSearchService = userSearchService;
@@ -66,6 +70,14 @@ public class EntityServiceImpl implements EntityService {
                 map.put(model.getId(),model);
             }
             mapData.put(EntityType.ARTICLE,map);
+        }
+        if(ids.containsKey(EntityType.SOFTWARE)){
+            List<SoftwareDetailModel> list = softwareSearchService.search(ids.get(EntityType.SOFTWARE),null,null,null,searchId,false,null,null,null,null,null);
+            Map<Long, Object> map = new LinkedHashMap<>();
+            for (SoftwareDetailModel model : list){
+                map.put(model.getId(),model);
+            }
+            mapData.put(EntityType.SOFTWARE,map);
         }
         if(ids.containsKey(EntityType.COLUMN)){
             List<ColumnDetailModel> list = columnSearchService.search(ids.get(EntityType.COLUMN),null,null,null,searchId,null,null,null,null,null,null,null,null,null,null,null,null,null,null);

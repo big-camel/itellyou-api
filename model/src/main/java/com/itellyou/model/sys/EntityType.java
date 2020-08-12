@@ -20,7 +20,9 @@ public enum EntityType implements BaseEnum<EntityType,Integer> , CacheEntity {
     ALIPAY(13,"alipay"),
     MOBILE(14,"mobile"),
     EMAIL(15,"email"),
-    FEE(16,"fee");
+    FEE(16,"fee"),
+    SOFTWARE(17,"software"),
+    SOFTWARE_COMMENT(18, "software_comment");
 
     private Integer value;
     private String name;
@@ -77,6 +79,10 @@ public enum EntityType implements BaseEnum<EntityType,Integer> , CacheEntity {
                 return EMAIL;
             case 16:
                 return FEE;
+            case 17:
+                return SOFTWARE;
+            case 18:
+                return SOFTWARE_COMMENT;
             default:
                 return null;
         }

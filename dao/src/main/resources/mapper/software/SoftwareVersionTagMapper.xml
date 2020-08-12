@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareVersionTagDao">
+    <insert id="add">
+        insert into software_version_tag values(#{versionId},#{tagId})
+    </insert>
+    <insert id="addAll">
+        insert into software_version_tag(version_id,tag_id) values
+        <foreach collection="tagIds" item="tag" separator=",">
+            (#{versionId},#{tag})
+        </foreach>
+    </insert>
+    <delete id="clear">
+        delete from software_version_tag where version_id=#{versionId}
+    </delete>
+    <delete id="remove">
+        delete from software_version_tag where version_id=#{versionId} and tag_id=#{tagId}
+    </delete>
+    <select id="searchTags" resultType="SoftwareVersionTagModel">
+        select version_id ,tag_id from software_version_tag  where version_id in
+        <foreach collection="versionIds" item="versionId" separator="," open="(" close=")" >
+            #{versionId}
+        </foreach>
+    </select>
+    <select id="searchTagId" resultType="Long">
+        select tag_id from software_version_tag where version_id=#{versionId}
+    </select>
+</mapper>

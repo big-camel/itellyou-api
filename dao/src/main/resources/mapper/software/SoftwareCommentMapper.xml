@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareCommentDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}software_id ${prefix}software_id,
+        ${alias}parent_id ${prefix}parent_id,
+        ${alias}reply_id ${prefix}reply_id,
+        ${alias}is_deleted ${prefix}is_deleted,
+        (case when ${alias}is_deleted=1 then '' else ${alias}content end)${prefix}content,
+        (case when ${alias}is_deleted=1 then '' else ${alias}html end) ${prefix}html,
+        ${alias}comment_count ${prefix}comment_count,
+        ${alias}support ${prefix}support,
+        ${alias}oppose ${prefix}oppose,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into software_comment (software_id,parent_id,reply_id,is_deleted,content,html,comment_count,support,oppose,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        (#{softwareId},#{parentId},#{replyId},#{isDeleted},#{content},#{html},#{commentCount},#{support},#{oppose},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="softwareId != null">
+                and ${alias}software_id = #{softwareId}
+            </if>
+            <if test="parentIds != null &amp;&amp; parentIds.size() > 0">
+                and ${alias}parent_id <foreach collection="parentIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+            <if test="replyId != null">
+                and ${alias}reply_id = #{replyId}
+            </if>
+            <if test="minComments != null">
+                and ${alias}comment_count >= #{minComments}
+            </if>
+            <if test="maxComments != null">
+                and ${alias}comment_count &lt;= #{maxComments}
+            </if>
+            <if test="minSupport != null">
+                and ${alias}support >= #{minSupport}
+            </if>
+            <if test="maxSupport != null">
+                and ${alias}support &lt;= #{maxSupport}
+            </if>
+            <if test="minOppose != null">
+                and ${alias}oppose >= #{minOppose}
+            </if>
+            <if test="maxOppose != null">
+                and ${alias}oppose &lt;= #{maxOppose}
+            </if>
+        </where>
+    </sql>
+    <sql id="searchOrder">
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${alias}${key} ${value}
+            </foreach>
+        </if>
+    </sql>
+    <select id="search" resultType="SoftwareCommentModel">
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from software_comment c
+        <include refid="searchWhere">
+            <property name="alias" value="c."/>
+        </include>
+        <include refid="searchOrder">
+            <property name="alias" value="c."/>
+        </include>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from software_comment
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="searchChild" resultType="SoftwareCommentModel">
+        WITH rankCte AS (
+        SELECT
+        id,
+        rank() over ( PARTITION BY parent_id
+        <if test="order == null">
+            order by id
+        </if>
+        <include refid="searchOrder">
+            <property name="alias" value=""/>
+        </include>
+        ) number
+        FROM
+        software_comment
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        )
+        select <include refid="columns"><property name="alias" value="c."/><property name="prefix" value=""/></include>
+        from
+        rankCte r
+        left join software_comment c on r.id = c.id
+        where r.number &lt;= #{childCount}
+    </select>
+    <select id="findById" resultType="SoftwareCommentModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from software_comment where id=#{id}
+    </select>
+    <update id="updateDeleted">
+        update software_comment
+        <set>
+            <if test="isDeleted != null">
+                is_deleted=#{isDeleted},
+            </if>
+        </set> where id=#{id}
+    </update>
+    <update id="updateComments">
+        update software_comment
+        <set>
+            <if test="value != null">
+                comment_count=comment_count+#{value},
+            </if>
+        </set> where id=#{id}
+    </update>
+    <update id="updateVote">
+        update software_comment
+        <set>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
+                oppose=oppose+#{value},
+            </if>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
+                support=support+#{value},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

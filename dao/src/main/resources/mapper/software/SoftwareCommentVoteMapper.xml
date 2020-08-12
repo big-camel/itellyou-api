@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareCommentVoteDao">
+
+    <insert id="insert">
+        insert into software_comment_vote (type,comment_id,created_user_id,created_time,created_ip) values (#{type},#{commentId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="deleteByCommentIdAndUserId">
+        delete from software_comment_vote where comment_id=#{commentId} and created_user_id=#{userId}
+    </delete>
+    <select id="search" resultType="SoftwareCommentVoteModel">
+        select `type`,comment_id,created_user_id,created_time,created_ip from software_comment_vote where
+        comment_id in <foreach collection="commentIds" item="commentId" separator="," open="(" close=")" >
+        #{commentId}
+    </foreach> and created_user_id=#{userId}
+    </select>
+</mapper>

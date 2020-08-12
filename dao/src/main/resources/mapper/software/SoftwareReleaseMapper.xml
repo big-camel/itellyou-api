@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareReleaseDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}software_id ${prefix}software_id,
+        ${alias}`name` ${prefix}`name`,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into software_release(software_id,`name`,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values(#{softwareId},#{name},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+    </insert>
+    <insert id="addAll">
+        insert into software_release(software_id,`name`,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        <foreach collection="collection" item="release" separator=",">
+            (#{release.softwareId},#{release.name},#{release.createdTime},#{release.createdIp},#{release.createdUserId},#{release.updatedTime},#{release.updatedIp},#{release.updatedUserId})
+        </foreach>
+    </insert>
+    <delete id="clear">
+        delete from software_release where software_id=#{softwareId}
+    </delete>
+    <delete id="remove">
+        delete from software_release where id=#{id}
+    </delete>
+    <select id="search" resultType="SoftwareReleaseModel">
+        select * from software_release  where software_id in
+        <foreach collection="collection" item="softwareId" separator="," open="(" close=")" >
+            #{softwareId}
+        </foreach>
+    </select>
+</mapper>

@@ -48,11 +48,15 @@ public class TagVersionSearchServiceImpl implements TagVersionSearchService {
     @Override
     public List<TagVersionModel> search(HashSet<Long> ids, Map<Long, Integer> tagMap, Long userId, Boolean hasContent, Boolean isReview, Boolean isDisable, Boolean isPublish, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<TagVersionModel> versionModels = RedisUtils.fetchByCache("tag_version", TagVersionModel.class,ids,(HashSet<Long> fetchIds) ->
-                versionDao.search(fetchIds,tagMap,userId,hasContent,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
+                versionDao.search(fetchIds,tagMap,userId,true,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
         );
         if(versionModels.size() == 0) return versionModels;
         HashSet<Long> authorIds = new LinkedHashSet<>();
         for (TagVersionModel versionModel : versionModels){
+            if(hasContent != null && hasContent == false) {
+                versionModel.setContent("");
+                versionModel.setHtml("");
+            }
             if(!authorIds.contains(versionModel.getCreatedUserId())) authorIds.add(versionModel.getCreatedUserId());
         }
         // 一次查出需要的作者

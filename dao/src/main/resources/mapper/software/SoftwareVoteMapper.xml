@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareVoteDao">
+
+    <insert id="insert">
+        insert into software_vote (type,software_id,created_user_id,created_time,created_ip) values (#{type},#{softwareId},#{createdUserId},#{createdTime},#{createdIp})
+    </insert>
+    <delete id="deleteBySoftwareIdAndUserId">
+        delete from software_vote where software_id=#{softwareId} and created_user_id=#{userId}
+    </delete>
+    <select id="search" resultType="SoftwareVoteModel">
+        select `type`,software_id,created_user_id,created_time,created_ip from software_vote
+        where software_id in <foreach collection="softwareIds" item="softwareId" separator="," open="(" close=")" >
+            #{softwareId}
+        </foreach> and created_user_id=#{userId}
+    </select>
+</mapper>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareInfoDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}group_id ${prefix}group_id,
+        ${alias}`name` ${prefix}`name`,
+        ${alias}logo ${prefix}logo,
+        ${alias}description ${prefix}description,
+        ${alias}version ${prefix}version,
+        ${alias}is_published ${prefix}is_published,
+        ${alias}is_disabled ${prefix}is_disabled,
+        ${alias}is_deleted ${prefix}is_deleted,
+        ${alias}custom_description ${prefix}custom_description,
+        ${alias}draft ${prefix}draft,
+        ${alias}comment_count ${prefix}comment_count,
+        ${alias}`view` ${prefix}`view`,
+        ${alias}support ${prefix}support,
+        ${alias}oppose ${prefix}oppose,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_user_id ${prefix}updated_user_id,
+        ${alias}updated_ip ${prefix}updated_ip
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into software_info(group_id,`name`,description,version,is_published,is_disabled,is_deleted,custom_description,draft,comment_count,`view`,support,oppose,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{groupId},#{name},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{draft},#{commentCount},#{view},#{support},#{oppose},
+        #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <resultMap id="searchMap" type="SoftwareInfoModel" autoMapping="true">
+        <id property="id" column="id" />
+    </resultMap>
+    <sql id="searchWhere">
+        <where>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="groupId != null">
+                and ${alias}group_id=#{groupId}
+            </if>
+            <if test="minComments != null">
+                and ${alias}comment_count >= #{minComments}
+            </if>
+            <if test="maxComments != null">
+                and ${alias}comment_count &lt;= #{maxComments}
+            </if>
+            <if test="minView != null">
+                and ${alias}view >= #{minView}
+            </if>
+            <if test="maxView != null">
+                and ${alias}view &lt;= #{maxView}
+            </if>
+            <if test="minSupport != null">
+                and ${alias}support >= #{minSupport}
+            </if>
+            <if test="maxSupport != null">
+                and ${alias}support &lt;= #{maxSupport}
+            </if>
+            <if test="minOppose != null">
+                and ${alias}oppose >= #{minOppose}
+            </if>
+            <if test="maxOppose != null">
+                and ${alias}oppose &lt;= #{maxOppose}
+            </if>
+            <if test="mode != 'draft'">
+                and ${alias}version > 0
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultMap="searchMap">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+
+        from software_info q
+
+        <include refid="searchWhere">
+            <property name="alias" value="q."/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                <choose>
+                    <when test="key.indexOf('.') >= 0">${key} ${value}</when>
+                    <otherwise>q.${key} ${value}</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(q.id) from software_info q
+        <include refid="searchWhere">
+            <property name="alias" value="q."/>
+        </include>
+    </select>
+    <select id="findById" resultType="SoftwareInfoModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from software_info where id=#{id}
+    </select>
+    <update id="updateVersion">
+        update software_info
+        <set>
+            <if test="draft != null">
+                draft=#{draft},
+            </if>
+            <if test="version != null">
+                version=#{version},
+            </if>
+            <if test="isPublished != null">
+                is_published=#{isPublished},
+            </if>
+            updated_time=#{time},
+            updated_ip=#{ip},
+            updated_user_id=#{userId}
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateView">
+        update software_info set view=view+#{view} where id=#{id}
+    </update>
+    <update id="updateVote">
+        update software_info
+        <set>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
+                oppose=oppose+#{value},
+            </if>
+            <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
+                support=support+#{value},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <update id="updateComments">
+        update software_info set comment_count=comment_count+#{value} where id=#{id}
+    </update>
+    <update id="updateMetas">
+        update software_info
+        <set>
+            <if test="customDescription != null">
+                custom_description = #{customDescription},
+            </if>
+            <if test="logo != null">
+                logo = #{logo},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <update id="updateDeleted">
+        update software_info set is_deleted=#{deleted} where id=#{id}
+    </update>
+    <update id="updateInfo">
+        update software_info <set>
+            <if test="name != null">`name`=#{name},</if>
+            <if test="description != null">description=#{description},</if>
+            <if test="groupId != null">group_id=#{groupId},</if>
+            updated_time=#{time},
+            updated_ip=#{ip},
+            updated_user_id=#{userId}
+        </set>
+            where id=#{id}
+    </update>
+</mapper>

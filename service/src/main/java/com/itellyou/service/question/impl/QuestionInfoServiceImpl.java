@@ -118,7 +118,7 @@ public class QuestionInfoServiceImpl implements QuestionInfoService {
             int result = questionInfoDao.updateDeleted(deleted,id);
             if(result != 1)throw new Exception("删除失败");
             if(deleted){
-                draftService.delete(userId, EntityType.ARTICLE,id);
+                draftService.delete(userId, EntityType.QUESTION,id);
             }
             userInfoService.updateArticleCount(userId,deleted ? -1 : 1);
             operationalPublisher.publish(new QuestionEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,

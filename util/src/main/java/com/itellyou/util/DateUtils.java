@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class DateUtils {
 
-    private final static String defaultFormat = "yyyy-MM-dd HH:mm:ss";
+    public final static String defaultFormat = "yyyy-MM-dd HH:mm:ss";
 
     public static ZoneId getZoneId(int hours){
         return ZoneOffset.ofHours(hours);
@@ -38,7 +38,19 @@ public class DateUtils {
     }
 
     public static LocalDateTime formatToDateTime(String datetime){
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(defaultFormat);
+        String format = defaultFormat;
+        if(datetime.indexOf("T") > 0){
+            format = "yyyy-MM-dd'T'HH:mm:ss";
+            if(datetime.indexOf(".") > 0){
+                int len = datetime.substring(datetime.indexOf(".") + 1).length();
+                format += ".";
+                for (int i = 0;i < len;i++) format += "S";
+            }
+            if(datetime.indexOf("Z") > 0){
+                format += "'Z'";
+            }
+        }
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(format);
         return LocalDateTime.parse(datetime,dateTimeFormatter);
     }
 

@@ -14,6 +14,11 @@ public class TokenAccessDeniedException extends AccessDeniedException {
         return this.status;
     }
 
+    public TokenAccessDeniedException(){
+        super("No Access");
+        setStatus(401);
+    }
+
     public TokenAccessDeniedException(int status , String msg) {
         super(msg);
         setStatus(status);

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.software.SoftwareVersionDao">
+    <sql id="columns">
+        ${alias}software_id,
+        ${alias}group_id,
+        ${alias}`name`,
+        ${alias}`logo`,
+        ${alias}content,
+        ${alias}html,
+        ${alias}description,
+        ${alias}version,
+        ${alias}is_reviewed,
+        ${alias}is_disabled,
+        ${alias}is_published,
+        ${alias}save_type,
+        ${alias}remark,
+        ${alias}created_time,
+        ${alias}created_user_id,
+        ${alias}created_ip,
+        ${alias}updated_time,
+        ${alias}updated_user_id,
+        ${alias}updated_ip
+    </sql>
+    <sql id="primary">id</sql>
+    <select id="findVersionById" resultType="java.lang.Integer">
+        select version from software_version where id = #{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into software_version(<include refid="columns"><property name="alias" value=""/></include>) select #{softwareId},#{groupId},#{name},#{logo},#{content},#{html},#{description},
+        <choose>
+            <when test="version == null || version == 0">
+                count(id) + 1
+            </when>
+            <otherwise>
+                #{version}
+            </otherwise>
+        </choose>
+        ,#{isReviewed},#{isDisabled},#{isPublished},#{saveType},#{remark},
+        #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp}
+        <if test="version == null || version == 0">
+            from software_version where software_id=#{softwareId}
+        </if>
+    </insert>
+    <select id="findBySoftwareIdAndVersion" resultType="SoftwareVersionModel">
+        select id,software_id,group_id,version,is_reviewed,is_disabled,is_published,save_type,remark,created_time,created_ip,created_user_id,`name`,logo,description
+        <if test="hasContent != false">
+            ,content,
+            html
+        </if> from software_version where software_id=#{softwareId} and version = #{version}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="isReviewed != null">
+                ${alias}is_reviewed = #{isReviewed}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="groupId != null">
+                and ${alias}group_id = #{groupId}
+            </if>
+            <if test="softwareMap != null &amp;&amp; softwareMap.size() > 0">
+                <foreach collection="softwareMap.entrySet()" item="value" index="key" separator=" or " open=" and (" close=")">
+                    ${alias}software_id=#{key}
+                    <if test="value != null">
+                        and ${alias}version=#{value}
+                    </if>
+                </foreach>
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SoftwareVersionModel">
+        select
+        <trim suffixOverrides=",">
+            id,software_id,group_id,version,is_reviewed,is_disabled,is_published,save_type,remark,created_time,created_ip,created_user_id,`name`,logo,description,
+            <if test="hasContent != false">
+                content,
+                html
+            </if>
+        </trim>
+        from software_version
+        <include refid="where">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="java.lang.Integer">
+        select count(v.id) from from software_version v
+        <include refid="where">
+            <property name="alias" value="v."/>
+        </include>
+    </select>
+    <update id="update">
+        update software_version
+        <set>
+            <if test="groupId != null">group_id=#{groupId}</if>
+            <if test="name != null">`name`=#{name}</if>
+            <if test="logo != null">logo=#{logo}</if>
+            <if test="groupId != null">group_id=#{groupId}</if>
+            <if test="content != null">content=#{content}</if>
+            <if test="html != null">html=#{html}</if>
+            <if test="description != null">description=#{description}</if>
+            <if test="isReviewed != null">is_reviewed=#{isReviewed}</if>
+            <if test="isDisabled != null">is_disabled=#{isDisabled}</if>
+            <if test="isPublished != null">is_published=#{isPublished}</if>
+            <if test="saveType != null">save_type=#{saveType}</if>
+            <if test="remark != null">remark=#{remark}</if>
+            <if test="updatedTime != null">updated_time=#{updatedTime}</if>
+            <if test="updatedIp != null">updated_ip=#{updatedIp}</if>
+            <if test="updatedUserId != null">updated_user_id=#{updatedUserId}</if>
+        </set> where id=#{id}
+    </update>
+</mapper>

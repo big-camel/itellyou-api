@@ -71,13 +71,17 @@ public class QuestionVersionSearchServiceImpl implements QuestionVersionSearchSe
     @Override
     public List<QuestionVersionModel> search(HashSet<Long> ids, Map<Long, Integer> questionMap, Long userId, Boolean hasContent, Boolean isReview, Boolean isDisable, Boolean isPublish, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<QuestionVersionModel> versionModels = RedisUtils.fetchByCache("question_version", QuestionVersionModel.class,ids,(HashSet<Long> fetchIds) ->
-                versionDao.search(fetchIds,questionMap,userId,hasContent,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
+                versionDao.search(fetchIds,questionMap,userId,true,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
         );
         if(versionModels.size() == 0) return versionModels;
         HashSet<Long> authorIds = new LinkedHashSet<>();
         HashSet<Long> fetchIds = new LinkedHashSet<>();
         for (QuestionVersionModel versionModel : versionModels){
             fetchIds.add(versionModel.getId());
+            if(hasContent != null && hasContent == false) {
+                versionModel.setContent("");
+                versionModel.setHtml("");
+            }
             if(!authorIds.contains(versionModel.getCreatedUserId())) authorIds.add(versionModel.getCreatedUserId());
         }
         // 一次查出需要的作者

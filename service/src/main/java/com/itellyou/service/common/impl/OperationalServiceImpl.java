@@ -1,6 +1,8 @@
 package com.itellyou.service.common.impl;
 
 import com.itellyou.dao.common.OperationalDao;
+import com.itellyou.model.software.SoftwareCommentDetailModel;
+import com.itellyou.model.software.SoftwareDetailModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.common.OperationalDetailModel;
 import com.itellyou.model.common.OperationalModel;
@@ -18,6 +20,8 @@ import com.itellyou.service.article.ArticleCommentSearchService;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.service.question.*;
+import com.itellyou.service.software.SoftwareCommentSearchService;
+import com.itellyou.service.software.SoftwareSearchService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.common.OperationalService;
 import com.itellyou.service.user.UserSearchService;
@@ -35,25 +39,29 @@ public class OperationalServiceImpl implements OperationalService {
     private final QuestionSearchService questionSearchService;
     private final QuestionAnswerSearchService answerSearchService;
     private final ArticleSearchService articleSearchService;
+    private final SoftwareSearchService softwareSearchService;
     private final ColumnSearchService columnSearchService;
     private final QuestionCommentSearchService questionCommentSearchService;
     private final QuestionAnswerCommentSearchService questionAnswerCommentSearchService;
     private final ArticleCommentSearchService articleCommentSearchService;
+    private final SoftwareCommentSearchService softwareCommentSearchService;
     private final TagSearchService tagSearchService;
 
     @Autowired
-    public OperationalServiceImpl(OperationalDao operationalDao, UserSearchService userSearchService, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, ColumnSearchService columnSearchService,
+    public OperationalServiceImpl(OperationalDao operationalDao, UserSearchService userSearchService, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, SoftwareSearchService softwareSearchService, ColumnSearchService columnSearchService,
                                   QuestionCommentSearchService questionCommentSearchService, QuestionAnswerCommentSearchService questionAnswerCommentSearchService, ArticleCommentSearchService articleCommentSearchService,
-                                  TagSearchService tagSearchService){
+                                  SoftwareCommentSearchService softwareCommentSearchService, TagSearchService tagSearchService){
         this.operationalDao = operationalDao;
         this.userSearchService = userSearchService;
         this.questionSearchService = questionSearchService;
         this.answerSearchService = answerSearchService;
         this.articleSearchService = articleSearchService;
+        this.softwareSearchService = softwareSearchService;
         this.columnSearchService = columnSearchService;
         this.questionCommentSearchService = questionCommentSearchService;
         this.questionAnswerCommentSearchService = questionAnswerCommentSearchService;
         this.articleCommentSearchService = articleCommentSearchService;
+        this.softwareCommentSearchService = softwareCommentSearchService;
         this.tagSearchService = tagSearchService;
     }
 
@@ -91,6 +99,7 @@ public class OperationalServiceImpl implements OperationalService {
                 if(type.equals(EntityType.QUESTION)) type = EntityType.QUESTION_COMMENT;
                 if(type.equals(EntityType.ANSWER)) type = EntityType.ANSWER_COMMENT;
                 if(type.equals(EntityType.ARTICLE)) type = EntityType.ARTICLE_COMMENT;
+                if(type.equals(EntityType.SOFTWARE)) type = EntityType.SOFTWARE_COMMENT;
             }
             if(dataMap.containsKey(type)){
                 HashSet<Long> hashSet = dataMap.get(type);
@@ -160,6 +169,28 @@ public class OperationalServiceImpl implements OperationalService {
                                     hashSet.add(detailModel.getArticleId());
                             }else{
                                 dataMap.put(EntityType.ARTICLE,new HashSet<Long>(){{ add(detailModel.getArticleId());}});
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(dataMap.containsKey(EntityType.SOFTWARE_COMMENT)){
+            List<SoftwareCommentDetailModel> softwareCommentModels = softwareCommentSearchService.search(dataMap.get(EntityType.SOFTWARE_COMMENT),null,null,null,searchUserId,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
+            for (OperationalDetailModel operationalModel : operationalDetailModelList){
+                EntityAction action = operationalModel.getAction();
+                EntityType type = operationalModel.getType();
+                if((action.equals(EntityAction.COMMENT) || action.equals(EntityAction.LIKE)) && (type.equals(EntityType.SOFTWARE) || type.equals(EntityType.SOFTWARE_COMMENT))){
+                    for (SoftwareCommentDetailModel detailModel : softwareCommentModels){
+                        if(operationalModel.getTargetId().equals(detailModel.getId())){
+                            operationalModel.setTarget(detailModel);
+                            if(dataMap.containsKey(EntityType.SOFTWARE)){
+                                HashSet<Long> hashSet = dataMap.get(EntityType.SOFTWARE);
+                                if(!hashSet.contains(detailModel.getSoftwareId()))
+                                    hashSet.add(detailModel.getSoftwareId());
+                            }else{
+                                dataMap.put(EntityType.SOFTWARE,new HashSet<Long>(){{ add(detailModel.getSoftwareId());}});
                             }
                             break;
                         }
@@ -280,6 +311,37 @@ public class OperationalServiceImpl implements OperationalService {
                                 commentDetailModel.setArticle(detailModel);
                             }else {
                                 commentDetailModel.getReply().setArticle(detailModel);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(dataMap.containsKey(EntityType.SOFTWARE)) {
+            List<SoftwareDetailModel> softwareModels = softwareSearchService.search(dataMap.get(EntityType.SOFTWARE),"version",null,null,searchUserId,true,null,null,null,null,null);
+            for (OperationalDetailModel operationalModel : operationalDetailModelList){
+                EntityAction action = operationalModel.getAction();
+                EntityType type = operationalModel.getType();
+                if(!action.equals(EntityAction.COMMENT) && type.equals(EntityType.SOFTWARE)){
+                    for (SoftwareDetailModel detailModel : softwareModels){
+                        if(operationalModel.getTargetId().equals(detailModel.getId())){
+                            operationalModel.setTarget(detailModel);
+                            break;
+                        }
+                    }
+                }
+                else if((action.equals(EntityAction.COMMENT) || action.equals(EntityAction.LIKE))  && (type.equals(EntityType.SOFTWARE) || type.equals(EntityType.SOFTWARE_COMMENT))){
+                    Object target = operationalModel.getTarget();
+                    if (target == null) continue;
+                    SoftwareCommentDetailModel commentDetailModel = (SoftwareCommentDetailModel) target;
+                    for (SoftwareDetailModel detailModel : softwareModels) {
+                        if (commentDetailModel.getSoftwareId().equals(detailModel.getId())) {
+                            if(type.equals(EntityType.SOFTWARE) || commentDetailModel.getReply() == null) {
+                                commentDetailModel.setSoftware(detailModel);
+                            }else {
+                                commentDetailModel.getReply().setSoftware(detailModel);
                             }
                             break;
                         }

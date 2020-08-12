@@ -8,7 +8,8 @@ public enum UploadSource implements BaseEnum<UploadSource,Integer> , CacheEntity
     AVATAR(1,"avatar"),
     ARTICLE(2,"article"),
     QUESTION(3,"question"),
-    ANSWER(4,"answer");
+    ANSWER(4,"answer"),
+    SOFTWARE(5,"software");
 
     private Integer value;
     private String name;
@@ -40,6 +41,8 @@ public enum UploadSource implements BaseEnum<UploadSource,Integer> , CacheEntity
                 return QUESTION;
             case 4:
                 return ANSWER;
+            case 5:
+                return SOFTWARE;
             default:
                 return DEFAULT;
         }

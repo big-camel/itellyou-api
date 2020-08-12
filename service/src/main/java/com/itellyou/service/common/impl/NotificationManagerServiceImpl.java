@@ -83,6 +83,7 @@ public class NotificationManagerServiceImpl implements NotificationManagerServic
     @Async
     public void put(OperationalModel model) {
         try{
+            if(model == null) return;
             // 获取系统默认消息设置
             List<NotificationDisplayModel> displayModels = displayService.getDefault();
             // 匹配哪些操作是需要设置消息的
