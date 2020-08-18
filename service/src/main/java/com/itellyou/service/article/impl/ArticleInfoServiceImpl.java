@@ -122,7 +122,7 @@ public class ArticleInfoServiceImpl implements ArticleInfoService {
             result = userInfoService.updateArticleCount(userId,deleted ? -1 : 1);
             if(result != 1) throw new Exception("更新用户文章数量失败");
             Long columnId = articleInfoModel.getColumnId();
-            if(columnId != null){
+            if(columnId != null && !columnId.equals(0l)){
                 result = columnInfoService.updateArticles(columnId,deleted ? -1 : 1);
                 if(result != 1) throw new Exception("更新专栏文章数量失败");
             }

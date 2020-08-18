@@ -1,5 +1,6 @@
 package com.itellyou.service.question.impl;
 
+import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionIndexModel;
 import com.itellyou.model.sys.RewardType;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -102,6 +104,17 @@ public class QuestionIndexServiceImpl extends IndexServiceImpl<QuestionDetailMod
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        update(searchService.search(ids,null,null,null,true,false,false,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null));
+        List<QuestionDetailModel> list = searchService.search(ids,null,null,null,true,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<QuestionDetailModel> updateModels = new LinkedList<>();
+        for (QuestionDetailModel model : list) {
+            if(model.isDeleted() || model.isDisabled()) {
+                delete(model.getId());
+            }else
+            {
+                updateModels.add(model);
+            }
+        }
+        if(updateModels.size() > 0)
+            update(updateModels);
     }
 }

@@ -10,6 +10,7 @@ import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.article.ArticleCommentService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerCommentService;
+import com.itellyou.service.software.SoftwareCommentService;
 import com.itellyou.service.sys.EntityService;
 import com.itellyou.service.sys.RewardLogService;
 import com.itellyou.service.sys.RewardService;
@@ -33,14 +34,16 @@ public class RewardServiceImpl implements RewardService {
     private final OperationalPublisher operationalPublisher;
     private final ArticleCommentService articleCommentService;
     private final QuestionAnswerCommentService answerCommentService;
+    private final SoftwareCommentService softwareCommentService;
 
-    public RewardServiceImpl(RewardLogService logService, UserBankService bankService, EntityService entityService, OperationalPublisher operationalPublisher, ArticleCommentService articleCommentService, QuestionAnswerCommentService answerCommentService) {
+    public RewardServiceImpl(RewardLogService logService, UserBankService bankService, EntityService entityService, OperationalPublisher operationalPublisher, ArticleCommentService articleCommentService, QuestionAnswerCommentService answerCommentService, SoftwareCommentService softwareCommentService) {
         this.logService = logService;
         this.bankService = bankService;
         this.entityService = entityService;
         this.operationalPublisher = operationalPublisher;
         this.articleCommentService = articleCommentService;
         this.answerCommentService = answerCommentService;
+        this.softwareCommentService = softwareCommentService;
     }
 
     @Override
@@ -94,6 +97,9 @@ public class RewardServiceImpl implements RewardService {
             else if(dataType.equals(EntityType.ANSWER)){
                 String html = new StringBuilder("<p>我刚刚打赏了这个回答").append(typePrefix).append(amount).append(typeSuffix).append("，也推荐给你。</p>").toString();
                 answerCommentService.insert(dataKey,0l,0l,html,html,userId,ip,false);
+            }else if(dataType.equals(EntityType.SOFTWARE)){
+                String html = new StringBuilder("<p>我刚刚打赏了").append(typePrefix).append(amount).append(typeSuffix).append("，也推荐给你。</p>").toString();
+                softwareCommentService.insert(dataKey,0l,0l,html,html,userId,ip,false);
             }
             if(bankType.equals(UserBankType.CASH)) {
                 OperationalModel operationalModel = new OperationalModel(EntityAction.REWARD, dataType, dataKey, targetUserId, userId, DateUtils.getTimestamp(), ip);

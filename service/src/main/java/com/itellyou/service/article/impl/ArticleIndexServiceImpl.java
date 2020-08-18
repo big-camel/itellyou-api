@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -104,8 +105,19 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        update(searchService.search(ids,null,null,null,null
-        ,null,true,false,false,true,null,null,null,null,null,null,null,null,null,null,null,null,null
-        ,null,null,null,null));
+        List<ArticleDetailModel> list = searchService.search(ids,null,null,null,null
+                ,null,true,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null
+                ,null,null,null,null);
+        List<ArticleDetailModel> updateModels = new LinkedList<>();
+        for (ArticleDetailModel articleModel : list) {
+            if(articleModel.isDeleted() || articleModel.isDisabled()) {
+                delete(articleModel.getId());
+            }else
+            {
+                updateModels.add(articleModel);
+            }
+        }
+        if(updateModels.size() > 0)
+            update(updateModels);
     }
 }

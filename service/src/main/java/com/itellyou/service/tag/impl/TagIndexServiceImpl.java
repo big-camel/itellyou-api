@@ -105,9 +105,10 @@ public class TagIndexServiceImpl extends IndexServiceImpl<TagDetailModel> {
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        List<TagDetailModel> list = searchService.search(ids,null,null,null,null,null,true,false,true,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<TagDetailModel> list = searchService.search(ids,null,null,null,null,null,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
         for (TagDetailModel detailModel : list){
-            update(detailModel);
+            if(detailModel.isDisabled()) delete(detailModel.getId());
+            else update(detailModel);
         }
     }
 }

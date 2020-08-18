@@ -53,7 +53,7 @@ public class RewardController {
             bankType = UserBankType.valueOf(type.toUpperCase());
             if(!bankType.equals(UserBankType.CASH) && !bankType.equals(UserBankType.CREDIT)) throw new Exception("参数错误");
             entityType = EntityType.valueOf(dataType.toUpperCase());
-            if(!entityType.equals(EntityType.ANSWER) && !entityType.equals(EntityType.ARTICLE)) throw new Exception("参数错误");
+            if(!entityType.equals(EntityType.ANSWER) && !entityType.equals(EntityType.ARTICLE) && !entityType.equals(EntityType.SOFTWARE)) throw new Exception("参数错误");
             RewardLogModel logModel = rewardService.doReward(bankType,amount,entityType,dataKey,userModel.getId(), IPUtils.toLong(request));
 
             Long searchUserId = userModel != null ? userModel.getId() : null;

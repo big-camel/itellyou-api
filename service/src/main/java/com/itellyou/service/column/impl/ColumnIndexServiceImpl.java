@@ -1,5 +1,6 @@
 package com.itellyou.service.column.impl;
 
+import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnIndexModel;
 import com.itellyou.model.tag.TagDetailModel;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -85,7 +87,18 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
     @Override
     @Async
     public void updateIndex(HashSet<Long> ids) {
-        update(searchService.search(ids,null,null,null,null
-                ,false,true,false,null,null,null,null,null,null,null,null,null,null,null));
+        List<ColumnDetailModel> list = searchService.search(ids,null,null,null,null
+                ,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<ColumnDetailModel> updateModels = new LinkedList<>();
+        for (ColumnDetailModel model : list) {
+            if(model.isDeleted() || model.isDisabled()) {
+                delete(model.getId());
+            }else
+            {
+                updateModels.add(model);
+            }
+        }
+        if(updateModels.size() > 0)
+            update(updateModels);
     }
 }
