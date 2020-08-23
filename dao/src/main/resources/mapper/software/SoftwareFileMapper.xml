@@ -47,5 +47,6 @@
         <foreach collection="collection" item="updaterId" separator="," open="(" close=")" >
             #{updaterId}
         </foreach>
+        order by created_time desc
     </select>
 </mapper>

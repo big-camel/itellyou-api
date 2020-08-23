@@ -32,5 +32,6 @@
         <foreach collection="collection" item="softwareId" separator="," open="(" close=")" >
             #{softwareId}
         </foreach>
+        order by created_time desc
     </select>
 </mapper>
