@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionVersionDao;
+import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.question.QuestionVersionModel;
 import com.itellyou.model.question.QuestionVersionTagModel;
 import com.itellyou.model.tag.TagDetailModel;
@@ -10,6 +11,7 @@ import com.itellyou.service.question.QuestionVersionTagService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -71,7 +73,8 @@ public class QuestionVersionSearchServiceImpl implements QuestionVersionSearchSe
     @Override
     public List<QuestionVersionModel> search(HashSet<Long> ids, Map<Long, Integer> questionMap, Long userId, Boolean hasContent, Boolean isReview, Boolean isDisable, Boolean isPublish, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<QuestionVersionModel> versionModels = RedisUtils.fetchByCache("question_version", QuestionVersionModel.class,ids,(HashSet<Long> fetchIds) ->
-                versionDao.search(fetchIds,questionMap,userId,true,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
+                versionDao.search(fetchIds,questionMap,userId,hasContent,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit),
+                (QuestionVersionModel obj, Long id) -> id != null && obj.cacheKey().equals(id.toString()) && (hasContent != null && hasContent == true ? StringUtils.isNotEmpty(obj.getContent()) : true)
         );
         if(versionModels.size() == 0) return versionModels;
         HashSet<Long> authorIds = new LinkedHashSet<>();

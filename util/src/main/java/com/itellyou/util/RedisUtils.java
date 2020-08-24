@@ -54,7 +54,7 @@ public class RedisUtils {
             fetchIds = new LinkedHashSet<>();
             for (Long id : ids){
                 T cacheData = getCache(name,id,clazz);
-                if(cacheData != null){
+                if(cacheData != null && checkFun.apply(cacheData,id)){
                     cacheModels.add(cacheData);
                 }else{
                     fetchIds.add(id);

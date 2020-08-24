@@ -1,11 +1,13 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagVersionDao;
+import com.itellyou.model.article.ArticleVersionModel;
 import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.tag.TagVersionSearchService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +50,8 @@ public class TagVersionSearchServiceImpl implements TagVersionSearchService {
     @Override
     public List<TagVersionModel> search(HashSet<Long> ids, Map<Long, Integer> tagMap, Long userId, Boolean hasContent, Boolean isReview, Boolean isDisable, Boolean isPublish, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<TagVersionModel> versionModels = RedisUtils.fetchByCache("tag_version", TagVersionModel.class,ids,(HashSet<Long> fetchIds) ->
-                versionDao.search(fetchIds,tagMap,userId,true,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit)
+                versionDao.search(fetchIds,tagMap,userId,hasContent,isReview,isDisable,isPublish,beginTime,endTime,ip,order,offset,limit),
+                (TagVersionModel obj, Long id) -> id != null && obj.cacheKey().equals(id.toString()) && (hasContent != null && hasContent == true ? StringUtils.isNotEmpty(obj.getContent()) : true)
         );
         if(versionModels.size() == 0) return versionModels;
         HashSet<Long> authorIds = new LinkedHashSet<>();
