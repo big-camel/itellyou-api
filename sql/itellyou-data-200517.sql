@@ -1,3 +1,0 @@
-insert into `itellyou`.`sys_role_permission` ( `role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) values ( '1', 'api_validation_register_code', '10012', '0', '0');
-insert into `itellyou`.`sys_role_permission` ( `role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) values ( '1', 'api_validation_login_code', '10012', '0', '0');
-insert into `itellyou`.`sys_role_permission` ( `role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) values ( '1', 'api_validation_oauth_code', '10012', '0', '0');

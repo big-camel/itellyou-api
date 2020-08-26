@@ -3,10 +3,10 @@ https://www.itellyou.com 后端服务API
 
 ### 本地安装运行
 
-1. 安装 mysql5.6 以上版本，jdk 1.8 版本
+1. 安装 mysql8.0 以上版本，jdk 1.8 版本
 2. 安装 idea ide 工具
 3. 使用 idea 以Maven的方式导入 itellyou-api 项目
-4. 根目录中 sql 文件夹 itellyou.sql 文件为本服务的数据库结构文件，u-*****.sql 在每次新增或修改功能后数据库变更文件。以上文件需要依次执行才能得到最新的数据库结构
+4. 根目录中 sql 文件夹 itellyou.sql 文件为本服务的数据库结构文件，data 目录里面是所需要的基础数据
 5. 本项目为 SpringBoot2 MVC 多模块项目
     * .ansj 项目搜索使用 lucene 做为搜索引擎，AnsjAnalyzer 作为分词,分词配置在 api/src/main/java/resources/ansj_library.properties 文件中
     * api - 控制器，View 层相关
@@ -73,8 +73,6 @@ user 登录用户
 ```
 insert into user_role(user_id,role_id,created_user_id,created_time,created_ip) values(用户编号,3,0,0,0)
 ```
-
-相关初始化数据在 itellyou-data.sql 中
 
 ### redis 缓存
 reids 官网下载安装

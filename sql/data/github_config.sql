@@ -1,0 +1,1 @@
+INSERT INTO `github_config`(`id`, `secret`, `gateway`, `redirect_uri`) VALUES ('Github Key', 'Github 密钥', 'https://github.com/login/oauth/authorize', 'https://www.itellyou.com/api/oauth/github/callback');

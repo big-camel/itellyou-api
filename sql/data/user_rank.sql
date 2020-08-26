@@ -1,0 +1,9 @@
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (1, '黑铁', -999999999, 14, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, '青铜', 15, 100, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (3, '白银', 101, 500, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (4, '黄金', 501, 1500, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (5, '白金', 1501, 2500, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (6, '钻石', 2501, 5000, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (7, '大师', 5001, 10000, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (8, '宗师', 10001, 50000, 0, 0, 0);
+INSERT INTO `user_rank`(`id`, `name`, `min_score`, `max_score`, `created_user_id`, `created_time`, `created_ip`) VALUES (9, '王者', 50001, 999999999, 0, 0, 0);
