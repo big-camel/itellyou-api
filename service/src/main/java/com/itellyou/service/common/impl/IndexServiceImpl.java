@@ -33,6 +33,7 @@ public class IndexServiceImpl<T> implements IndexService<T> {
     @Async
     public void create(T detailModel) {
         try {
+            if(detailModel == null) throw new Exception("创建索引对象不能为空");
             IndexWriter indexWriter = getIndexWriter();
             indexWriter.addDocument(getDocument(detailModel));
         }catch (Exception e){
@@ -109,6 +110,7 @@ public class IndexServiceImpl<T> implements IndexService<T> {
     @Async
     public void update(T detailModel) {
         try {
+            if(detailModel == null) throw new Exception("更新索引对象不能为空");
             IndexWriter indexWriter = getIndexWriter();
             Long id = getId(detailModel);
             if(id != null) delete(indexWriter,id);

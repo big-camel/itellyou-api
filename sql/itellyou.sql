@@ -60,7 +60,7 @@ CREATE TABLE `ali_dm_config`  (
 DROP TABLE IF EXISTS `ali_dm_log`;
 CREATE TABLE `ali_dm_log`  (
   `id` bigint(0) NOT NULL AUTO_INCREMENT,
-  `email` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '',
+  `email` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '',
   `template_id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '',
   `data` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `status` tinyint(1) NULL DEFAULT 0,
