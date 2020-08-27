@@ -110,7 +110,7 @@ public class NotificationManagerServiceImpl implements NotificationManagerServic
                     return;
                 }
             }
-            logger.warn("Put notification not match action : {},type:{}",model.getAction(),model.getType());
+            //logger.warn("Put notification not match action : {},type:{}",model.getAction(),model.getType());
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
         }
