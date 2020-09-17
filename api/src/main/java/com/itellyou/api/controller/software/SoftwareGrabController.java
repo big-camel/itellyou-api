@@ -169,10 +169,10 @@ public class SoftwareGrabController {
                 // 软件信息不存在则录入
                 if(!softwareInfoModelMap.containsKey(name)){
                     softId = softwareDocService.create(userId,groupModel.getId(),name,name,name,name,new HashSet<Long>(){{ add(tagId); }},"采集创建","user",ip,true,true);
-                    json.put("id",softId);
                 }else{
                     softId = softwareInfoModelMap.get(name).getId();
                 }
+                json.put("id",softId);
                 // 设置属性
                 JSONObject attributesJson = json.getJSONObject("attributes");
                 HashSet<SoftwareAttributesModel> attributesModels = new HashSet<>();
@@ -205,8 +205,8 @@ public class SoftwareGrabController {
                         releaseModel.setCreatedUserId(userId);
                         releaseModel.setSoftwareId(softId);
                         releaseService.add(releaseModel);
-                        versionsJson.put("id",releaseModel.getId());
                     }
+                    versionsJson.put("id",releaseModel.getId());
 
                     // 设置 Updater
                     JSONArray updaterJSONArray = versionsJson.getJSONArray("versionUpdaters");
@@ -223,8 +223,8 @@ public class SoftwareGrabController {
                             updaterModel.setCreatedUserId(userId);
                             updaterModel.setReleaseId(releaseModel.getId());
                             updaterService.add(updaterModel);
-                            updaterJson.put("id",updaterModel.getId());
                         }
+                        updaterJson.put("id",updaterModel.getId());
 
                         // 设置 File
                         JSONArray filesJSONArray = updaterJson.getJSONArray("files");
