@@ -1,8 +1,6 @@
 package com.itellyou.model.software;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.article.ArticleCommentModel;
-import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
@@ -21,7 +19,7 @@ public class SoftwareCommentDetailModel extends SoftwareCommentModel implements 
     private SoftwareCommentDetailModel reply;
     @JSONField(label = "base")
     private List<SoftwareCommentDetailModel> child;
-    @JSONField(label = "article")
+    @JSONField(label = "software")
     private SoftwareDetailModel software;
     @JSONField(label = "base")
     private UserDetailModel author;

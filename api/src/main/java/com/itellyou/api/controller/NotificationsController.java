@@ -1,17 +1,18 @@
 package com.itellyou.api.controller;
 
-import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.article.ArticleCommentDetailModel;
 import com.itellyou.model.common.NotificationDetailModel;
-import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.common.NotificationDisplay;
 import com.itellyou.model.common.NotificationDisplayModel;
-import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.article.ArticleCommentDetailModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionAnswerCommentDetailModel;
 import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionCommentDetailModel;
-import com.itellyou.model.user.*;
+import com.itellyou.model.software.SoftwareCommentDetailModel;
+import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityType;
+import com.itellyou.model.sys.PageModel;
+import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.NotificationDisplayService;
 import com.itellyou.service.common.NotificationService;
 import com.itellyou.util.DateUtils;
@@ -59,7 +60,8 @@ public class NotificationsController {
                 new Labels.LabelModel(QuestionAnswerDetailModel.class,"base","question"),
                 new Labels.LabelModel(QuestionCommentDetailModel.class,"base","question"),
                 new Labels.LabelModel(QuestionAnswerCommentDetailModel.class,"base","answer"),
-                new Labels.LabelModel(ArticleCommentDetailModel.class,"base","article")
+                new Labels.LabelModel(ArticleCommentDetailModel.class,"base","article"),
+                new Labels.LabelModel(SoftwareCommentDetailModel.class,"base","software")
         );
     }
 
