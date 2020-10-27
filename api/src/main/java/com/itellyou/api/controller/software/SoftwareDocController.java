@@ -21,10 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -167,7 +165,7 @@ public class SoftwareDocController {
                 attributesModel.setValue(entry.getValue());
                 attributesModel.setCreatedIp(IPUtils.toLong(request));
                 attributesModel.setCreatedUserId(userInfoModel.getId());
-                attributesModel.setCreatedTime(DateUtils.getTimestamp());
+                attributesModel.setCreatedTime(DateUtils.toLocalDateTime());
                 attributesModels.add(attributesModel);
             }
             if(attributesModels.size() > 0){
@@ -192,16 +190,13 @@ public class SoftwareDocController {
         if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
             return new ResultModel(401,"无权限编辑");
         }
-        SoftwareVersionModel softwareVersion = softwareVersionSearchService.findBySoftwareIdAndId(version_id,id);
-        if(softwareVersion == null || softwareVersion.isDisabled()){
+        SoftwareVersionDetailModel softwareVersion = softwareVersionSearchService.getDetail(version_id);
+        if(softwareVersion == null || softwareVersion.isDisabled() || !softwareVersion.getSoftwareId().equals(id)){
             return  new ResultModel(0,"无记录，错误的ID");
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            HashSet<Long> tagIds = new LinkedHashSet<>();
-            for(TagDetailModel tagDetailModel : softwareVersion.getTags()){
-                tagIds.add(tagDetailModel.getId());
-            }
+            Collection<Long> tagIds = softwareVersion.getTags().stream().map(TagDetailModel::getId).collect(Collectors.toSet());
             SoftwareVersionModel versionModel = softwareDocService.addVersion(id,userInfoModel.getId(),softwareVersion.getGroupId(),
                     softwareVersion.getName(),softwareVersion.getContent(),softwareVersion.getHtml(),softwareVersion.getDescription(),tagIds,
                     "回滚到版本[" + softwareVersion.getVersion() + "]",null,"rollback",

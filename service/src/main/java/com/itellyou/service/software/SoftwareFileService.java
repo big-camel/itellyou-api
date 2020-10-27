@@ -4,13 +4,13 @@ import com.itellyou.model.software.SoftwareFileModel;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public interface SoftwareFileService {
     int add(SoftwareFileModel model);
 
-    int addAll(HashSet<SoftwareFileModel> fileValues);
+    int addAll(Collection<SoftwareFileModel> fileValues);
 
     int clear(Long updaterId);
 
@@ -18,5 +18,5 @@ public interface SoftwareFileService {
 
     int updateRecommendById(boolean isRecommend,Long id);
 
-    List<SoftwareFileModel> search(HashSet<Long> updaterIds);
+    List<SoftwareFileModel> search(Collection<Long> updaterIds);
 }

@@ -1,13 +1,14 @@
 package com.itellyou.service.thirdparty.impl;
 
 import com.itellyou.dao.thirdparty.AliPayConfigDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.thirdparty.AliPayConfigModel;
 import com.itellyou.service.common.ConfigDefaultService;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-@CacheConfig(cacheNames = "alipay_config")
+@CacheConfig(cacheNames = CacheKeys.ALIPAY_CONFIG_KEY)
 @Service
 public class AlipayConfigDefaultServiceImpl implements ConfigDefaultService<AliPayConfigModel> {
 

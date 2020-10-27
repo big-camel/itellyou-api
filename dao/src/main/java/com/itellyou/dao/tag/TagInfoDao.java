@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -21,12 +21,11 @@ public interface TagInfoDao {
 
     int updateById(@Param("id") Long id,@Param("name") String name,@Param("groupId") Long groupId,@Param("isDisabled") Boolean isDisabled);
 
-    List<TagInfoModel> search(@Param("ids") HashSet<Long> ids,
+    List<TagInfoModel> search(@Param("ids") Collection<Long> ids,
                                 @Param("name") String name,
                                 @Param("mode") String mode,
-                                @Param("groupIds") HashSet<Long> groupIds,
+                                @Param("groupIds") Collection<Long> groupIds,
                                 @Param("userId") Long userId,
-                                @Param("hasContent") Boolean hasContent,
                                 @Param("isDisabled") Boolean isDisabled,
                                 @Param("isPublished") Boolean isPublished,
                                 @Param("ip") Long ip,
@@ -38,10 +37,10 @@ public interface TagInfoDao {
                                 @Param("offset") Integer offset,
                                 @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,
+    int count(@Param("ids") Collection<Long> ids,
             @Param("name") String name,
             @Param("mode") String mode,
-              @Param("groupIds") HashSet<Long> groupIds,
+              @Param("groupIds") Collection<Long> groupIds,
             @Param("userId") Long userId,
             @Param("isDisabled") Boolean isDisabled,
             @Param("isPublished") Boolean isPublished,
@@ -51,10 +50,10 @@ public interface TagInfoDao {
             @Param("minArticle") Integer minArticle, @Param("maxArticle") Integer maxArticle,
             @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 
-    List<TagInfoModel> searchChild(@Param("ids") HashSet<Long> ids,
+    List<TagInfoModel> searchChild(@Param("ids") Collection<Long> ids,
                                    @Param("name") String name,
                                    @Param("mode") String mode,
-                                   @Param("groupIds") HashSet<Long> groupIds,
+                                   @Param("groupIds") Collection<Long> groupIds,
                                    @Param("childCount") Integer childCount,
                                    @Param("userId") Long userId,
                                    @Param("isDisabled") Boolean isDisabled,
@@ -70,11 +69,11 @@ public interface TagInfoDao {
 
     TagInfoModel findByName(String name);
 
-    int updateStarCountById(@Param("ids") HashSet<Long> ids,@Param("step") Integer step);
+    int updateStarCountById(@Param("ids") Collection<Long> ids,@Param("step") Integer step);
 
-    int updateArticleCountById(@Param("ids") HashSet<Long> ids,@Param("step") Integer step);
+    int updateArticleCountById(@Param("ids") Collection<Long> ids,@Param("step") Integer step);
 
-    int updateQuestionCountById(@Param("ids") HashSet<Long> ids,@Param("step") Integer step);
+    int updateQuestionCountById(@Param("ids") Collection<Long> ids,@Param("step") Integer step);
 
     int updateVersionById(@Param("id") Long id,@Param("version") Integer version,@Param("draft") Integer draft,@Param("isPublished") Boolean isPublished,@Param("time") Long time,@Param("ip") Long ip,@Param("userId") Long userId);
 

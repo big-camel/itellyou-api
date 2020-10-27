@@ -1,6 +1,7 @@
 package com.itellyou.service.common.impl;
 
 import com.itellyou.service.common.IndexIOService;
+import com.itellyou.util.DateUtils;
 import com.itellyou.util.ansj.AnsjAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.*;
@@ -21,6 +22,7 @@ public class IndexIOServiceImpl implements IndexIOService {
     private final String direct;
     private IndexWriter indexWriter = null;
     private IndexReader indexReader = null;
+    private Long prevReader = 0l;
 
     public IndexIOServiceImpl(String direct) {
         this.direct = direct;
@@ -58,8 +60,13 @@ public class IndexIOServiceImpl implements IndexIOService {
     public IndexReader getIndexReader(String direct) {
         try {
             if (indexReader != null) {
-                IndexReader newReader = DirectoryReader.openIfChanged((DirectoryReader) indexReader);
-                if(newReader != null) return newReader;
+                Long now = DateUtils.getTimestamp();
+                // 距离上次获取Reader大于一小时则尝试获取最新的Reader
+                if(now - prevReader > 3600){
+                    IndexReader newReader = DirectoryReader.openIfChanged((DirectoryReader) indexReader);
+                    prevReader = now;
+                    if(newReader != null) return newReader;
+                }
                 return indexReader;
             }
             Directory directory = FSDirectory.open(Paths.get(direct));

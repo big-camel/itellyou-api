@@ -23,6 +23,6 @@ public class UserWithdrawConfigModel implements CacheEntity {
 
     @Override
     public String cacheKey() {
-        return String.valueOf(id);
+        return id;
     }
 }

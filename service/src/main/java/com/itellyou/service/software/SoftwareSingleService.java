@@ -2,16 +2,16 @@ package com.itellyou.service.software;
 
 import com.itellyou.model.software.SoftwareInfoModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface SoftwareSingleService {
     SoftwareInfoModel findById(Long id);
     
-    List<SoftwareInfoModel> search(HashSet<Long> ids, String mode, Long groupId, Long userId,
+    List<SoftwareInfoModel> search(Collection<Long> ids, String mode, Long groupId, Long userId,
                                   Boolean isDisabled, Boolean isPublished, Boolean isDeleted,
-                                  Integer minComments, Integer maxComments,
+                                  Integer minComment, Integer maxComment,
                                   Integer minView, Integer maxView,
                                    Integer minSupport,  Integer maxSupport,
                                    Integer minOppose,  Integer maxOppose,

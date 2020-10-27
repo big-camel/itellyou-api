@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public interface UserInfoDao {
 
     UserInfoModel findById(Long id);
 
-    List<UserInfoModel> search(@Param("ids") HashSet<Long> ids,
+    List<UserInfoModel> search(@Param("ids") Collection<Long> ids,
                                 @Param("loginName") String loginName, @Param("name") String name,
                                  @Param("mobile") String mobile, @Param("email") String email,
                                 @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -39,7 +39,7 @@ public interface UserInfoDao {
                                 @Param("offset") Integer offset,
                                 @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,
+    int count(@Param("ids") Collection<Long> ids,
               @Param("loginName") String loginName, @Param("name") String name,
               @Param("mobile") String mobile, @Param("email") String email,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

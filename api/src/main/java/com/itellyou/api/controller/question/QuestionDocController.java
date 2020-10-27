@@ -5,6 +5,7 @@ import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.question.QuestionVersionDetailModel;
 import com.itellyou.model.question.QuestionVersionModel;
 import com.itellyou.model.sys.RewardConfigModel;
 import com.itellyou.model.sys.RewardType;
@@ -29,10 +30,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -145,16 +144,13 @@ public class QuestionDocController {
 
         checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId());
 
-        QuestionVersionModel questionVersion = versionSearchService.findByQuestionIdAndId(version_id,id);
-        if(questionVersion == null || questionVersion.isDisabled()){
+        QuestionVersionDetailModel questionVersion = versionSearchService.getDetail(version_id);
+        if(questionVersion == null || !questionVersion.getQuestionId().equals(id) || questionVersion.isDisabled()){
             return  new ResultModel(0,"无记录，错误的ID");
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            HashSet<Long> tagIds = new LinkedHashSet<>();
-            for(TagDetailModel tagDetailModel : questionVersion.getTags()){
-                tagIds.add(tagDetailModel.getId());
-            }
+            Collection<Long> tagIds = questionVersion.getTags().stream().map(TagDetailModel::getId).collect(Collectors.toSet());
             QuestionVersionModel versionModel = docService.addVersion(id,userInfoModel.getId(),
                     questionVersion.getTitle(),questionVersion.getContent(),questionVersion.getHtml(),questionVersion.getDescription(),
                     questionVersion.getRewardType(),questionVersion.getRewardValue(),0.0,tagIds,

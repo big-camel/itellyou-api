@@ -4,11 +4,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +19,8 @@ public class ColumnMemberModel {
     private Long columnId;
     @JSONField(label = "base")
     private Long userId;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class,label = "base")
-    private Long createdTime = 0l;
+    @JSONField(label = "base")
+    private LocalDateTime createdTime;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp = 0l;
 }

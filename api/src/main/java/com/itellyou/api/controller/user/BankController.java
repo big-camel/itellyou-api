@@ -7,7 +7,7 @@ import com.itellyou.model.user.UserBankConfigModel;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.user.bank.UserBankConfigService;
-import com.itellyou.service.user.bank.UserBankLogService;
+import com.itellyou.service.user.bank.UserBankLogSearchService;
 import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.Params;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -24,13 +24,13 @@ import java.util.Map;
 public class BankController {
 
     private final UserBankService bankService;
-    private final UserBankLogService bankLogService;
     private final UserBankConfigService bankConfigService;
+    private final UserBankLogSearchService logSearchService;
 
     @Autowired
-    public BankController(UserBankService bankService, UserBankLogService bankLogService, UserBankConfigService bankConfigService){
+    public BankController(UserBankService bankService, UserBankConfigService bankConfigService, UserBankLogSearchService logSearchService){
         this.bankService = bankService;
-        this.bankLogService = bankLogService;
+        this.logSearchService = logSearchService;
         this.bankConfigService = bankConfigService;
     }
 
@@ -51,7 +51,7 @@ public class BankController {
         }catch (Exception e){ }
         Map<String,String > order = new HashMap<>();
         order.put("created_time","desc");
-        return new ResultModel(bankLogService.page(null,bankType,bankAction,bankDataType,null,userModel.getId(),null,null,null,order,offset,limit));
+        return new ResultModel(logSearchService.page(null,bankType,bankAction,bankDataType,null,userModel.getId(),null,null,null,order,offset,limit));
     }
 
     @GetMapping("/config/{type:credit|score}")
@@ -66,7 +66,8 @@ public class BankController {
     }
 
     @PostMapping("/config/{valType:credit|score}")
-    public ResultModel updateConfig(@PathVariable String valType, @MultiRequestBody(value = "action") String actionString, @MultiRequestBody(value = "type") String typeString, @MultiRequestBody(required = false,parseAllFields = true) Map params){
+    public ResultModel updateConfig(@PathVariable String valType, @MultiRequestBody(value = "action") String actionString, @MultiRequestBody(value = "type") String typeString, @MultiRequestBody(required = false,parseAllFields = true) Map args){
+        Params params = new Params(args);
         UserBankType bankType = null;
         EntityAction action = null;
         EntityType type = null;
@@ -77,24 +78,24 @@ public class BankController {
         }catch (Exception e){
             return new ResultModel(500,"错误的type");
         }
-        Integer targeterStep = Params.getOrDefault(params,"targeter_step",Integer.class,0);
-        Integer createrStep = Params.getOrDefault(params,"creater_step",Integer.class,0);
-        Integer createrMinScore = Params.getOrDefault(params,"creater_min_score",Integer.class,0);
-        Integer targeterCountOfDay = Params.getOrDefault(params,"targeter_count_of_day",Integer.class,0);
-        Integer targeterTotalOfDay = Params.getOrDefault(params,"targeter_total_of_day",Integer.class,0);
-        Integer targeterCountOfWeek = Params.getOrDefault(params,"targeter_count_of_week",Integer.class,0);
-        Integer targeterTotalOfWeek = Params.getOrDefault(params,"targeter_total_of_week",Integer.class,0);
-        Integer targeterCountOfMonth = Params.getOrDefault(params,"targeter_count_of_month",Integer.class,0);
-        Integer targeterTotalOfMonth = Params.getOrDefault(params,"targeter_total_of_month",Integer.class,0);
-        Integer createrCountOfDay = Params.getOrDefault(params,"creater_count_of_day",Integer.class,0);
-        Integer createrTotalOfDay = Params.getOrDefault(params,"creater_total_of_day",Integer.class,0);
-        Integer createrCountOfWeek = Params.getOrDefault(params,"creater_count_of_week",Integer.class,0);
-        Integer createrTotalOfWeek = Params.getOrDefault(params,"creater_total_of_week",Integer.class,0);
-        Integer createrCountOfMonth = Params.getOrDefault(params,"creater_count_of_month",Integer.class,0);
-        Integer createrTotalOfMonth = Params.getOrDefault(params,"creater_total_of_month",Integer.class,0);
-        String targeterRemark = Params.getOrDefault(params,"targeter_remark",String.class,0);
-        String createrRemark = Params.getOrDefault(params,"creater_remark",String.class,0);
-        Boolean onlyOnce = Params.getOrDefault(params,"only_once",Boolean.class,0);
+        Integer targeterStep = params.getOrDefault("targeter_step",Integer.class,0);
+        Integer createrStep = params.getOrDefault("creater_step",Integer.class,0);
+        Integer createrMinScore = params.getOrDefault("creater_min_score",Integer.class,0);
+        Integer targeterCountOfDay = params.getOrDefault("targeter_count_of_day",Integer.class,0);
+        Integer targeterTotalOfDay = params.getOrDefault("targeter_total_of_day",Integer.class,0);
+        Integer targeterCountOfWeek = params.getOrDefault("targeter_count_of_week",Integer.class,0);
+        Integer targeterTotalOfWeek = params.getOrDefault("targeter_total_of_week",Integer.class,0);
+        Integer targeterCountOfMonth = params.getOrDefault("targeter_count_of_month",Integer.class,0);
+        Integer targeterTotalOfMonth = params.getOrDefault("targeter_total_of_month",Integer.class,0);
+        Integer createrCountOfDay = params.getOrDefault("creater_count_of_day",Integer.class,0);
+        Integer createrTotalOfDay = params.getOrDefault("creater_total_of_day",Integer.class,0);
+        Integer createrCountOfWeek = params.getOrDefault("creater_count_of_week",Integer.class,0);
+        Integer createrTotalOfWeek = params.getOrDefault("creater_total_of_week",Integer.class,0);
+        Integer createrCountOfMonth = params.getOrDefault("creater_count_of_month",Integer.class,0);
+        Integer createrTotalOfMonth = params.getOrDefault("creater_total_of_month",Integer.class,0);
+        String targeterRemark = params.getOrDefault("targeter_remark","");
+        String createrRemark = params.getOrDefault("creater_remark","");
+        Boolean onlyOnce = params.getOrDefault("only_once",Boolean.class,false);
 
         UserBankConfigModel configModel = new UserBankConfigModel();
         configModel.setBankType(bankType);

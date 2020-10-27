@@ -4,6 +4,7 @@ import com.itellyou.dao.article.ArticlePaidReadDao;
 import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.article.ArticlePaidReadModel;
 import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "article_paid_read")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_PAID_READ_KEY)
 @Service
 public class ArticlePaidReadServiceImpl implements ArticlePaidReadService {
 
@@ -95,7 +96,7 @@ public class ArticlePaidReadServiceImpl implements ArticlePaidReadService {
             if(targetBankLogModel == null) throw new Exception("收款失败");
 
             if(paidReadModel.getPaidType().equals(UserBankType.CASH)) {
-                OperationalModel operationalModel = new OperationalModel(EntityAction.PAYMENT, EntityType.ARTICLE, articleId, targetUserId, userId, DateUtils.getTimestamp(), ip);
+                OperationalModel operationalModel = new OperationalModel(EntityAction.PAYMENT, EntityType.ARTICLE, articleId, targetUserId, userId, DateUtils.toLocalDateTime(), ip);
                 operationalPublisher.publish(new OperationalEvent(this, operationalModel));
             }
             return bankLogModel;

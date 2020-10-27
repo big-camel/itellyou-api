@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionCommentDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.*;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.VoteType;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "question_comment")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_COMMENT_KEY)
 @Service
 public class QuestionCommentSearchServiceImpl implements QuestionCommentSearchService {
 
@@ -39,18 +40,18 @@ public class QuestionCommentSearchServiceImpl implements QuestionCommentSearchSe
     }
 
     @Override
-    public List<QuestionCommentDetailModel> search(HashSet<Long> ids, Long questionId,HashSet<Long> parentIds, Long replyId, Long searchUserId, Long userId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<QuestionCommentDetailModel> search(Collection<Long> ids, Long questionId,Collection<Long> parentIds, Long replyId, Long searchUserId, Long userId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
 
-        List<QuestionCommentModel> infoModels = RedisUtils.fetchByCache("question_comment",QuestionCommentModel.class,ids,(HashSet<Long> fetchIds) ->
-                commentDao.search(fetchIds,questionId,parentIds,replyId,userId,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit)
+        List<QuestionCommentModel> infoModels = RedisUtils.fetch(CacheKeys.QUESTION_COMMENT_KEY,QuestionCommentModel.class,ids,(Collection<Long> fetchIds) ->
+                commentDao.search(fetchIds,questionId,parentIds,replyId,userId,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit)
         );
         List<QuestionCommentDetailModel> detailModels = new LinkedList<>();
         if(infoModels.size() == 0) return detailModels;
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
-        HashSet<Long> replyIds = new LinkedHashSet<>();
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchParentIds = new LinkedHashSet<>();
-        HashSet<Long> questionIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> replyIds = new LinkedHashSet<>();
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchParentIds = new LinkedHashSet<>();
+        Collection<Long> questionIds = new LinkedHashSet<>();
         for (QuestionCommentModel infoModel : infoModels) {
             if(infoModel.isDeleted()) {
                 infoModel.setContent("评论已删除");
@@ -89,8 +90,8 @@ public class QuestionCommentSearchServiceImpl implements QuestionCommentSearchSe
         // 一次查出需要的子评论
         List<QuestionCommentDetailModel> childCommentDetails = new LinkedList<>();
         if(fetchParentIds.size() > 0){
-            HashSet<Long> childIds = new LinkedHashSet<>();
-            List<QuestionCommentModel> childModes = RedisUtils.fetchByCache("question_comment",QuestionCommentModel.class,ids,(HashSet<Long> childFetchIds) ->
+            Collection<Long> childIds = new LinkedHashSet<>();
+            List<QuestionCommentModel> childModes = RedisUtils.fetch(CacheKeys.QUESTION_COMMENT_KEY,QuestionCommentModel.class,ids,(Collection<Long> childFetchIds) ->
                     commentDao.searchChild(childFetchIds,null,fetchParentIds,null,null,null,childCount,null,null,null,null,null,null,null,null,null,order)
             );
             for (QuestionCommentModel childModel : childModes){
@@ -154,24 +155,24 @@ public class QuestionCommentSearchServiceImpl implements QuestionCommentSearchSe
     }
 
     @Override
-    public List<QuestionCommentDetailModel> search(Long questionId, HashSet<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        return search(null,questionId,parentIds,null,searchUserId,null,isDeleted,childCount,hasReply,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
+    public List<QuestionCommentDetailModel> search(Long questionId, Collection<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        return search(null,questionId,parentIds,null,searchUserId,null,isDeleted,childCount,hasReply,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
     }
 
     @Override
-    public int count(HashSet<Long> ids, Long questionId, HashSet<Long> parentIds, Long replyId, Long userId, Boolean isDeleted, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
-        return commentDao.count(ids,questionId,parentIds,replyId,userId,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
+    public int count(Collection<Long> ids, Long questionId, Collection<Long> parentIds, Long replyId, Long userId, Boolean isDeleted, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
+        return commentDao.count(ids,questionId,parentIds,replyId,userId,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
     }
 
     @Override
-    public int count(Long questionId, HashSet<Long> parentIds, Boolean isDeleted, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
-        return count(null,questionId,parentIds,null,null,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
+    public int count(Long questionId, Collection<Long> parentIds, Boolean isDeleted, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
+        return count(null,questionId,parentIds,null,null,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
     }
 
     @Override
-    public PageModel<QuestionCommentDetailModel> page(Long questionId, HashSet<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        List<QuestionCommentDetailModel> data = search(questionId,parentIds,searchUserId,isDeleted,childCount,hasReply,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,order,offset,limit);
-        Integer total = count(questionId,parentIds,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime);
+    public PageModel<QuestionCommentDetailModel> page(Long questionId, Collection<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        List<QuestionCommentDetailModel> data = search(questionId,parentIds,searchUserId,isDeleted,childCount,hasReply,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,order,offset,limit);
+        Integer total = count(questionId,parentIds,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime);
         return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
     }
 

@@ -72,7 +72,7 @@ public class UserStarController {
         if(id.equals(userModel.getId())) return new ResultModel(0,"不能自己关注自己");
         String clientIp = IPUtils.getClientIp(request);
         Long ip = IPUtils.toLong(clientIp);
-        UserStarModel starModel = new UserStarModel(id, DateUtils.getTimestamp(),userModel.getId(),ip);
+        UserStarModel starModel = new UserStarModel(id, DateUtils.toLocalDateTime(),userModel.getId(),ip);
         try{
             int result = starService.insert(starModel);
             if(result != 1) throw new Exception("关注失败");

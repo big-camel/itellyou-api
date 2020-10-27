@@ -3,9 +3,11 @@ package com.itellyou.api.controller.question;
 import com.itellyou.api.handler.TokenAccessDeniedException;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.question.QuestionAnswerModel;
-import com.itellyou.model.question.QuestionAnswerVersionModel;
+import com.itellyou.model.question.QuestionAnswerVersionDetailModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.question.*;
+import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
+import com.itellyou.service.question.QuestionAnswerSingleService;
+import com.itellyou.service.question.QuestionAnswerVersionSearchService;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -37,7 +39,7 @@ public class AnswerVersionController {
     private Long getUserAnswerId(Long userId,Long questionId){
         if(userId == null) return null;
         // 获取用户的回答
-        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userId);
+        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userId,"version");
         if(answerModel == null || answerModel.isDeleted() || answerModel.isDisabled()){
             return null;
         }
@@ -66,21 +68,21 @@ public class AnswerVersionController {
     @GetMapping(value = {"/{answerId:\\d+}/version","/version"})
     public ResultModel list(UserInfoModel userModel , @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         answerId = check(answerId,questionId,userModel == null ? null : userModel.getId());
-        List<QuestionAnswerVersionModel> listVersion = versionSearchService.searchByAnswerId(answerId);
+        List<QuestionAnswerVersionDetailModel> listVersion = versionSearchService.searchByAnswerId(answerId);
         return new ResultModel(listVersion,new Labels.LabelModel(UserInfoModel.class,"base"));
     }
 
     @GetMapping(value = {"/{answerId:\\d+}/version/{versionId:\\d+}","/version/{versionId:\\d+}"})
     public ResultModel find(UserInfoModel userModel , @PathVariable @NotNull Long versionId, @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         answerId = check(answerId,questionId,userModel == null ? null : userModel.getId());
-        QuestionAnswerVersionModel versionModel = versionSearchService.findByAnswerIdAndId(versionId,answerId);
-        if(versionModel == null){
+        QuestionAnswerVersionDetailModel versionModel = versionSearchService.getDetail(versionId);
+        if(versionModel == null || !versionModel.getAnswerId().equals(answerId)){
             return new ResultModel(0,"错误的编号");
         }
         return new ResultModel(versionModel,new Labels.LabelModel(UserInfoModel.class,"base"));
     }
 
-    private String getVersionHtml(QuestionAnswerVersionModel versionModel){
+    private String getVersionHtml(QuestionAnswerVersionDetailModel versionModel){
         StringBuilder currentString = new StringBuilder("<!doctype html>");
         currentString.append(versionModel.getHtml());
         return currentString.toString();
@@ -89,13 +91,13 @@ public class AnswerVersionController {
     @GetMapping(value = {"/{answerId:\\d+}/version/{current:\\d+}...{target:\\d+}","/version/{current:\\d+}...{target:\\d+}"})
     public ResultModel compare(UserInfoModel userModel , @PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long questionId, @PathVariable(required = false) Long answerId){
         answerId = check(answerId,questionId,userModel == null ? null : userModel.getId());
-        QuestionAnswerVersionModel currentVersion = versionSearchService.findByAnswerIdAndId(current,answerId);
-        if(currentVersion == null){
+        QuestionAnswerVersionDetailModel currentVersion = versionSearchService.getDetail(current);
+        if(currentVersion == null || !currentVersion.getAnswerId().equals(answerId)){
             return new ResultModel(0,"错误的当前编号");
         }
 
-        QuestionAnswerVersionModel targetVersion = versionSearchService.findByAnswerIdAndId(target,answerId);
-        if(targetVersion == null){
+        QuestionAnswerVersionDetailModel targetVersion = versionSearchService.getDetail(target);
+        if(targetVersion == null || !targetVersion.getAnswerId().equals(answerId)){
             return new ResultModel(0,"错误的目标编号");
         }
 

@@ -1,20 +1,20 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareTagDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareTagModel;
 import com.itellyou.service.software.SoftwareTagService;
 import com.itellyou.util.RedisUtils;
-import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@CacheConfig(cacheNames = "software_tag")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_TAG_KEY)
 public class SoftwareTagServiceImpl implements SoftwareTagService {
 
     private final SoftwareTagDao softwareTagDao;
@@ -24,66 +24,54 @@ public class SoftwareTagServiceImpl implements SoftwareTagService {
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#model.softwareId") , @CacheEvict(value = "tag_software" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#model.softwareId") , @CacheEvict(value = CacheKeys.TAG_SOFTWARE_KEY , key = "#model.tagId")})
     public int add(SoftwareTagModel model) {
         return softwareTagDao.add(model);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#softwareId") , @CacheEvict(value = "tag_software" , allEntries = true)})
-    public int addAll(Long softwareId, HashSet<Long> tagIds) {
+    @Caching( evict = { @CacheEvict(key = "#softwareId") })
+    public int addAll(Long softwareId, Collection<Long> tagIds) {
+        tagIds.forEach((Long id) -> RedisUtils.remove(CacheKeys.TAG_SOFTWARE_KEY,id));
         return softwareTagDao.addAll(softwareId,tagIds);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#softwareId") , @CacheEvict(value = "tag_software" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#softwareId") })
     public int clear(Long softwareId) {
+        Map<Long, List<SoftwareTagModel>> tags = searchTags(new HashSet<Long>(){{add(softwareId);}});
+        tags.values().forEach((List<SoftwareTagModel> models) ->
+                models.forEach((SoftwareTagModel model) -> RedisUtils.remove(CacheKeys.TAG_SOFTWARE_KEY,model.getTagId()))
+        );
         return softwareTagDao.clear(softwareId);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#softwareId") , @CacheEvict(value = "tag_software" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#softwareId") , @CacheEvict(value = CacheKeys.TAG_SOFTWARE_KEY , key = "#tagId" )})
     public int remove(Long softwareId, Long tagId) {
         return softwareTagDao.remove(softwareId,tagId);
     }
 
     @Override
-    public Map<Long, List<SoftwareTagModel>> searchTags(HashSet<Long> softwareIds) {
-        List<SoftwareTagModel> models = softwareTagDao.searchTags(softwareIds);
-        Map<Long, List<SoftwareTagModel>> map = new LinkedHashMap<>();
-        for (SoftwareTagModel model : models){
-            if(!map.containsKey(model.getSoftwareId())){
-                map.put(model.getSoftwareId(),new LinkedList<>());
-            }
-            map.get(model.getSoftwareId()).add(model);
-        }
-        return map;
+    public Map<Long, List<SoftwareTagModel>> searchTags(Collection<Long> softwareIds) {
+        return RedisUtils.fetch(CacheKeys.SOFTWARE_TAG_KEY,softwareIds,
+                fetchIds -> softwareTagDao.searchTags(fetchIds),
+                SoftwareTagModel::getSoftwareId);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
-    public HashSet<Long> searchTagId(Long softwareId) {
-        return softwareTagDao.searchTagId(softwareId);
+    public Map<Long, List<SoftwareTagModel>> searchSoftwares(Collection<Long> tagIds) {
+        return RedisUtils.fetch(CacheKeys.TAG_SOFTWARE_KEY,tagIds,
+                fetchIds -> softwareTagDao.searchSoftwares(fetchIds),
+                SoftwareTagModel::getTagId);
     }
 
     @Override
-    @Cacheable(value = "tag_software",key = "#tagId",unless = "#result == null")
-    public HashSet<Long> searchSoftwareId(Long tagId) {
-        return searchSoftwareId(tagId != null ? new HashSet<Long>(){{ add(tagId);}} : null);
-    }
-
-    @Override
-    public HashSet<Long> searchSoftwareId(HashSet<Long> tagId) {
-        StringBuilder keySb = new StringBuilder();
-        for (Long id : tagId){
-            keySb.append(id);
-        }
-        String key = StringUtils.md5(keySb.toString());
-        HashSet<Long> ids = RedisUtils.getCache("tag_software",key,HashSet.class);
-        if(ids == null || ids.size() == 0)
-        {
-            ids = softwareTagDao.searchSoftwareId(tagId);
-            RedisUtils.setCache("tag_software",key,ids);
+    public Collection<Long> searchSoftwareIds(Collection<Long> tagIds) {
+        Map<Long, List<SoftwareTagModel>> list = searchSoftwares(tagIds);
+        Collection<Long> ids = new LinkedHashSet<>();
+        for (Long id : list.keySet()){
+            ids.addAll(list.get(id).stream().map(SoftwareTagModel::getSoftwareId).collect(Collectors.toSet()));
         }
         return ids;
     }

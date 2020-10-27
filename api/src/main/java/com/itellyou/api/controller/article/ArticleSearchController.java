@@ -72,9 +72,9 @@ public class ArticleSearchController {
             case "hot":
                 order = new HashMap<>();
                 order.put("created_time","desc");
-                order.put("support","desc");
+                order.put("support_count","desc");
                 order.put("comment_count","desc");
-                order.put("view","desc");
+                order.put("view_count","desc");
                 order.put("star_count","desc");
                 data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,
                         tagId != null ? new LinkedHashSet<Long>(){{ add(tagId);}} : null,null,null,50,null,2,null,null,null,null,null,null,null,null,order,offset,limit);
@@ -89,9 +89,9 @@ public class ArticleSearchController {
                 }
                 order = new HashMap<>();
                 order.put("created_time","desc");
-                order.put("support","desc");
+                order.put("support_count","desc");
                 order.put("comment_count","desc");
-                order.put("view","desc");
+                order.put("view_count","desc");
                 order.put("star_count","desc");
                 data = searchService.page(null,null,columnId,userId,searchUserId,null,false,false,false,true,tags.size() > 0 ? tags : null,null,null,null,null,null,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;

@@ -22,10 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -203,16 +201,13 @@ public class ArticleDocController {
         if(!infoModel.getCreatedUserId().equals(userInfoModel.getId())){
             return new ResultModel(401,"无权限编辑");
         }
-        ArticleVersionModel articleVersion = articleVersionSearchService.findByArticleIdAndId(version_id,id);
-        if(articleVersion == null || articleVersion.isDisabled()){
+        ArticleVersionDetailModel articleVersion = articleVersionSearchService.getDetail(version_id);
+        if(articleVersion == null || articleVersion.isDisabled() || !articleVersion.getArticleId().equals(id)){
             return  new ResultModel(0,"无记录，错误的ID");
         }
         String clientIp = IPUtils.getClientIp(request);
         try {
-            HashSet<Long> tagIds = new LinkedHashSet<>();
-            for(TagDetailModel tagDetailModel : articleVersion.getTags()){
-                tagIds.add(tagDetailModel.getId());
-            }
+            Collection<Long> tagIds = articleVersion.getTags().stream().map(TagDetailModel::getId).collect(Collectors.toSet());
             ArticleVersionModel versionModel = articleDocService.addVersion(id,userInfoModel.getId(),articleVersion.getColumnId(),articleVersion.getSourceType(),articleVersion.getSourceData(),
                     articleVersion.getTitle(),articleVersion.getContent(),articleVersion.getHtml(),articleVersion.getDescription(),tagIds,
                     "回滚到版本[" + articleVersion.getVersion() + "]",null,"rollback",

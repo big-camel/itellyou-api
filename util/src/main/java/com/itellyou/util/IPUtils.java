@@ -1,9 +1,23 @@
 package com.itellyou.util;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.lionsoul.ip2region.DataBlock;
+import org.lionsoul.ip2region.DbConfig;
+import org.lionsoul.ip2region.DbSearcher;
+import org.lionsoul.ip2region.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.net.InetAddress;
 
 public class IPUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(IPUtils.class);
+
     public static Long toLong(HttpServletRequest request){
         return toLong(request,0l);
     }
@@ -12,43 +26,16 @@ public class IPUtils {
         return toLong(ip,defaultValue);
     }
 
-    public static Long toLong(String ipv4_string){
-        return toLong(ipv4_string,0l);
+    public static Long toLong(String ip){
+        return toLong(ip,0l);
     }
-    public static Long toLong(String ipv4_string,Long defaultValue) {
-        if(!StringUtils.isNotEmpty(ipv4_string) || ipv4_string == "unknow"){
-            return defaultValue;
-        }
-        // 取 ip 的各段
-        String[] ipSlices = ipv4_string.split("\\.");
-
-        long result = 0;
-
-        for (int i = 0; i < ipSlices.length; i++) {
-            // 将 ip 的每一段解析为 int，并根据位置左移 8 位
-            long intSlice = Long.parseLong(ipSlices[i]) << 8 * i;
-            // 求或
-            result = result | intSlice;
-        }
-
-        return result;
+    public static Long toLong(String ip,Long defaultValue) {
+        if(StringUtils.isEmpty(ip) || !Util.isIpAddress(ip)) return defaultValue;
+        return Util.ip2long(ip);
     }
 
-    public static String toIpv4(Long ipv4Long) {
-        String[] ipString = new String[4];
-
-        for (int i = 0; i < 4; i++) {
-            // 每 8 位为一段，这里取当前要处理的最高位的位置
-            int pos = i * 8;
-
-            // 取当前处理的 ip 段的值
-            Long and = ipv4Long & (255 << pos);
-
-            // 将当前 ip 段转换为 0 ~ 255 的数字，注意这里必须使用无符号右移
-            ipString[i] = String.valueOf(and >>> pos);
-        }
-
-        return String.join(".", ipString);
+    public static String toString(Long ip) {
+        return Util.long2ip(ip);
     }
 
     public static String getClientIp(HttpServletRequest request)
@@ -80,5 +67,50 @@ public class IPUtils {
             }
         }
         return ip;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RegionModel {
+        private String country;
+        private String area;
+        private String province;
+        private String city;
+        private String isp;
+    }
+
+    public static RegionModel getRegion(long ip){
+        try {
+            //根据ip进行位置信息搜索
+            DbConfig config = new DbConfig();
+            //获取ip库的位置
+            String dbFile = IPUtils.class.getResource("/ip2region.db").getPath();
+            File file = new File(dbFile);
+            if (!file.exists()) {
+                logger.warn("Invalid ip2region.db file");
+                return null;
+            }
+            DbSearcher searcher = new DbSearcher(config, dbFile);
+            //采用Btree搜索
+            DataBlock block = searcher.btreeSearch(ip);
+            String regionString = block.getRegion();
+            String[] regionArray = StringUtils.split(regionString,'|');
+            RegionModel regionModel = new RegionModel();
+            if(StringUtils.isEmpty(regionArray[1]) || regionArray[1].equals("0")) return null;
+            regionModel.setCountry(regionArray[1]);
+            regionModel.setArea(StringUtils.isEmpty(regionArray[2]) || regionArray[2].equals("0") ? "" : regionArray[2]);
+            regionModel.setProvince(StringUtils.isEmpty(regionArray[3]) || regionArray[3].equals("0") ? "" : regionArray[3]);
+            regionModel.setCity(StringUtils.isEmpty(regionArray[4]) || regionArray[4].equals("0") ? "" : regionArray[4]);
+            regionModel.setIsp(StringUtils.isEmpty(regionArray[5]) || regionArray[5].equals("0") ? "" : regionArray[5]);
+            return regionModel;
+        }catch (Exception e){
+            logger.error(e.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    public static RegionModel getRegion(String ip){
+        return getRegion(toLong(ip));
     }
 }

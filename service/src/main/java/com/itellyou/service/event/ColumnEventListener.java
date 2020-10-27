@@ -15,7 +15,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 @Service
 public class ColumnEventListener {
@@ -73,7 +73,7 @@ public class ColumnEventListener {
     @EventListener
     @Async
     public void indexEvent(ColumnIndexEvent event){
-        HashSet<Long> ids = event.getIds();
+        Collection<Long> ids = event.getIds();
         if(ids != null){
             indexManagerService.put(EntityType.COLUMN,ids);
         }

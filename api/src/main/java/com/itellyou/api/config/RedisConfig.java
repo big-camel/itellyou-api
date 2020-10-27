@@ -1,6 +1,7 @@
 package com.itellyou.api.config;
 
 import com.itellyou.api.serializer.GenericFastJsonRedisSerializer;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.util.CacheKeyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class RedisConfig extends CachingConfigurerSupport{
     @Primary
     public CacheManager cacheManager(RedisConnectionFactory factory) {
         RedisCacheManager cacheManager = RedisCacheManager.builder(factory)
-                .cacheDefaults(this.cacheConfiguration(Duration.ofMinutes(30)))
+                .cacheDefaults(this.cacheConfiguration(Duration.ofHours(1)))
                 .withInitialCacheConfigurations(this.cacheConfigurationMap())
                 .build();
         return cacheManager;
@@ -57,51 +58,51 @@ public class RedisConfig extends CachingConfigurerSupport{
     private Map<String, RedisCacheConfiguration> cacheConfigurationMap() {
         Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>();
         //登录的token
-        configurationMap.put("login_token", this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.LOGIN_TOKEN_KEY, this.cacheConfiguration(Duration.ofDays(1)));
         //用户信息
-        configurationMap.put("user_info", this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.USER_INFO_KEY, this.cacheConfiguration(Duration.ofDays(1)));
         //用户银行信息
-        configurationMap.put("bank_info",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.BANK_KEY,this.cacheConfiguration(Duration.ofDays(1)));
         //用户的第三方账户
-        configurationMap.put("user_third_account",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.USER_THIRD_ACCOUNT_KEY,this.cacheConfiguration(Duration.ofDays(1)));
         //阿里云配置
-        configurationMap.put("ali_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.ALI_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //阿里云邮件配置
-        configurationMap.put("ali_dm_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.ALI_DM_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //阿里云短信配置
-        configurationMap.put("ali_sms_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.ALI_SMS_CONFIG,this.cacheConfiguration(Duration.ofDays(30)));
         //支付宝配置
-        configurationMap.put("alipay_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.ALIPAY_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //Github配置
-        configurationMap.put("github_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.GITHUB_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //Geetest 验证配置
-        configurationMap.put("geetest_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.GEETEST_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //path
-        configurationMap.put("sys_path",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.SYS_PATH_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //reward_config
-        configurationMap.put("reward_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.REWARD_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //credit_config
-        configurationMap.put("credit_config",this.cacheConfiguration(Duration.ofDays(1)));
-        //score_config
-        configurationMap.put("score_config",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.CREDIT_CONFIG_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //消息显示配置
-        configurationMap.put("notification_display",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.NOTIFICATION_DISPLAY_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //sys_permission
-        configurationMap.put("sys_permission",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.SYS_PERMISSION_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //sys_role_permission
-        configurationMap.put("sys_role_permission",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.SYS_ROLE_PERMISSION_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //sys_role
-        configurationMap.put("sys_role",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.SYS_ROLE_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //user_rank_role
-        configurationMap.put("user_rank_role",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.USER_RANK_ROLE_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //user_rank
-        configurationMap.put("user_rank",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.USER_RANK_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //user_role
-        configurationMap.put("user_role",this.cacheConfiguration(Duration.ofDays(1)));
+        configurationMap.put(CacheKeys.USER_ROLE_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //sys_link
-        configurationMap.put("sys_link",this.cacheConfiguration(Duration.ofDays(30)));
+        configurationMap.put(CacheKeys.SYS_LINK_KEY,this.cacheConfiguration(Duration.ofDays(30)));
         //sys_setting
-        configurationMap.put("sys_setting",this.cacheConfiguration(Duration.ofDays(30)));
+        configurationMap.put(CacheKeys.SYS_SETTING_KEY,this.cacheConfiguration(Duration.ofDays(30)));
+        //statistics_queue
+        configurationMap.put(CacheKeys.DATAUPDATE_QUEUE_KEY,this.cacheConfiguration(Duration.ofDays(360)));
         return configurationMap;
     }
 

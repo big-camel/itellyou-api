@@ -1,6 +1,7 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareCommentDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareCommentModel;
 import com.itellyou.model.software.SoftwareInfoModel;
 import com.itellyou.model.event.SoftwareCommentEvent;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "software_comment")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_COMMENT_KEY)
 @Service
 public class SoftwareCommentServiceImpl implements SoftwareCommentService {
 
@@ -55,7 +56,7 @@ public class SoftwareCommentServiceImpl implements SoftwareCommentService {
                 if(replyCommentModel == null) throw new Exception("错误的回复ID");
             }
 
-            SoftwareCommentModel commentModel = new SoftwareCommentModel(null,softwareId,parentId,replyId,false,content,html,0,0,0, DateUtils.getTimestamp(),userId, ip,null,null,null);
+            SoftwareCommentModel commentModel = new SoftwareCommentModel(null,softwareId,parentId,replyId,false,content,html,0,0,0, DateUtils.toLocalDateTime(),userId, ip,null,null,null);
             int result = commentDao.insert(commentModel);
 
             if(result != 1) throw new Exception("写入评论失败");
@@ -76,9 +77,9 @@ public class SoftwareCommentServiceImpl implements SoftwareCommentService {
                 OperationalEvent event = notificationType.equals(EntityType.SOFTWARE) ?
 
                         new SoftwareEvent(this, EntityAction.COMMENT,
-                                commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip) :
+                                commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip) :
 
-                        new SoftwareCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip);
+                        new SoftwareCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip);
                 operationalPublisher.publish(event);
             }
             return commentModel;
@@ -98,7 +99,7 @@ public class SoftwareCommentServiceImpl implements SoftwareCommentService {
         int result = commentDao.updateDeleted(id,isDeleted);
         if(result != 1) return 0;
         operationalPublisher.publish(new SoftwareCommentEvent(this, isDeleted ? EntityAction.DELETE : EntityAction.REVERT,
-                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.getTimestamp(),ip));
+                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.toLocalDateTime(),ip));
         return 1;
     }
 

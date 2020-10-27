@@ -1,12 +1,13 @@
 package com.itellyou.dao.question;
 
 import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.question.QuestionUpdateStepModel;
 import com.itellyou.model.sys.RewardType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -15,13 +16,20 @@ import java.util.Map;
 public interface QuestionInfoDao {
     int insert(QuestionInfoModel questionInfoModel);
 
-    List<QuestionInfoModel> search(@Param("ids") HashSet<Long> ids, @Param("mode") String mode, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
+    /**
+     * 批量增加计数，请确保id必须已存在
+     * @param models
+     * @return
+     */
+    int addStep(@Param("models") QuestionUpdateStepModel... models);
+
+    List<QuestionInfoModel> search(@Param("ids") Collection<Long> ids, @Param("mode") String mode, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
                                      @Param("isDisabled") Boolean isDisabled, @Param("isAdopted") Boolean isAdopted, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                                      @Param("ip") Long ip,
                                      @Param("rewardType") RewardType rewardType,
                                      @Param("minRewardValue") Double minRewardValue, @Param("maxRewardValue") Double maxRewardValue,
-                                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
-                                     @Param("minAnswers") Integer minAnswers, @Param("maxAnswers") Integer maxAnswers,
+                                     @Param("minComment") Integer minComment, @Param("maxComment") Integer maxComment,
+                                     @Param("minAnswer") Integer minAnswer, @Param("maxAnswer") Integer maxAnswer,
                                      @Param("minView") Integer minView, @Param("maxView") Integer maxView,
                                      @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                                      @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
@@ -30,13 +38,13 @@ public interface QuestionInfoDao {
                                      @Param("order") Map<String,String> order,
                                      @Param("offset") Integer offset,
                                      @Param("limit") Integer limit);
-    int count(@Param("ids") HashSet<Long> ids,@Param("mode") String mode, @Param("userId") Long userId,
+    int count(@Param("ids") Collection<Long> ids,@Param("mode") String mode, @Param("userId") Long userId,
                     @Param("isDisabled") Boolean isDisabled,@Param("isAdopted") Boolean isAdopted, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                     @Param("ip") Long ip,
                     @Param("rewardType") RewardType rewardType,
                     @Param("minRewardValue") Double minRewardValue, @Param("maxRewardValue") Double maxRewardValue,
-                    @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
-                    @Param("minAnswers") Integer minAnswers, @Param("maxAnswers") Integer maxAnswers,
+                    @Param("minComment") Integer minComment, @Param("maxComment") Integer maxComment,
+                    @Param("minAnswer") Integer minAnswer, @Param("maxAnswer") Integer maxAnswer,
                     @Param("minView") Integer minView, @Param("maxView") Integer maxView,
                     @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                     @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
@@ -44,7 +52,7 @@ public interface QuestionInfoDao {
                     @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 
     int updateVersion(@Param("id") Long id,@Param("version") Integer version,@Param("draft") Integer draft,@Param("isPublished") Boolean isPublished,@Param("time") Long time,@Param("ip") Long ip,@Param("userId") Long userId);
-    int updateView(@Param("id") Long id,@Param("view") Integer view);
+    int updateView(@Param("id") Long id,@Param("viewCount") Integer viewCount);
     int updateAnswers(@Param("id") Long id,@Param("value") Integer value);
     int updateAdopt(@Param("isAdopted") Boolean isAdopted,@Param("adoptionId") Long adoptionId,@Param("id") Long id);
 

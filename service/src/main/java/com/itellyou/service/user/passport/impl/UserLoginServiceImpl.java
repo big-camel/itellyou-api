@@ -29,7 +29,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         logModel.setClientType("web");
         logModel.setCreatedUserId(userId);
         logModel.setCreatedIp(ip);
-        logModel.setCreatedTime(DateUtils.getTimestamp());
+        logModel.setCreatedTime(DateUtils.toLocalDateTime());
         int result = logService.insert(logModel);
         if(result != 1){
             return null;

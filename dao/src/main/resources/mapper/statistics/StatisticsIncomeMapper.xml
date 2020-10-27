@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.statistics.StatisticsIncomeDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}user_id ${prefix}user_id,
+        ${alias}`date` ${prefix}`date`,
+        ${alias}total_amount ${prefix}total_amount,
+        ${alias}tip_amount ${prefix}tip_amount,
+        ${alias}reward_amount ${prefix}reward_amount,
+        ${alias}sharing_amount ${prefix}sharing_amount,
+        ${alias}sell_amount ${prefix}sell_amount,
+        ${alias}other_amount ${prefix}other_amount,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insertOrUpdate">
+        insert into statistics_income(user_id,`date`,total_amount,tip_amount,reward_amount,sharing_amount,sell_amount,other_amount,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip)
+        values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.userId},#{item.date},#{item.totalAmount},#{item.tipAmount},#{item.rewardAmount},#{item.sharingAmount},#{item.sellAmount},#{item.otherAmount},#{item.createdTime},#{item.createdUserId},#{item.createdIp},#{item.updatedTime},#{item.updatedUserId},#{item.updatedIp})
+        </foreach>
+        on duplicate key update total_amount=total_amount + values(total_amount),
+        tip_amount=tip_amount + values(tip_amount),
+        reward_amount=reward_amount + values(reward_amount),
+        sharing_amount=sharing_amount + values(sharing_amount),
+        sell_amount=sell_amount + values(sell_amount),
+        other_amount=other_amount + values(other_amount),
+                                updated_time=values(updated_time),
+                                updated_user_id=values(updated_user_id),
+                                updated_ip=values(updated_ip)
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="beginDate != null">
+                and ${alias}`date` <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and ${alias}`date` <![CDATA[<=]]> #{endDate}
+            </if>
+            <if test="userId != null">
+                and ${alias}user_id = #{userId}
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="StatisticsIncomeModel">
+        select
+        <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from statistics_income
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from statistics_income
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="searchGroupByDate" resultType="StatisticsIncomeModel">
+        select
+        `date`,
+        sum(total_amount) total_amount,
+        sum(tip_amount) tip_amount,
+        sum(reward_amount) reward_amount,
+        sum(sharing_amount) sharing_amount,
+        sum(sell_amount) sell_amount,
+        sum(other_amount) other_amount
+        from statistics_income
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by `date`
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="countGroupByDate" resultType="Integer">
+        select count(DISTINCT `date`)
+        from statistics_income
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <sql id="totalWhere">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="beginDate != null">
+                and ${alias}`date` <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and ${alias}`date` <![CDATA[<=]]> #{endDate}
+            </if>
+            <if test="userIds != null">
+                and ${alias}user_id <foreach collection="userIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="totalByUser" resultType="StatisticsIncomeTotalModel">
+        select user_id,sum(total_amount) total_amount,sum(tip_amount) tip_amount,sum(reward_amount) reward_amount,sum(sharing_amount) sharing_amount,sum(sell_amount) sell_amount,sum(other_amount) other_amount
+        from statistics_income
+        <include refid="totalWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by user_id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open=" order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <update id="addAmountById">
+        update statistics_income
+        <set>
+            <foreach collection="fieldValues" index="key" item="value" separator=",">
+                ${key}=${key} + #{value}
+            </foreach>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

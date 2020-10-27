@@ -1,21 +1,19 @@
 package com.itellyou.model.article;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.itellyou.model.common.VersionModel;
 import com.itellyou.util.CacheEntity;
-import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.util.serialize.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.itellyou.util.serialize.EnumSerializer;
+import lombok.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class ArticleVersionModel implements CacheEntity {
-    private Long id;
+@NoArgsConstructor
+public class ArticleVersionModel extends VersionModel implements CacheEntity<String> {
     private Long articleId = 0l;
     @JSONField(label = "draft,base")
     private Long columnId;
@@ -23,32 +21,18 @@ public class ArticleVersionModel implements CacheEntity {
     private ArticleSourceType sourceType=ArticleSourceType.ORIGINAL;
     private String sourceData="";
     private String title = "";
-    private String content = "";
-    private String html = "";
-    private String description = "";
-    private List<TagDetailModel> tags;
-    private Integer version = 0;
-    private boolean isReviewed = false;
-    private boolean isDisabled = false;
-    private boolean isPublished = false;
-    private String remark;
-    private String saveType;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long createdTime;
-    @JSONField(serialize = false)
-    private Long createdUserId;
-    private UserInfoModel author;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long createdIp;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long updatedTime;
-    @JSONField(serialize = false)
-    private Long updatedUserId;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long updatedIp;
+
+    public ArticleVersionModel(Long id, Long articleId, Long columnId, ArticleSourceType sourceType, String sourceData, String title, String content, String html, String description, Integer version, Boolean isReviewed, Boolean isDisabled, Boolean isPublished, String remark, String saveType, LocalDateTime createdTime,Long createdUserId,Long createdIp,LocalDateTime updatedTime,Long updatedUserId,Long updatedIp){
+        super(id,content,html,description,version,isReviewed,isDisabled,isPublished,remark,saveType,createdTime,createdUserId,createdIp,updatedTime,updatedUserId,updatedIp);
+        this.articleId = articleId;
+        this.columnId = columnId;
+        this.sourceType = sourceType;
+        this.sourceData = sourceData;
+        this.title = title;
+    }
 
     @Override
     public String cacheKey() {
-        return String.valueOf(id);
+        return articleId + "-" + super.getVersion();
     }
 }

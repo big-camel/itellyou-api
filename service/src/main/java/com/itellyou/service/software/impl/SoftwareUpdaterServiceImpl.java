@@ -1,7 +1,7 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareUpdaterDao;
-import com.itellyou.model.software.SoftwareDetailModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareFileModel;
 import com.itellyou.model.software.SoftwareUpdaterDetailModel;
 import com.itellyou.model.software.SoftwareUpdaterModel;
@@ -14,12 +14,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-@CacheConfig(cacheNames = "software_updater")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_UPDATER_KEY)
 @Service
 public class SoftwareUpdaterServiceImpl implements SoftwareUpdaterService {
 
@@ -32,25 +29,25 @@ public class SoftwareUpdaterServiceImpl implements SoftwareUpdaterService {
     }
 
     @Override
-    @CacheEvict(value = "software_updater" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_UPDATER_KEY , allEntries = true)
     public int add(SoftwareUpdaterModel model) {
         return updaterDao.add(model);
     }
 
     @Override
-    @CacheEvict(value = "software_updater" , allEntries = true)
-    public int addAll(HashSet<SoftwareUpdaterModel> updaterValues) {
+    @CacheEvict(value = CacheKeys.SOFTWARE_UPDATER_KEY , allEntries = true)
+    public int addAll(Collection<SoftwareUpdaterModel> updaterValues) {
         return updaterDao.addAll(updaterValues);
     }
 
     @Override
-    @CacheEvict(value = "software_updater" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_UPDATER_KEY , allEntries = true)
     public int clear(Long releaseId) {
         return updaterDao.clear(releaseId);
     }
 
     @Override
-    @CacheEvict(value = "software_updater" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_UPDATER_KEY , allEntries = true)
     public int remove(Long id) {
         return updaterDao.remove(id);
     }
@@ -62,19 +59,19 @@ public class SoftwareUpdaterServiceImpl implements SoftwareUpdaterService {
     }
 
     @Override
-    public List<SoftwareUpdaterDetailModel> search(HashSet<Long> releaseIds) {
+    public List<SoftwareUpdaterDetailModel> search(Collection<Long> releaseIds) {
         StringBuilder keySb = new StringBuilder();
         for (Long id : releaseIds){
             keySb.append(id);
         }
         String key = StringUtils.md5(keySb.toString());
-        List<SoftwareUpdaterModel> cacheData = RedisUtils.getCache("software_updater",key,List.class);
+        List<SoftwareUpdaterModel> cacheData = RedisUtils.get(CacheKeys.SOFTWARE_UPDATER_KEY,key,List.class);
         if(cacheData == null || cacheData.size() == 0)
         {
             cacheData = updaterDao.search(releaseIds);
-            RedisUtils.setCache("software_updater",key,cacheData);
+            RedisUtils.set(CacheKeys.SOFTWARE_UPDATER_KEY,key,cacheData);
         }
-        HashSet<Long> ids = new HashSet<>();
+        Collection<Long> ids = new HashSet<>();
         for (SoftwareUpdaterModel model: cacheData) {
             ids.add(model.getId());
         }

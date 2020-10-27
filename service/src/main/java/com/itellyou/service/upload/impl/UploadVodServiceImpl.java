@@ -96,7 +96,7 @@ public class UploadVodServiceImpl implements UploadVodService {
     public UploadFileModel saveUploadVideo(String key,String name, Long size, Long userId, UploadSource source, String ip) {
         String extname = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
         UploadConfigModel configModel = configService.get(UploadType.VIDEO);
-        UploadFileModel fileModel = new UploadFileModel(key, name, extname, configModel.getDomain(), configModel.getBucket(), source, size, DateUtils.getTimestamp(), userId, IPUtils.toLong(ip));
+        UploadFileModel fileModel = new UploadFileModel(key, name, extname, configModel.getDomain(), configModel.getBucket(), source, size, DateUtils.toLocalDateTime(), userId, IPUtils.toLong(ip));
         int result = fileService.insert(fileModel);
         if (result != 1) return null;
         return fileModel;

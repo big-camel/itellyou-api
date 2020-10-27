@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -18,9 +18,7 @@ public interface SoftwareVersionDao {
 
     Integer findVersionById(Long id);
 
-    SoftwareVersionModel findBySoftwareIdAndVersion(@Param("softwareId") Long softwareId, @Param("version") Integer version, @Param("hasContent") Boolean hasContent);
-
-    List<SoftwareVersionModel> search(@Param("ids") HashSet<Long> ids,
+    List<SoftwareVersionModel> search(@Param("ids") Collection<Long> ids,
                                      @Param("softwareMap") Map<Long, Integer> softwareMap,
                                      @Param("userId") Long userId,
                                      @Param("groupId") Long groupId,
@@ -35,7 +33,7 @@ public interface SoftwareVersionDao {
                                      @Param("offset") Integer offset,
                                      @Param("limit") Integer limit);
 
-    Integer count(@Param("ids") HashSet<Long> ids,
+    Integer count(@Param("ids") Collection<Long> ids,
                   @Param("softwareMap") Map<Long, Integer> softwareMap,
                   @Param("userId") Long userId,
                   @Param("groupId") Long groupId,

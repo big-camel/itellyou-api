@@ -1,6 +1,7 @@
 package com.itellyou.service.user.access.impl;
 
 import com.itellyou.dao.user.UserRoleDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.user.UserRoleModel;
 import com.itellyou.service.user.rank.UserRankRoleService;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "user_role")
+@CacheConfig(cacheNames = CacheKeys.USER_ROLE_KEY)
 @Service
 public class UserRoleServiceImpl implements UserRoleService {
 
@@ -71,5 +72,11 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Cacheable(unless = "#result == null")
     public int count(Long roleId, Long userId, Long beginTime, Long endTime, Long ip) {
         return userRoleDao.count(roleId,userId,beginTime,endTime,ip);
+    }
+
+    @Override
+    public boolean isRoot(Long userId) {
+        List<SysRoleModel> listRole = findRoleByUserId(userId);
+        return listRole.stream().filter(role -> role.getId().equals(3l)).findFirst().isPresent();
     }
 }

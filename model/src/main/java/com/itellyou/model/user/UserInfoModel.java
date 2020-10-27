@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -23,8 +24,8 @@ import java.io.Serializable;
 public class UserInfoModel implements Serializable , CacheEntity {
 
     @Override
-    public String cacheKey() {
-        return String.valueOf(this.id);
+    public Long cacheKey() {
+        return this.id;
     }
 
     public interface RegisterAction {}
@@ -103,19 +104,19 @@ public class UserInfoModel implements Serializable , CacheEntity {
     @JSONField(label = "base")
     private Integer collectionCount=0;
 
-    @JSONField(label = "time",serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long createdTime=0l;
+    @JSONField(label = "time")
+    private LocalDateTime createdTime;
     private Long createdUserId=0l;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp=0l;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long updatedTime=0l;
+
+    private LocalDateTime updatedTime;
     private Long updatedUserId=0l;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long updatedIp=0l;
 
     public UserInfoModel(Long id,String loginName,String name,String loginPassword,String payPassword,Integer gender,Long birthday,String mobile,boolean mobileStatus,String email,boolean emailStatus,
-                         String description,String introduction,String profession,String address,String avatar,boolean isDisabled,Long updatedUserId,Long updatedTime,Long updatedIp){
+                         String description,String introduction,String profession,String address,String avatar,boolean isDisabled,Long updatedUserId,LocalDateTime updatedTime,Long updatedIp){
         this.id = id;
         this.loginName = loginName;
         this.name = name;

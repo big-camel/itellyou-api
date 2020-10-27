@@ -1,20 +1,20 @@
 package com.itellyou.api.controller.sys;
 
 import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.sys.*;
+import com.itellyou.model.sys.SysPermissionMethod;
+import com.itellyou.model.sys.SysPermissionModel;
+import com.itellyou.model.sys.SysPermissionPlatform;
+import com.itellyou.model.sys.SysPermissionType;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.sys.SysPermissionService;
 import com.itellyou.service.user.access.UserRoleService;
 import com.itellyou.util.Params;
-import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -31,31 +31,20 @@ public class SysPermissionController {
     }
 
     @GetMapping("")
-    public ResultModel list(UserInfoModel userModel, @RequestParam Map params){
-        Integer offset = Params.getOrDefault(params,"offset",Integer.class,0);
-        Integer limit = Params.getOrDefault(params,"limit",Integer.class,0);
-        String name = Params.getOrDefault(params,"name",String.class,null);
-        String platformString = Params.getOrDefault(params,"platform",String.class,null);
-        String typeString = Params.getOrDefault(params,"type",String.class,null);
-        String methodString = Params.getOrDefault(params,"method",String.class,null);
+    public ResultModel list(UserInfoModel userModel, @RequestParam Map args){
+        Params params = new Params(args);
+        Integer offset = params.getPageOffset(0);
+        Integer limit = params.getPageLimit(20);
+        String name = params.get("name");
 
-        SysPermissionPlatform platform = null;
-        SysPermissionType type = null;
-        SysPermissionMethod method = null;
-        try {
-            platform = StringUtils.isNotEmpty(platformString) ? SysPermissionPlatform.valueOf(platformString.toUpperCase()) : null;
-            type = StringUtils.isNotEmpty(typeString) ? SysPermissionType.valueOf(typeString.toUpperCase()): null;
-            method = StringUtils.isNotEmpty(methodString) ? SysPermissionMethod.valueOf(methodString.toUpperCase()) : null;
-        }catch (Exception e){}
+        SysPermissionPlatform platform = params.get("platform",SysPermissionPlatform.class);
+        SysPermissionType type = params.get("type",SysPermissionType.class);
+        SysPermissionMethod method = params.get("method",SysPermissionMethod.class);
 
-        Map<String,String> order = new HashMap<>();
-        order.put("name","asc");
+        Map<String,String> order = params.getOrderDefault("name","asc","name");
         // 拥有root角色加载全部权限
-        List<SysRoleModel> listRole = userRoleService.findRoleByUserId(userModel.getId());
-        for (SysRoleModel role : listRole){
-            if(role.getId().equals(3l)){
-                userModel.setId(null);
-            }
+        if(userRoleService.isRoot(userModel.getId())){
+            userModel.setId(null);
         }
         return new ResultModel(permissionService.page(userModel.getId(),platform,type,method,name,order,offset,limit),new Labels.LabelModel(SysPermissionModel.class,"*"));
     }

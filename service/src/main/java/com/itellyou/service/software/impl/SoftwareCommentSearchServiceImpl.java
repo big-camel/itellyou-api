@@ -1,6 +1,7 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareCommentDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareCommentDetailModel;
 import com.itellyou.model.software.SoftwareCommentModel;
 import com.itellyou.model.software.SoftwareCommentVoteModel;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "software_comment")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_COMMENT_KEY)
 @Service
 public class SoftwareCommentSearchServiceImpl implements SoftwareCommentSearchService {
 
@@ -44,18 +45,18 @@ public class SoftwareCommentSearchServiceImpl implements SoftwareCommentSearchSe
     }
 
     @Override
-    public List<SoftwareCommentDetailModel> search(HashSet<Long> ids, Long softwareId, HashSet<Long> parentIds, Long replyId, Long searchUserId, Long userId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        List<SoftwareCommentModel> infoModels = RedisUtils.fetchByCache("software_comment",SoftwareCommentModel.class,ids,(HashSet<Long> fetchIds) ->
-                commentDao.search(fetchIds,softwareId,parentIds,replyId,userId,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit)
+    public List<SoftwareCommentDetailModel> search(Collection<Long> ids, Long softwareId, Collection<Long> parentIds, Long replyId, Long searchUserId, Long userId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        List<SoftwareCommentModel> infoModels = RedisUtils.fetch(CacheKeys.SOFTWARE_COMMENT_KEY,SoftwareCommentModel.class,ids,(Collection<Long> fetchIds) ->
+                commentDao.search(fetchIds,softwareId,parentIds,replyId,userId,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit)
         );
 
         List<SoftwareCommentDetailModel> detailModels = new LinkedList<>();
         if(infoModels.size() == 0) return detailModels;
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
-        HashSet<Long> replyIds = new LinkedHashSet<>();
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchParentIds = new LinkedHashSet<>();
-        HashSet<Long> softwareIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> replyIds = new LinkedHashSet<>();
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchParentIds = new LinkedHashSet<>();
+        Collection<Long> softwareIds = new LinkedHashSet<>();
         for (SoftwareCommentModel infoModel : infoModels) {
             if(infoModel.isDeleted()) {
                 infoModel.setContent("评论已删除");
@@ -99,8 +100,8 @@ public class SoftwareCommentSearchServiceImpl implements SoftwareCommentSearchSe
         // 一次查出需要的子评论
         List<SoftwareCommentDetailModel> childCommentDetails =  new ArrayList<>();
         if(fetchParentIds.size() > 0){
-            HashSet<Long> childIds = new LinkedHashSet<>();
-            List<SoftwareCommentModel> childModes = RedisUtils.fetchByCache("software_comment",SoftwareCommentModel.class,ids,(HashSet<Long> childFetchIds) ->
+            Collection<Long> childIds = new LinkedHashSet<>();
+            List<SoftwareCommentModel> childModes = RedisUtils.fetch(CacheKeys.SOFTWARE_COMMENT_KEY,SoftwareCommentModel.class,ids,(Collection<Long> childFetchIds) ->
                     commentDao.searchChild(childFetchIds,null,fetchParentIds,null,null,null,childCount,null,null,null,null,null,null,null,null,null,order)
             );
             for (SoftwareCommentModel childModel : childModes){
@@ -159,24 +160,24 @@ public class SoftwareCommentSearchServiceImpl implements SoftwareCommentSearchSe
     }
 
     @Override
-    public List<SoftwareCommentDetailModel> search(Long softwareId, HashSet<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        return search(null,softwareId,parentIds,null,searchUserId,null,isDeleted,childCount,hasReply,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
+    public List<SoftwareCommentDetailModel> search(Long softwareId, Collection<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        return search(null,softwareId,parentIds,null,searchUserId,null,isDeleted,childCount,hasReply,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
     }
 
     @Override
-    public int count(HashSet<Long> ids, Long softwareId, HashSet<Long> parentIds, Long replyId, Long userId, Boolean isDeleted, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
-        return commentDao.count(ids,softwareId,parentIds,replyId,userId,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
+    public int count(Collection<Long> ids, Long softwareId, Collection<Long> parentIds, Long replyId, Long userId, Boolean isDeleted, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
+        return commentDao.count(ids,softwareId,parentIds,replyId,userId,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
     }
 
     @Override
-    public int count(Long softwareId, HashSet<Long> parentIds, Boolean isDeleted, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
-        return count(null,softwareId,parentIds,null,null,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
+    public int count(Long softwareId, Collection<Long> parentIds, Boolean isDeleted, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
+        return count(null,softwareId,parentIds,null,null,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
     }
 
     @Override
-    public PageModel<SoftwareCommentDetailModel> page(Long softwareId, HashSet<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComments, Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        List<SoftwareCommentDetailModel> data = search(softwareId,parentIds,searchUserId,isDeleted,childCount,hasReply,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,order,offset,limit);
-        Integer total = count(softwareId,parentIds,isDeleted,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime);
+    public PageModel<SoftwareCommentDetailModel> page(Long softwareId, Collection<Long> parentIds, Long searchUserId, Boolean isDeleted, Integer childCount,Boolean hasReply, Integer minComment, Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        List<SoftwareCommentDetailModel> data = search(softwareId,parentIds,searchUserId,isDeleted,childCount,hasReply,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,order,offset,limit);
+        Integer total = count(softwareId,parentIds,isDeleted,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime);
         return new PageModel<>(offset,limit,total,data);
     }
 

@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -150,7 +149,7 @@ public class SoftwareGrabController {
                 if(!softwareGroupModelMap.containsKey(groupModel.getName())){
                     groupModel.setCreatedIp(ip);
                     groupModel.setCreatedUserId(userId);
-                    groupModel.setCreatedTime(DateUtils.getTimestamp());
+                    groupModel.setCreatedTime(DateUtils.toLocalDateTime());
                     groupService.add(groupModel);
                     softwareGroupModelMap.put(groupModel.getName(),groupModel);
                     if(!groupModel.getId().equals(0l)) groupJson.put("id",groupModel.getId());
@@ -161,7 +160,7 @@ public class SoftwareGrabController {
                 TagInfoModel tagInfoModel = tagSingleService.findByName(tag);
                 if(tagInfoModel == null){
                     tagInfoModel = new TagInfoModel();
-                    Long tagId = tagDocService.create(userId,tag,"","","",tag,"","user",ip);
+                    Long tagId = tagDocService.create(userId,tag,tag,"","",tag,"","user",ip);
                     tagInfoModel.setId(tagId);
                 }
                 Long tagId = tagInfoModel.getId();
@@ -181,7 +180,7 @@ public class SoftwareGrabController {
                     attributesModel.setSoftwareId(softId);
                     attributesModel.setName(attributesKey);
                     attributesModel.setValue(attributesJson.getString(attributesKey));
-                    attributesModel.setCreatedTime(DateUtils.getTimestamp());
+                    attributesModel.setCreatedTime(DateUtils.toLocalDateTime());
                     attributesModel.setCreatedUserId(userId);
                     attributesModel.setCreatedIp(ip);
                     attributesModels.add(attributesModel);
@@ -201,7 +200,7 @@ public class SoftwareGrabController {
                     }else{
                         releaseModel.setName(versionsName);
                         releaseModel.setCreatedIp(ip);
-                        releaseModel.setCreatedTime(DateUtils.getTimestamp());
+                        releaseModel.setCreatedTime(DateUtils.toLocalDateTime());
                         releaseModel.setCreatedUserId(userId);
                         releaseModel.setSoftwareId(softId);
                         releaseService.add(releaseModel);
@@ -219,7 +218,7 @@ public class SoftwareGrabController {
                         }else{
                             updaterModel.setName(updaterName);
                             updaterModel.setCreatedIp(ip);
-                            updaterModel.setCreatedTime(DateUtils.getTimestamp());
+                            updaterModel.setCreatedTime(DateUtils.toLocalDateTime());
                             updaterModel.setCreatedUserId(userId);
                             updaterModel.setReleaseId(releaseModel.getId());
                             updaterService.add(updaterModel);
@@ -247,13 +246,13 @@ public class SoftwareGrabController {
                                 String publishDateString = fileJson.getString("publishDate");
                                 if(StringUtils.isNotEmpty(publishDateString)){
                                     String publishDateValue = publishDateString + (publishDateString.indexOf(":") > 0 ? "" : " 00:00:00");
-                                    LocalDateTime publishDate = DateUtils.formatToDateTime(publishDateValue);
+                                    LocalDateTime publishDate = DateUtils.formatToDateTime(publishDateValue,null);
                                     fileModel.setPublishDate(DateUtils.getTimestamp(publishDate));
                                 }
                                 fileModel.setEd2k(fileJson.getString("ed2k"));
                                 fileModel.setMagnet(fileJson.getString("magnet"));
                                 fileModel.setCreatedIp(ip);
-                                fileModel.setCreatedTime(DateUtils.getTimestamp());
+                                fileModel.setCreatedTime(DateUtils.toLocalDateTime());
                                 fileModel.setCreatedUserId(userId);
                                 fileService.add(fileModel);
                             }

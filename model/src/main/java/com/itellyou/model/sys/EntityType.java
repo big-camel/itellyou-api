@@ -22,7 +22,8 @@ public enum EntityType implements BaseEnum<EntityType,Integer> , CacheEntity {
     EMAIL(15,"email"),
     FEE(16,"fee"),
     SOFTWARE(17,"software"),
-    SOFTWARE_COMMENT(18, "software_comment");
+    SOFTWARE_COMMENT(18, "software_comment"),
+    SYSTEM(19, "system");
 
     private Integer value;
     private String name;
@@ -43,6 +44,14 @@ public enum EntityType implements BaseEnum<EntityType,Integer> , CacheEntity {
 
     public String toString() {
         return getName();
+    }
+
+    public static EntityType get(String value) {
+        try{
+            return valueOf(value.toUpperCase());
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public static EntityType valueOf(Integer value) {

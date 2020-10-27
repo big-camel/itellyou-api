@@ -5,16 +5,14 @@ import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.sys.SysPermissionModel;
 import com.itellyou.model.sys.SysPermissionPlatform;
-import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.model.user.UserRankModel;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.sys.SysPermissionService;
-import com.itellyou.service.user.*;
-import com.itellyou.service.user.bank.UserBankService;
+import com.itellyou.service.user.UserInfoService;
+import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.UserSingleService;
 import com.itellyou.service.user.passport.UserLoginLogService;
-import com.itellyou.service.user.rank.UserRankService;
 import com.itellyou.util.CookieUtils;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
@@ -44,39 +42,30 @@ public class UserController {
     private final UserLoginLogService userLoginLogService;
     private final SysPathService pathService;
     private final SysPermissionService permissionService;
-    private final UserRankService userRankService;
-    private final UserBankService bankService;
 
     @Autowired
-    public UserController(UserInfoService userInfoService, UserSearchService userSearchService, UserSingleService userSingleService, UserLoginLogService userLoginLogService, SysPathService pathService, SysPermissionService permissionService, UserRankService userRankService, UserBankService bankService){
+    public UserController(UserInfoService userInfoService, UserSearchService userSearchService, UserSingleService userSingleService, UserLoginLogService userLoginLogService, SysPathService pathService, SysPermissionService permissionService){
         this.userInfoService = userInfoService;
         this.userSearchService = userSearchService;
         this.userSingleService = userSingleService;
         this.userLoginLogService = userLoginLogService;
         this.pathService = pathService;
         this.permissionService = permissionService;
-        this.userRankService = userRankService;
-        this.bankService = bankService;
     }
 
     @GetMapping("/me")
     public ResultModel me(UserInfoModel userModel,@RequestParam(required = false) String p){
         if(userModel == null) return new ResultModel(401,"No Access");
-        SysPathModel pathModel = pathService.findByTypeAndId(SysPath.USER,userModel.getId());
+        UserDetailModel detailModel = userSearchService.find(userModel.getId(),null);
         SysPermissionPlatform platform = SysPermissionPlatform.WEB;
         try{
             if(StringUtils.isNotEmpty(p)){
                 platform = SysPermissionPlatform.valueOf(p.toUpperCase());
             }
         }catch (Exception e){}
-        UserRankModel rankModel = userRankService.find(userModel.getId());
-        UserBankModel bankModel = bankService.findByUserId(userModel.getId());
         List<SysPermissionModel> permissionModels = permissionService.search(userModel.getId(), platform,null,null,null,null,null,null);
-        return new ResultModel(userModel).
-                extend("path",pathModel == null ? null : pathModel.getPath()).
-                extend("access",permissionModels).
-                extend("rank",rankModel).
-                extend("bank",bankModel);
+        return new ResultModel(detailModel,"base","bank","rank").
+                extend("access",permissionModels);
     }
 
     @GetMapping("/account")
@@ -133,7 +122,7 @@ public class UserController {
                 userModel.getId(),null,
                 name,null,null,gender,null,null,userModel.isMobileStatus(),null,userModel.isEmailStatus(),
                 description,introduction,profession,address,avatar,userModel.isDisabled(),userModel.getId(),
-                DateUtils.getTimestamp(),IPUtils.toLong(ip)
+                DateUtils.toLocalDateTime(),IPUtils.toLong(ip)
                 );
 
         int result = userInfoService.updateByUserId(updateModel);

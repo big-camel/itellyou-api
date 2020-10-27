@@ -40,6 +40,6 @@ public class QuestionAnswerCommentDetailModel extends QuestionAnswerCommentModel
     private boolean allowReply;
 
     public QuestionAnswerCommentDetailModel(QuestionAnswerCommentModel model){
-        super(model.getId(),model.getAnswerId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getComments(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+        super(model.getId(),model.getAnswerId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getCommentCount(),model.getSupportCount(),model.getOpposeCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 }

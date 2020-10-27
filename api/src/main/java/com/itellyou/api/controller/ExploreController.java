@@ -1,18 +1,18 @@
 package com.itellyou.api.controller;
 
+import com.itellyou.model.common.IndexModel;
 import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.article.ArticleDetailModel;
-import com.itellyou.model.article.ArticleIndexModel;
-import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.question.QuestionIndexModel;
+import com.itellyou.model.sys.EntityDataModel;
+import com.itellyou.model.sys.EntitySearchModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.common.impl.IndexFactory;
 import com.itellyou.service.common.IndexService;
+import com.itellyou.service.common.impl.IndexFactory;
 import com.itellyou.service.sys.EntityService;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.util.CacheEntity;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
 import org.apache.lucene.document.Document;
@@ -28,22 +28,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Validated
 @RestController
 @RequestMapping("/explore")
 public class ExploreController {
 
-    private final IndexService<QuestionDetailModel> questionIndexService;
-    private final IndexService<ArticleDetailModel> articleIndexService;
     private final EntityService entityService;
     private final UserSearchService userSearchService;
+    private final IndexFactory indexFactory;
 
-    public ExploreController(EntityService entityService, UserSearchService userSearchService , IndexFactory indexFactory) {
-        this.questionIndexService = indexFactory.create(EntityType.QUESTION);
-        this.articleIndexService = indexFactory.create(EntityType.ARTICLE);
+    public ExploreController(EntityService entityService, UserSearchService userSearchService, IndexFactory indexFactory) {
         this.entityService = entityService;
         this.userSearchService = userSearchService;
+        this.indexFactory = indexFactory;
     }
 
     @GetMapping("/recommends")
@@ -52,9 +51,8 @@ public class ExploreController {
         if(limit == null) limit = 20;
         Long searchId = userModel == null ? null : userModel.getId();
         try {
-            MultiReader multiReader = new MultiReader(questionIndexService.getIndexReader(),
-                    //answerIndexService.getIndexReader(),
-                    articleIndexService.getIndexReader());
+            MultiReader multiReader = new MultiReader(indexFactory.create(EntityType.QUESTION).getIndexReader(),
+                    indexFactory.create(EntityType.ARTICLE).getIndexReader());
             IndexSearcher searcher = new IndexSearcher(multiReader);
 
             Long now = DateUtils.getTimestamp();
@@ -63,7 +61,7 @@ public class ExploreController {
             BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
             Query dateQuery = LongPoint.newRangeQuery("updated_time",beginTime,now);
             booleanQuery.add(dateQuery, BooleanClause.Occur.MUST);
-            booleanQuery.add(IntPoint.newExactQuery("answers",0),BooleanClause.Occur.MUST_NOT);
+            booleanQuery.add(IntPoint.newExactQuery("answer_count",0),BooleanClause.Occur.MUST_NOT);
 
             Query query = FunctionScoreQuery.boostByValue(booleanQuery.build(), DoubleValuesSource.fromDoubleField("score"));
 
@@ -73,8 +71,7 @@ public class ExploreController {
             Sort sort = new Sort(sortIdDoc);
             TopDocs topDocs = searcher.search(query, maxLimit,sort);
 
-            Map<String,Object> dataMap = new LinkedHashMap<>();
-            Map<EntityType,HashSet<Long>> idsMap = new LinkedHashMap<>();
+            List<IndexModel> indexModels = new LinkedList<>();
             int countF = 0;
             for (int i = 0;i < limit;i ++) {
                 Integer index = i + offset;
@@ -83,56 +80,33 @@ public class ExploreController {
                 Document document = searcher.doc(doc.doc);
                 String type = document.get("type");
                 if(!StringUtils.isNotEmpty(type)) type = "";
-                switch (EntityType.valueOf(type.toUpperCase())) {
-                    case QUESTION:
-                        QuestionIndexModel questionIndexModel = (QuestionIndexModel) questionIndexService.getModel(document);
-                        if (idsMap.containsKey(EntityType.QUESTION)) {
-                            idsMap.get(EntityType.QUESTION).add(questionIndexModel.getId());
-                        } else {
-                            idsMap.put(EntityType.QUESTION, new LinkedHashSet<Long>() {{
-                                add(questionIndexModel.getId());
-                            }});
-                        }
-                        dataMap.put(EntityType.QUESTION.toString()+"_" + questionIndexModel.getId(),questionIndexModel);
-                        break;
-                    /**case ANSWER:
-                        QuestionAnswerIndexModel answerIndexModel = answerIndexService.getModel(document);
-                        if(idsMap.containsKey(EntityType.ANSWER)){
-                            idsMap.get(EntityType.ANSWER).add(answerIndexModel.getId());
-                        }else{
-                            idsMap.put(EntityType.ANSWER,new LinkedHashSet<Long>(){{ add(answerIndexModel.getId());}});
-                        }
-                        if(idsMap.containsKey(EntityType.QUESTION) && idsMap.get(EntityType.QUESTION).contains(answerIndexModel.getQuestionId())){
-                            limit++;
-                            countF++;
-                        }
-                        dataMap.put(EntityType.ANSWER.toString()+"_" + answerIndexModel.getId(),answerIndexModel);
-                        break;**/
-                    case ARTICLE:
-                        ArticleIndexModel articleIndexModel = (ArticleIndexModel) articleIndexService.getModel(document);
-                        if(idsMap.containsKey(EntityType.ARTICLE)){
-                            idsMap.get(EntityType.ARTICLE).add(articleIndexModel.getId());
-                        }else{
-                            idsMap.put(EntityType.ARTICLE,new LinkedHashSet<Long>(){{ add(articleIndexModel.getId());}});
-                        }
-                        dataMap.put(EntityType.ARTICLE.toString()+"_" + articleIndexModel.getId(),articleIndexModel);
-                        break;
-                    //default:
-                        //System.out.println(document);
+                IndexService indexService = indexFactory.create(EntityType.valueOf(type.toUpperCase()));
+                if(indexService != null){
+                    IndexModel indexModel = indexService.getModel(document);
+                    if(indexModel != null) indexModels.add(indexModel);
                 }
             }
+
+            EntityDataModel<CacheEntity> entityDataModel = entityService.search(indexModels,(IndexModel model, Function<EntityType,Map<String,Object>> getArgs) -> {
+                EntityType type = model.getType();
+                Map<String,Object> args = getArgs.apply(type);
+                args.put("hasContent",false);
+                args.put("searchUserId",searchId);
+                if(type.equals(EntityType.QUESTION)) args.put("childCount",1);
+                HashSet ids = (HashSet)args.computeIfAbsent("ids",key -> new HashSet<>());
+                if(!ids.contains(model.getId())) ids.add(model.getId());
+                args.put("ids",ids);
+                return new EntitySearchModel(type,args);
+            });
+
             List<Map<String , Object >> listData = new ArrayList<>();
-            Map<EntityType,Map<Long,Object>> mapData = entityService.find(idsMap,searchId,1);
-            for (Map.Entry<String,Object> entry : dataMap.entrySet()){
-                String[] keys = entry.getKey().split("_");
-                EntityType type = EntityType.valueOf(keys[0].toUpperCase());
-                Long id = Long.parseLong(keys[1]);
-                if(mapData.containsKey(type) && mapData.get(type).containsKey(id)){
-                    Map<String,Object> data = new HashMap<>();
-                    data.put("type",type.toString());
-                    data.put("object",mapData.get(type).get(id));
-                    listData.add(data);
-                }
+            for (IndexModel indexModel : indexModels){
+                Object target = entityDataModel.get(indexModel.getType(),indexModel.getId());
+                if(target == null) continue;
+                listData.add(new HashMap<String,Object>(){{
+                    put("type",indexModel.getType().toString());
+                    put("object",target);
+                }});
             }
             Integer total = topDocs.scoreDocs.length;
             total = total - countF;

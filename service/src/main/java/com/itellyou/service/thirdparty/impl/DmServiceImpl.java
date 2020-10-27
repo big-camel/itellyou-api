@@ -51,17 +51,17 @@ public class DmServiceImpl implements DmService {
         Long lastMinuteCreatedTime = 0L;
         Long lastHourCreatedTime = 0L;
         if(listDmLogModel.size() >= dmConfigModel.getDay()){
-            Long seconds = 86400 - (DateUtils.getTimestamp() - listDmLogModel.get(listDmLogModel.size() - 1).getCreatedTime());
+            Long seconds = 86400 - (DateUtils.getTimestamp() - DateUtils.getTimestamp(listDmLogModel.get(listDmLogModel.size() - 1).getCreatedTime()));
             String message = getTimeTemplate(seconds,"HH时mm分ss秒");
             throw new VerifyCodeException(seconds,message);
         }
         for(DmLogModel dmLogModel : listDmLogModel) {
-            if(dmLogModel.getCreatedTime() >= DateUtils.getTimestamp() - 60){
+            if(DateUtils.getTimestamp(dmLogModel.getCreatedTime()) >= DateUtils.getTimestamp() - 60){
                 minuteCount++;
-                lastMinuteCreatedTime = dmLogModel.getCreatedTime();
-            }else if(dmLogModel.getCreatedTime() >= DateUtils.getTimestamp() - 3600){
+                lastMinuteCreatedTime = DateUtils.getTimestamp(dmLogModel.getCreatedTime());
+            }else if(DateUtils.getTimestamp(dmLogModel.getCreatedTime()) >= DateUtils.getTimestamp() - 3600){
                 hourCount++;
-                lastHourCreatedTime = dmLogModel.getCreatedTime();
+                lastHourCreatedTime = DateUtils.getTimestamp(dmLogModel.getCreatedTime());
             }
         };
         if(hourCount >= dmConfigModel.getHour()){
@@ -162,7 +162,7 @@ public class DmServiceImpl implements DmService {
         dmTemplateModel.setBody(body);
         logger.info("email:{},data:{}" ,email, param);
         Long ipLong = IPUtils.toLong(ip);
-        DmLogModel dmLogModel = new DmLogModel(null,email,dmTemplateModel.getId(),param,0,DateUtils.getTimestamp(),ipLong);
+        DmLogModel dmLogModel = new DmLogModel(null,email,dmTemplateModel.getId(),param,0,DateUtils.toLocalDateTime(),ipLong);
         if(dmLogService.insert(dmLogModel) == 0)
             throw new VerifyCodeException("写入日志出错啦");
 

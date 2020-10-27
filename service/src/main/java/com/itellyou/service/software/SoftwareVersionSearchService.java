@@ -1,28 +1,22 @@
 package com.itellyou.service.software;
 
-import com.itellyou.model.software.SoftwareVersionModel;
+import com.itellyou.model.software.SoftwareVersionDetailModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface SoftwareVersionSearchService {
 
-    Integer findVersionById(Long id);
+    List<SoftwareVersionDetailModel> searchBySoftwareId(Long softwareId, Boolean hasContent);
 
-    List<SoftwareVersionModel> searchBySoftwareId(Long softwareId, Boolean hasContent);
+    List<SoftwareVersionDetailModel> searchBySoftwareId(Long softwareId);
 
-    List<SoftwareVersionModel> searchBySoftwareId(Long softwareId);
+    SoftwareVersionDetailModel getDetail(Long id);
 
-    List<SoftwareVersionModel> searchBySoftwareMap(Map<Long, Integer> softwareMap, Boolean hasContent);
+    SoftwareVersionDetailModel getDetail(Long softwareId, Integer version);
 
-    SoftwareVersionModel findById(Long id);
-
-    SoftwareVersionModel findBySoftwareIdAndId(Long id, Long softwareId);
-
-    SoftwareVersionModel find(Long softwareId, Integer version);
-
-    List<SoftwareVersionModel> search(HashSet<Long> ids,
+    List<SoftwareVersionDetailModel> search(Collection<Long> ids,
                                      Map<Long, Integer> softwareMap,
                                      Long userId,
                                      Long groupId,
@@ -36,15 +30,4 @@ public interface SoftwareVersionSearchService {
                                      Map<String, String> order,
                                      Integer offset,
                                      Integer limit);
-
-    Integer count(HashSet<Long> ids,
-                  Map<Long, Integer> softwareMap,
-                  Long userId,
-                  Long groupId,
-                  Boolean isReview,
-                  Boolean isDisable,
-                  Boolean isPublish,
-                  Long beginTime,
-                  Long endTime,
-                  Long ip);
 }

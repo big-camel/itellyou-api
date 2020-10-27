@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -18,5 +18,5 @@ public interface QuestionAnswerPaidReadDao {
 
     QuestionAnswerPaidReadModel findByAnswerId(Long answerId);
 
-    List<QuestionAnswerPaidReadModel> search(@Param("answerIds") HashSet<Long> answerIds);
+    List<QuestionAnswerPaidReadModel> search(@Param("answerIds") Collection<Long> answerIds);
 }

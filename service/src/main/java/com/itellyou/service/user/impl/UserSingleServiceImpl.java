@@ -1,13 +1,14 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.user.UserSingleService;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-@CacheConfig(cacheNames = "user_info")
+@CacheConfig(cacheNames = CacheKeys.USER_INFO_KEY)
 @Service
 public class UserSingleServiceImpl implements UserSingleService {
 

@@ -14,7 +14,7 @@ public class IpSerializer implements ObjectSerializer {
             jsonSerializer.write("unknow");
         }else{
             Long ipLong = (Long)o;
-            String ip = IPUtils.toIpv4(ipLong);
+            String ip = IPUtils.toString(ipLong);
             jsonSerializer.write(ip);
         }
     }

@@ -1,0 +1,58 @@
+2020-10-13 00:57:11.019 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 00:58:45.522 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:01:57.177 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:02:44.825 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:03:55.885 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:10:51.659 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:13:43.160 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:14:32.501 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:15:55.298 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:20:41.611 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:26:50.088 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:28:16.194 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:30:01.312 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:30:17.818 ERROR [main] c.i.util.Params - Text '2019-02-07' could not be parsed at index 10
+2020-10-13 01:31:18.869 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:31:51.548 ERROR [main] c.i.util.Params - Text '2019-02-07' could not be parsed at index 10
+2020-10-13 01:32:02.029 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:43:33.749 ERROR [main] c.i.util.Params - Text '2019-02-07' could not be parsed: Unable to obtain LocalDateTime from TemporalAccessor: {},ISO resolved to 2019-02-07 of type java.time.format.Parsed
+2020-10-13 01:43:33.750 ERROR [main] c.i.util.Params - null
+2020-10-13 01:43:33.751 ERROR [main] c.i.util.Params - null
+2020-10-13 01:43:44.716 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:44:03.488 ERROR [main] c.i.util.Params - null
+2020-10-13 01:44:06.812 ERROR [main] c.i.util.Params - Text '2019-02-07 12:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 01:44:31.393 ERROR [main] c.i.util.Params - null
+2020-10-13 01:46:22.451 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:46:36.539 WARN  [main] c.i.util.Params - null
+2020-10-13 01:46:45.598 WARN  [main] c.i.util.Params - Text '2019-02-07 00:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 01:47:38.462 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:48:32.785 WARN  [main] c.i.util.Params - null
+2020-10-13 01:48:32.786 WARN  [main] c.i.util.Params - Text '2019-02-07 00:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 01:48:44.453 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:49:00.644 WARN  [main] c.i.util.Params - Text '2019-02-07 00:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 01:49:42.132 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:49:52.395 WARN  [main] c.i.util.Params - Text '2019-02-07 00:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 01:53:14.439 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:54:13.123 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 01:54:51.314 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 02:05:42.926 ERROR [quartzScheduler_Worker-1] c.i.s.c.i.DataUpdateQueueServiceImpl - Redis exception; nested exception is io.lettuce.core.RedisException: Connection is closed
+2020-10-13 02:05:42.927 ERROR [quartzScheduler_Worker-1] c.i.s.c.i.DataUpdateJobServiceImpl - null
+2020-10-13 02:05:53.787 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 02:07:05.537 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 02:07:24.072 WARN  [main] c.i.util.Params - Text '2019-02-07T00:00:13' could not be parsed, unparsed text found at index 10
+2020-10-13 02:11:14.284 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 11:47:55.241 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 11:49:37.225 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 11:53:06.993 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 11:57:48.441 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 11:58:23.837 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:25:11.455 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:26:30.601 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:42:23.408 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:43:02.330 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:45:16.355 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:47:59.380 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 12:48:34.498 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 14:38:36.445 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 15:36:07.655 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()
+2020-10-13 16:40:26.396 WARN  [main] c.i.a.i.TokenSecurityInterceptor - Could not validate configuration attributes as the SecurityMetadataSource did not return any attributes from getAllConfigAttributes()

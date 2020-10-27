@@ -25,33 +25,35 @@ public class SysLinkController {
     }
 
     @GetMapping("")
-    public ResultModel get(@RequestParam Map params) {
-        Integer offset = Params.getOrDefault(params, "offset", Integer.class, 0);
-        Integer limit = Params.getOrDefault(params, "limit", Integer.class, 20);
-        String text = Params.getOrDefault(params, "text", String.class, null);
-        String link = Params.getOrDefault(params, "link", String.class, null);
-        String target = Params.getOrDefault(params, "target", String.class, null);
-        String beginTime = Params.getOrDefault(params,"begin",String.class,null);
+    public ResultModel get(@RequestParam Map args) {
+        Params params = new Params(args);
+        Integer offset = params.getOrDefault( "offset", Integer.class,0);
+        Integer limit = params.getOrDefault("limit",Integer.class,0);
+        String text = params.get("text");
+        String link = params.get("link");
+        String target = params.get("target");
+        String beginTime = params.get("begin");
         Long begin = DateUtils.getTimestamp(beginTime);
-        String endTime = Params.getOrDefault(params,"end",String.class,null);
+        String endTime = params.get("end");
         Long end = DateUtils.getTimestamp(endTime);
-        String ip = Params.getOrDefault(params,"ip",String.class,null);
-        Long ipLong = IPUtils.toLong(ip,null);
+        String ip = params.get("ip");
+        Long ipLong = IPUtils.toLong(ip);
         return new ResultModel(linkService.page(null,text,link,target,null,begin,end,ipLong,null,offset,limit));
     }
 
     @PutMapping("")
-    public ResultModel add(UserInfoModel userMode, HttpServletRequest request, @RequestBody Map<String,Object> params){
-        String text = Params.getOrDefault(params,"text","");
-        String link = Params.getOrDefault(params,"link","");
-        String target = Params.getOrDefault(params,"target","_blank");
+    public ResultModel add(UserInfoModel userMode, HttpServletRequest request, @RequestBody Map args){
+        Params params = new Params(args);
+        String text = params.getOrDefault("text","");
+        String link = params.getOrDefault("link","");
+        String target = params.getOrDefault("target","_blank");
 
         SysLinkModel linkModel = new SysLinkModel();
         linkModel.setText(text);
         linkModel.setLink(link);
         linkModel.setTarget(target);
         linkModel.setCreatedUserId(userMode.getId());
-        linkModel.setCreatedTime(DateUtils.getTimestamp());
+        linkModel.setCreatedTime(DateUtils.toLocalDateTime());
         linkModel.setCreatedIp(IPUtils.toLong(request));
 
         int result = linkService.insert(linkModel);

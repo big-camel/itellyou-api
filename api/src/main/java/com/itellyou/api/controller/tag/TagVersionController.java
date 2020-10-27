@@ -1,9 +1,9 @@
 package com.itellyou.api.controller.tag;
 
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.tag.TagVersionDetailModel;
 import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.service.tag.TagVersionSearchService;
-import com.itellyou.service.tag.TagVersionService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,25 +20,23 @@ import java.util.Map;
 @RequestMapping("/tag/{tagId:\\d+}/version")
 public class TagVersionController {
 
-    private final TagVersionService versionService;
     private final TagVersionSearchService versionSearchService;
 
-    public TagVersionController(TagVersionService versionService, TagVersionSearchService versionSearchService){
-        this.versionService = versionService;
+    public TagVersionController(TagVersionSearchService versionSearchService){
         this.versionSearchService = versionSearchService;
     }
 
     @GetMapping("")
     public ResultModel list(@PathVariable @NotNull Long tagId){
 
-        List<TagVersionModel> listVersion = versionSearchService.searchByTagId(tagId);
+        List<TagVersionDetailModel> listVersion = versionSearchService.searchByTagId(tagId);
         return new ResultModel(listVersion);
     }
 
     @GetMapping("/{versionId:\\d+}")
     public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long tagId){
-        TagVersionModel versionModel = versionSearchService.findByTagIdAndId(versionId,tagId);
-        if(versionModel == null){
+        TagVersionDetailModel versionModel = versionSearchService.getDetail(versionId);
+        if(versionModel == null || !versionModel.getTagId().equals(tagId)){
             return new ResultModel(0,"错误的编号");
         }
         return new ResultModel(versionModel);
@@ -52,13 +50,13 @@ public class TagVersionController {
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
     public ResultModel compare(@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long tagId){
-        TagVersionModel currentVersion = versionSearchService.findByTagIdAndId(current,tagId);
-        if(currentVersion == null){
+        TagVersionDetailModel currentVersion = versionSearchService.getDetail(current);
+        if(currentVersion == null || !currentVersion.getTagId().equals(tagId)){
             return new ResultModel(0,"错误的当前编号");
         }
 
-        TagVersionModel targetVersion = versionSearchService.findByTagIdAndId(target,tagId);
-        if(targetVersion == null){
+        TagVersionDetailModel targetVersion = versionSearchService.getDetail(target);
+        if(targetVersion == null || !targetVersion.getTagId().equals(tagId)){
             return new ResultModel(0,"错误的目标编号");
         }
 

@@ -14,9 +14,9 @@
         ${alias}custom_description ${prefix}custom_description,
         ${alias}draft ${prefix}draft,
         ${alias}comment_count ${prefix}comment_count,
-        ${alias}`view` ${prefix}`view`,
-        ${alias}support ${prefix}support,
-        ${alias}oppose ${prefix}oppose,
+        ${alias}`view_count` ${prefix}`view_count`,
+        ${alias}support_count ${prefix}support_count,
+        ${alias}oppose_count ${prefix}oppose_count,
         ${alias}created_time ${prefix}created_time,
         ${alias}created_user_id ${prefix}created_user_id,
         ${alias}created_ip ${prefix}created_ip,
@@ -25,9 +25,20 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into software_info(group_id,`name`,description,version,is_published,is_disabled,is_deleted,custom_description,draft,comment_count,`view`,support,oppose,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{groupId},#{name},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{draft},#{commentCount},#{view},#{support},#{oppose},
+        insert into software_info(group_id,`name`,description,version,is_published,is_disabled,is_deleted,custom_description,draft,comment_count,`view_count`,support_count,oppose_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{groupId},#{name},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{draft},#{commentCount},#{viewCount},#{supportCount},#{opposeCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <insert id="addStep">
+        insert into software_info(id,`view_count`,comment_count,support_count,oppose_count)
+        values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.id},#{item.viewStep},#{item.commentStep},#{item.supportStep},#{item.opposeStep})
+        </foreach>
+        on duplicate key update `view_count`=`view_count` + values(`view_count`),
+        comment_count=comment_count + values(comment_count),
+        support_count=support_count + values(support_count),
+        oppose_count=oppose_count + values(oppose_count)
     </insert>
     <resultMap id="searchMap" type="SoftwareInfoModel" autoMapping="true">
         <id property="id" column="id" />
@@ -64,29 +75,29 @@
             <if test="groupId != null">
                 and ${alias}group_id=#{groupId}
             </if>
-            <if test="minComments != null">
-                and ${alias}comment_count >= #{minComments}
+            <if test="minComment != null">
+                and ${alias}comment_count >= #{minComment}
             </if>
-            <if test="maxComments != null">
-                and ${alias}comment_count &lt;= #{maxComments}
+            <if test="maxComment != null">
+                and ${alias}comment_count &lt;= #{maxComment}
             </if>
             <if test="minView != null">
-                and ${alias}view >= #{minView}
+                and ${alias}view_count >= #{minView}
             </if>
             <if test="maxView != null">
-                and ${alias}view &lt;= #{maxView}
+                and ${alias}view_count &lt;= #{maxView}
             </if>
             <if test="minSupport != null">
-                and ${alias}support >= #{minSupport}
+                and ${alias}support_count >= #{minSupport}
             </if>
             <if test="maxSupport != null">
-                and ${alias}support &lt;= #{maxSupport}
+                and ${alias}support_count &lt;= #{maxSupport}
             </if>
             <if test="minOppose != null">
-                and ${alias}oppose >= #{minOppose}
+                and ${alias}oppose_count >= #{minOppose}
             </if>
             <if test="maxOppose != null">
-                and ${alias}oppose &lt;= #{maxOppose}
+                and ${alias}oppose_count &lt;= #{maxOppose}
             </if>
             <if test="mode != 'draft'">
                 and ${alias}version > 0
@@ -141,16 +152,16 @@
         where id = #{id}
     </update>
     <update id="updateView">
-        update software_info set view=view+#{view} where id=#{id}
+        update software_info set view_count=view_count+#{viewCount} where id=#{id}
     </update>
     <update id="updateVote">
         update software_info
         <set>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
-                oppose=oppose+#{value},
+                oppose_count=oppose_count+#{value},
             </if>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
-                support=support+#{value},
+                support_count=support_count+#{value},
             </if>
         </set>
         where id=#{id}

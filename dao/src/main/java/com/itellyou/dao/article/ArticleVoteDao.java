@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -15,5 +15,5 @@ public interface ArticleVoteDao {
 
     int deleteByArticleIdAndUserId(@Param("articleId") Long articleId, @Param("userId") Long userId);
 
-    List<ArticleVoteModel> search(@Param("articleIds") HashSet<Long> articleIds, @Param("userId") Long userId);
+    List<ArticleVoteModel> search(@Param("articleIds") Collection<Long> articleIds, @Param("userId") Long userId);
 }

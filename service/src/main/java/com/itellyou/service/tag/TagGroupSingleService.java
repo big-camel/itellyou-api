@@ -2,7 +2,7 @@ package com.itellyou.service.tag;
 
 import com.itellyou.model.tag.TagGroupModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public interface TagGroupSingleService {
 
     TagGroupModel findByName(String name);
 
-    List<TagGroupModel> search(HashSet<Long> ids,
+    List<TagGroupModel> search(Collection<Long> ids,
                                Long userId,
                                Long ip,
                                Boolean isDisabled, Boolean isPublished,

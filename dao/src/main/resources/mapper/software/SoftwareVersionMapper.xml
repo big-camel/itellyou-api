@@ -42,13 +42,6 @@
             from software_version where software_id=#{softwareId}
         </if>
     </insert>
-    <select id="findBySoftwareIdAndVersion" resultType="SoftwareVersionModel">
-        select id,software_id,group_id,version,is_reviewed,is_disabled,is_published,save_type,remark,created_time,created_ip,created_user_id,`name`,logo,description
-        <if test="hasContent != false">
-            ,content,
-            html
-        </if> from software_version where software_id=#{softwareId} and version = #{version}
-    </select>
     <sql id="where">
         <where>
             <if test="isReviewed != null">

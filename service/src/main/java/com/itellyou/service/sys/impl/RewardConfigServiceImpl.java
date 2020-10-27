@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.RewardConfigDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.RewardConfigModel;
 import com.itellyou.model.sys.RewardType;
 import com.itellyou.service.sys.RewardConfigService;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@CacheConfig(cacheNames = "reward_config")
+@CacheConfig(cacheNames = CacheKeys.REWARD_CONFIG_KEY)
 @Service
 public class RewardConfigServiceImpl implements RewardConfigService {
 

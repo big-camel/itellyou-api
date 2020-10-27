@@ -162,7 +162,7 @@ public class GithubOAuthController {
         }
         ThirdAccountModel accountModel = new ThirdAccountModel();
         accountModel.setUserId(userId);
-        accountModel.setCreatedTime(DateUtils.getTimestamp());
+        accountModel.setCreatedTime(DateUtils.toLocalDateTime());
         accountModel.setCreatedIp(IPUtils.toLong(clientIp));
         accountModel.setKey(userMap.get("key"));
         accountModel.setType(ThirdAccountType.GITHUB);

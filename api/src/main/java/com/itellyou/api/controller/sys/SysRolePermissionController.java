@@ -1,9 +1,7 @@
 package com.itellyou.api.controller.sys;
 
 import com.itellyou.model.common.ResultModel;
-import com.itellyou.model.sys.SysPermissionModel;
-import com.itellyou.model.sys.SysRoleModel;
-import com.itellyou.model.sys.SysRolePermissionModel;
+import com.itellyou.model.sys.*;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.sys.SysPermissionService;
 import com.itellyou.service.sys.SysRolePermissionService;
@@ -11,6 +9,7 @@ import com.itellyou.service.sys.SysRoleService;
 import com.itellyou.service.user.access.UserRoleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
+import com.itellyou.util.Params;
 import com.itellyou.util.annotation.MultiRequestBody;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.validation.annotation.Validated;
@@ -19,10 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -42,9 +40,16 @@ public class SysRolePermissionController {
     }
 
     @GetMapping("")
-    public ResultModel permission(UserInfoModel userModel, @RequestParam(name = "role_id") @NotNull Long roleId) {
-        Map<String,String> order = new HashMap<>();
-        order.put("name","asc");
+    public ResultModel permission(UserInfoModel userModel, @RequestParam(name = "role_id") @NotNull Long roleId,@RequestParam Map args) {
+        Params params = new Params(args);
+        Integer offset = params.getPageOffset(0);
+        Integer limit = params.getPageLimit(20);
+        String name = params.get( "name");
+        SysPermissionPlatform platform = params.get("platform",SysPermissionPlatform.class);
+        SysPermissionType type = params.get("type",SysPermissionType.class);
+        SysPermissionMethod method = params.get("method",SysPermissionMethod.class);
+        Map<String,String> order = params.getOrderDefault("name","asc","name");
+
         // 拥有root角色加载全部权限
         List<SysRoleModel> listRole = userRoleService.findRoleByUserId(userModel.getId());
         for (SysRoleModel role : listRole){
@@ -52,23 +57,11 @@ public class SysRolePermissionController {
                 userModel.setId(null);
             }
         }
-        List<SysPermissionModel> permissionModels = permissionService.search(userModel.getId(),null,null,null,null,order,null,null);
+        PageModel<SysPermissionModel> pageModel = permissionService.page(userModel.getId(),platform,type,method,name,order,offset,limit);
         List<SysRolePermissionModel> rolePermissionModels = rolePermissionService.findByRoleId(roleId);
-        List<Map<String,Object>> data = new ArrayList<>();
-        for (SysPermissionModel permissionModel : permissionModels){
-            boolean isChecked = false;
-            Map<String,Object> mapData = new HashMap<>();
-            for (SysRolePermissionModel rolePermissionModel : rolePermissionModels){
-                if(permissionModel.getName().equals(rolePermissionModel.getPermissionName())){
-                    isChecked = true;
-                    break;
-                }
-            }
-            mapData.put("checked",isChecked);
-            mapData.put("permission",permissionModel);
-            data.add(mapData);
-        }
-        return new ResultModel(data,new Labels.LabelModel(SysPermissionModel.class,"*"));
+
+        return new ResultModel(pageModel,new Labels.LabelModel(SysPermissionModel.class,"*")).
+                extend("checked_keys",rolePermissionModels.stream().map(SysRolePermissionModel::getPermissionName).collect(Collectors.toList()));
     }
 
     @DeleteMapping()
@@ -84,7 +77,7 @@ public class SysRolePermissionController {
                            @MultiRequestBody(value = "permission_name") @NotBlank String permissionName){
         SysRoleModel roleModel = roleService.findById(roleId);
         if(roleModel == null || !roleModel.getCreatedUserId().equals(userModel.getId())) return new ResultModel(500,"错误的角色编号");
-        SysRolePermissionModel rolePermissionModel = new SysRolePermissionModel(roleId,permissionName, DateUtils.getTimestamp(),userModel.getId(), IPUtils.toLong(request));
+        SysRolePermissionModel rolePermissionModel = new SysRolePermissionModel(roleId,permissionName, DateUtils.toLocalDateTime(),userModel.getId(), IPUtils.toLong(request));
         int result = rolePermissionService.insert(rolePermissionModel);
         if(result != 1) return new ResultModel(500,"新增失败");
         return new ResultModel();

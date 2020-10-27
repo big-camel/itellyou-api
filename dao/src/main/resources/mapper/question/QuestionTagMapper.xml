@@ -22,11 +22,8 @@
             #{questionId}
         </foreach>
     </select>
-    <select id="searchTagId" resultType="Long">
-        select tag_id from question_tag where question_id=#{questionId}
-    </select>
-    <select id="searchQuestionId" resultType="Long">
-        select question_id from question_tag where tag_id in
+    <select id="searchQuestions" resultType="QuestionTagModel">
+        select question_id,tag_id from question_tag where tag_id in
         <foreach collection="tagIds" item="tag" separator="," open="(" close=")" >
             #{tag}
         </foreach>

@@ -55,7 +55,7 @@ public class QuestionCommentController {
 
         // 查询热门评论
         Map<String,String > order = new HashMap<>();
-        order.put("support","desc");
+        order.put("support_count","desc");
         List<QuestionCommentDetailModel> hostList = commentSearchService.search(questionId,null,searchUserId,null,null,true,null,null,3,null,null,null,null,null,
                 order,0,10);
         int newOffset = 0;
@@ -81,8 +81,8 @@ public class QuestionCommentController {
         pageData.setOffset(offset);
         pageData.setLimit(limit);
         Map<String,Object> extendData = new HashMap<>();
-        extendData.put("comments",questionModel.getComments());
-        extendData.put("hots",hotData.size());
+        extendData.put("comment_count",questionModel.getCommentCount());
+        extendData.put("hot_count",hotData.size());
         pageData.setExtend(extendData);
         return new ResultModel(pageData);
     }

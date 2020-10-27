@@ -15,7 +15,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 @Service
 public class TagEventListener {
@@ -73,7 +73,7 @@ public class TagEventListener {
     @EventListener
     @Async
     public void indexEvent(TagIndexEvent event){
-        HashSet<Long> ids = event.getIds();
+        Collection<Long> ids = event.getIds();
         if(ids != null){
             indexManagerService.put(EntityType.TAG,ids);
         }

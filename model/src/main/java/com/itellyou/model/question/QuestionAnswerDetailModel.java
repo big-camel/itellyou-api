@@ -49,6 +49,6 @@ public class QuestionAnswerDetailModel extends QuestionAnswerModel {
     private QuestionAnswerPaidReadModel paidRead;
 
     public QuestionAnswerDetailModel(QuestionAnswerModel infoModel){
-        super(infoModel.getId(),infoModel.getDescription(),infoModel.getQuestionId(),infoModel.getVersion(),infoModel.getDraft(),infoModel.getCover(),infoModel.isPublished(),infoModel.isDisabled(),infoModel.isDeleted(),infoModel.isAdopted(),infoModel.getComments(),infoModel.getSupport(),infoModel.getOppose(),infoModel.getView(),infoModel.getStarCount(),infoModel.getCreatedTime(),infoModel.getCreatedUserId(),infoModel.getCreatedIp(),infoModel.getUpdatedTime(),infoModel.getUpdatedUserId(),infoModel.getUpdatedIp());
+        super(infoModel.getId(),infoModel.getDescription(),infoModel.getQuestionId(),infoModel.getVersion(),infoModel.getDraft(),infoModel.getCover(),infoModel.isPublished(),infoModel.isDisabled(),infoModel.isDeleted(),infoModel.isAdopted(),infoModel.getCommentCount(),infoModel.getSupportCount(),infoModel.getOpposeCount(),infoModel.getViewCount(),infoModel.getStarCount(),infoModel.getCreatedTime(),infoModel.getCreatedUserId(),infoModel.getCreatedIp(),infoModel.getUpdatedTime(),infoModel.getUpdatedUserId(),infoModel.getUpdatedIp());
     }
 }

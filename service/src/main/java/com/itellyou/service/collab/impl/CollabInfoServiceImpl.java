@@ -43,7 +43,7 @@ public class CollabInfoServiceImpl implements CollabInfoService {
     @Override
     public CollabInfoModel createByHost(String host, String key, Long userId, String clientIp) {
         String token = StringUtils.createToken(key + "_" + userId + "_collab_" + clientIp);
-        CollabInfoModel collabInfoModel = new CollabInfoModel(null,key,token,host,false, DateUtils.getTimestamp(),userId, IPUtils.toLong(clientIp));
+        CollabInfoModel collabInfoModel = new CollabInfoModel(null,key,token,host,false, DateUtils.toLocalDateTime(),userId, IPUtils.toLong(clientIp));
         int rows = collabInfoDao.insert(collabInfoModel);
         if(rows != 1)
             return null;

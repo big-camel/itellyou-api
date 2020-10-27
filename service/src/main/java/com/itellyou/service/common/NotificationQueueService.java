@@ -4,7 +4,7 @@ import com.itellyou.model.common.NotificationQueueModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +13,7 @@ public interface NotificationQueueService {
     int insert(NotificationQueueModel model);
 
     List<NotificationQueueModel> search(Long id,
-                                  Map<EntityAction, HashSet<EntityType>> actionsMap,
+                                  Map<EntityAction, Collection<EntityType>> actionsMap,
                                   Long targetUserId,
                                   Long userId,
                                   Long beginTime, Long endTime,
@@ -22,7 +22,7 @@ public interface NotificationQueueService {
                                   Integer offset,
                                   Integer limit);
     int count(Long id,
-              Map<EntityAction, HashSet<EntityType>> actionsMap,
+              Map<EntityAction, Collection<EntityType>> actionsMap,
                 Long targetUserId,
               Long userId,
               Long beginTime, Long endTime,

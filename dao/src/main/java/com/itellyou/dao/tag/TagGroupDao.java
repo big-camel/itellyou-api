@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +24,7 @@ public interface TagGroupDao {
 
     int deleteById(Long id);
 
-    List<TagGroupModel> search(@Param("ids") HashSet<Long> ids,
+    List<TagGroupModel> search(@Param("ids") Collection<Long> ids,
                                @Param("userId") Long userId,
                                @Param("ip") Long ip,
                                @Param("isDisabled") Boolean isDisabled,
@@ -35,7 +35,7 @@ public interface TagGroupDao {
                                @Param("offset") Integer offset,
                                @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,
+    int count(@Param("ids") Collection<Long> ids,
               @Param("userId") Long userId,
               @Param("ip") Long ip,
               @Param("isDisabled") Boolean isDisabled,

@@ -2,16 +2,18 @@ package com.itellyou.service.column.impl;
 
 import com.itellyou.dao.column.ColumnStarDao;
 import com.itellyou.model.column.ColumnStarModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.service.column.ColumnStarSingleService;
 import com.itellyou.util.RedisUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "column_star")
+@CacheConfig(cacheNames = CacheKeys.COLUMN_STAR_KEY)
 @Service
 public class ColumnStarSingleServiceImpl implements ColumnStarSingleService {
 
@@ -29,9 +31,10 @@ public class ColumnStarSingleServiceImpl implements ColumnStarSingleService {
     }
 
     @Override
-    public List<ColumnStarModel> search(HashSet<Long> columnIds, Long userId) {
-        return RedisUtils.fetchByCache("column_star_" + userId,ColumnStarModel.class,columnIds,(HashSet<Long> fetchIds) ->
-                starDao.search(fetchIds,userId,null,null,null,null,null,null)
-                ,(ColumnStarModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<ColumnStarModel> search(Collection<Long> columnIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.COLUMN_STAR_KEY,ColumnStarModel.class,columnIds,(Collection<Long> fetchIds) ->
+                starDao.search(fetchIds,userId,null,null,null,null,null,null),
+                id -> id + "-" + userId,
+                model -> model.cacheKey());
     }
 }

@@ -1,16 +1,16 @@
 package com.itellyou.api.controller.tag;
 
 import com.itellyou.api.handler.TokenAccessDeniedException;
-import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.collab.CollabInfoModel;
+import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.tag.TagVersionModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.collab.CollabInfoService;
 import com.itellyou.service.tag.*;
-import com.itellyou.service.user.access.UserPermissionService;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.service.user.access.UserPermissionService;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -29,27 +29,23 @@ import java.util.Map;
 @RequestMapping("/tag")
 public class TagDocController {
 
-    private final TagInfoService tagService;
     private final TagSearchService searchService;
-    private final TagVersionService versionService;
     private final CollabInfoService collabService;
     private final UserSearchService userSearchService;
     private final UserPermissionService userPermissionService;
     private final TagSingleService tagSingleService;
-    private final TagVersionSearchService versionSearchService;
     private final TagDocService docService;
+    private final TagVersionSingleService versionSingleService;
 
     @Autowired
-    public TagDocController(TagInfoService tagService, TagSearchService searchService, CollabInfoService collabService, TagVersionService versionService, UserSearchService userSearchService, UserPermissionService userPermissionService, TagSingleService tagSingleService, TagVersionSearchService versionSearchService, TagDocService docService){
-        this.tagService = tagService;
+    public TagDocController(TagSearchService searchService, CollabInfoService collabService, UserSearchService userSearchService, UserPermissionService userPermissionService, TagSingleService tagSingleService,TagDocService docService, TagVersionSingleService versionSingleService){
         this.searchService = searchService;
         this.collabService = collabService;
-        this.versionService = versionService;
         this.userSearchService = userSearchService;
         this.userPermissionService = userPermissionService;
         this.tagSingleService = tagSingleService;
-        this.versionSearchService = versionSearchService;
         this.docService = docService;
+        this.versionSingleService = versionSingleService;
     }
 
     private boolean checkAuthority(Long authorId,Long userId){
@@ -142,8 +138,8 @@ public class TagDocController {
         if(!checkAuthority(infoModel.getCreatedUserId(),userInfoModel.getId())){
             return new ResultModel(403,"无权限编辑");
         }
-        TagVersionModel tagVersion = versionSearchService.findByTagIdAndId(version_id,id);
-        if(tagVersion == null || tagVersion.isDisabled()){
+        TagVersionModel tagVersion = versionSingleService.find(version_id);
+        if(tagVersion == null || tagVersion.isDisabled() || !tagVersion.getTagId().equals(id)){
             return  new ResultModel(0,"无记录，错误的ID");
         }
         String clientIp = IPUtils.getClientIp(request);

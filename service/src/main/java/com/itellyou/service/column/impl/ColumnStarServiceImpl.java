@@ -5,8 +5,9 @@ import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.column.ColumnStarDetailModel;
 import com.itellyou.model.column.ColumnStarModel;
-import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.ColumnEvent;
+import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.column.ColumnInfoService;
@@ -15,7 +16,6 @@ import com.itellyou.service.common.StarService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheConfig;
@@ -26,7 +26,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "column_star")
+@CacheConfig(cacheNames = CacheKeys.COLUMN_STAR_KEY)
 @Service
 public class ColumnStarServiceImpl implements StarService<ColumnStarModel> {
 
@@ -57,13 +57,12 @@ public class ColumnStarServiceImpl implements StarService<ColumnStarModel> {
             if(result != 1) throw new Exception("写入关注记录失败");
             result = infoService.updateStars(model.getColumnId(),1);
             if(result != 1) throw new Exception("更新关注数失败");
-            operationalPublisher.publish(new ColumnEvent(this, EntityAction.FOLLOW,model.getColumnId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
+            operationalPublisher.publish(new ColumnEvent(this, EntityAction.FOLLOW,model.getColumnId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.toLocalDateTime(),model.getCreatedIp()));
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        RedisUtils.clear("column_star_" + model.getCreatedUserId());
         return 1;
     }
 
@@ -78,22 +77,22 @@ public class ColumnStarServiceImpl implements StarService<ColumnStarModel> {
             if(result != 1) throw new Exception("删除关注记录失败");
             result = infoService.updateStars(columnId,-1);
             if(result != 1) throw new Exception("更新关注数失败");
-            operationalPublisher.publish(new ColumnEvent(this, EntityAction.UNFOLLOW,columnId,infoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+            operationalPublisher.publish(new ColumnEvent(this, EntityAction.UNFOLLOW,columnId,infoModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        RedisUtils.clear("column_star_" + userId);
         return 1;
     }
 
     @Override
-    public List<ColumnStarDetailModel> search(HashSet<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<ColumnStarDetailModel> search(Collection<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<ColumnStarModel> models = starDao.search(columnId,userId,beginTime,endTime,ip,order,offset,limit);
         List<ColumnStarDetailModel> detailModels = new ArrayList<>();
-        HashSet<Long> columnIds = new LinkedHashSet<>();
-        HashSet<Long> userIds = new LinkedHashSet<>();
+        if(models.size() == 0) return detailModels;
+        Collection<Long> columnIds = new LinkedHashSet<>();
+        Collection<Long> userIds = new LinkedHashSet<>();
         for (ColumnStarModel model : models){
             ColumnStarDetailModel detailModel = new ColumnStarDetailModel();
             detailModel.setColumnId(model.getColumnId());
@@ -126,12 +125,12 @@ public class ColumnStarServiceImpl implements StarService<ColumnStarModel> {
     }
 
     @Override
-    public int count(HashSet<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Collection<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip) {
         return starDao.count(columnId,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<ColumnStarDetailModel> page(HashSet<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<ColumnStarDetailModel> page(Collection<Long> columnId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<ColumnStarDetailModel> data = search(columnId,userId,beginTime,endTime,ip,order,offset,limit);

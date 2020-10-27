@@ -51,7 +51,7 @@ public class ColumnStarController {
         if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
         Long ip = IPUtils.toLong(clientIp);
-        ColumnStarModel starModel = new ColumnStarModel(id, DateUtils.getTimestamp(),userModel.getId(),ip);
+        ColumnStarModel starModel = new ColumnStarModel(id, DateUtils.toLocalDateTime(),userModel.getId(),ip);
         try{
             int result = starService.insert(starModel);
             if(result != 1) throw new Exception("关注失败");

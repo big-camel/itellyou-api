@@ -1,15 +1,15 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.*;
-import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.sys.VoteType;
+import com.itellyou.model.sys.*;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.question.*;
+import com.itellyou.service.sys.EntitySearchService;
+import com.itellyou.service.sys.EntityService;
 import com.itellyou.service.user.UserSearchService;
-import com.itellyou.util.HtmlUtils;
-import com.itellyou.util.RedisUtils;
-import com.itellyou.util.StringUtils;
+import com.itellyou.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.context.annotation.Lazy;
@@ -17,10 +17,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
-@CacheConfig(cacheNames = "question_answer")
-public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchService {
+@CacheConfig(cacheNames = CacheKeys.QUESTION_ANSWER_KEY)
+public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchService , EntitySearchService<QuestionAnswerDetailModel> {
 
     private final QuestionAnswerDao answerDao;
     private final UserSearchService userSearchService;
@@ -28,31 +29,34 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     private final QuestionAnswerVersionSearchService versionSearchService;
     private final QuestionAnswerStarSingleService starSingleService;
     private final QuestionAnswerVoteService answerVoteService;
-
+    private final QuestionAnswerSingleService singleService;
     private final QuestionSearchService questionSearchService;
+    private final EntityService entityService;
+    private final QuestionAnswerVersionSingleService versionSingleService;
 
     @Autowired
-    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService, QuestionAnswerVersionSearchService versionSearchService, QuestionAnswerStarSingleService starSingleService, QuestionAnswerVoteService answerVoteService,@Lazy QuestionSearchService questionSearchService){
+    public QuestionAnswerSearchServiceImpl(QuestionAnswerDao answerDao, UserSearchService userSearchService, QuestionAnswerPaidReadSearchService paidReadSearchService, QuestionAnswerVersionSearchService versionSearchService, QuestionAnswerStarSingleService starSingleService, QuestionAnswerVoteService answerVoteService, QuestionAnswerSingleService singleService, @Lazy QuestionSearchService questionSearchService, EntityService entityService, QuestionAnswerVersionSingleService versionSingleService){
         this.answerDao = answerDao;
         this.userSearchService = userSearchService;
         this.paidReadSearchService = paidReadSearchService;
         this.versionSearchService = versionSearchService;
         this.starSingleService = starSingleService;
         this.answerVoteService = answerVoteService;
+        this.singleService = singleService;
         this.questionSearchService = questionSearchService;
+        this.entityService = entityService;
+        this.versionSingleService = versionSingleService;
     }
 
     @Override
-    public List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted,Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        List<QuestionAnswerModel> infoModels = RedisUtils.fetchByCache("question_answer",QuestionAnswerModel.class,ids,(HashSet<Long> fetchIds) ->
-                answerDao.search(fetchIds,questionIds,mode,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit)
-        );
+    public List<QuestionAnswerDetailModel> search(Collection<Long> ids, Collection<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted,Long ip, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        List<QuestionAnswerModel> infoModels = singleService.search(ids,questionIds,mode,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
 
         List<QuestionAnswerDetailModel> detailModels = new LinkedList<>();
         if(infoModels.size() == 0) return detailModels;
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
-        HashSet<Long> fetchQuestionIds = new LinkedHashSet<>();
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> fetchQuestionIds = new LinkedHashSet<>();
         HashMap<Long,Integer> versionMap = new LinkedHashMap<>();
         List<QuestionAnswerVersionModel> versionModels = new LinkedList<>();
         List<QuestionAnswerPaidReadModel> paidReadModels = new LinkedList<>();
@@ -69,8 +73,8 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
 
             if(searchUserId != null){
                 boolean isEquals = infoModel.getCreatedUserId().equals(searchUserId);
-                detailModel.setAllowDelete(isEquals);
-                detailModel.setAllowEdit(isEquals);
+                detailModel.setAllowDelete(isEquals && !infoModel.isAdopted());
+                detailModel.setAllowEdit(isEquals && !infoModel.isDeleted());
                 detailModel.setAllowOppose(!isEquals);
                 detailModel.setAllowStar(!isEquals);
                 detailModel.setAllowSupport(!isEquals);
@@ -85,7 +89,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
         // 一次查出需要的付费设置
         paidReadModels = paidReadSearchService.search(fetchIds);
         // 一次查出需要的版本信息
-        versionModels = versionMap.size() > 0 ? versionSearchService.searchByAnswerMap(versionMap,hasContent) : new ArrayList<>();
+        versionModels = versionMap.size() > 0 ? versionSingleService.searchByAnswerMap(versionMap,hasContent) : new ArrayList<>();
         // 一次查出是否有收藏
         List<QuestionAnswerStarModel> starModels = new ArrayList<>();
         List<QuestionAnswerVoteModel> voteModels = new ArrayList<>();
@@ -129,7 +133,7 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
                         String description;
                         String html = detailModel.getHtml();
                         if(hasContent != null && hasContent == false){
-                            QuestionAnswerVersionModel versionModel = versionSearchService.find(detailModel.getId(),detailModel.getVersion());
+                            QuestionAnswerVersionModel versionModel = versionSingleService.find(detailModel.getId(),detailModel.getVersion());
                             if(versionModel != null) html = versionModel.getHtml();
                         }
 
@@ -176,38 +180,32 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     }
 
     @Override
-    public int count(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long userId,Boolean isAdopted, Boolean isDisabled, Boolean isPublished,Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime) {
-        return answerDao.count(ids,questionIds,mode,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
-    }
-
-    @Override
-    public List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent,Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+    public List<QuestionAnswerDetailModel> search(Collection<Long> ids, Collection<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent,Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         return search(ids,questionIds,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,null,null,null,null,null,null,null,null,null,null,null,beginTime,endTime,order,offset,limit);
     }
 
     @Override
-    public List<QuestionAnswerDetailModel> search(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId,Boolean hasContent, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+    public List<QuestionAnswerDetailModel> search(Collection<Long> ids, Collection<Long> questionIds, String mode, Long searchUserId, Long userId,Boolean hasContent, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         return search(ids,questionIds,mode,searchUserId,userId,hasContent,null,null,null,null,beginTime,endTime,order,offset,limit);
 
     }
 
     @Override
-    public List<QuestionAnswerDetailModel> search(Long questionId, Long searchUserId,Boolean hasContent,Boolean isAdopted, Boolean isDisabled, Boolean isPublished,Boolean isDeleted, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        return search(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,searchUserId,null,hasContent,isAdopted,isDisabled,isPublished,isDeleted,null,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+    public List<QuestionAnswerDetailModel> search(Long questionId, Long searchUserId,Boolean hasContent,Boolean isAdopted, Boolean isDisabled, Boolean isPublished,Boolean isDeleted, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        return search(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,searchUserId,null,hasContent,isAdopted,isDisabled,isPublished,isDeleted,null,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
 
     }
 
     @Override
-    public List<QuestionAnswerDetailModel> search(Long questionId, Long searchUserId,Boolean hasContent,Boolean isAdopted, Boolean isDisabled,Boolean isDeleted, Boolean isPublished, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Integer offset, Integer limit) {
+    public List<QuestionAnswerDetailModel> search(Long questionId, Long searchUserId,Boolean hasContent,Boolean isAdopted, Boolean isDisabled,Boolean isDeleted, Boolean isPublished, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Integer offset, Integer limit) {
         Map<String, String> order = new HashMap<>();
         order.put("created_time","desc");
-        return search(questionId,searchUserId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+        return search(questionId,searchUserId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
     }
 
     @Override
-    public int count(Long questionId,Boolean isAdopted, Boolean isDisabled, Boolean isPublished,Boolean isDeleted, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime) {
-        return count(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,null,isAdopted,isDisabled,isPublished,isDeleted,null,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
-
+    public int count(Long questionId,Boolean isAdopted, Boolean isDisabled, Boolean isPublished,Boolean isDeleted, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime) {
+        return singleService.count(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,null,isAdopted,isDisabled,isPublished,isDeleted,null,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
     }
 
     @Override
@@ -234,23 +232,23 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<QuestionAnswerDetailModel> data = search(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,beginTime,endTime,order,offset,limit);
-        Integer total = count(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,userId,isAdopted,isDisabled,isPublished,isDeleted,null,null,null,null,null,null,null,null,null,null,null,beginTime,endTime);
+        Integer total = singleService.count(null,questionId != null ? new HashSet<Long>(){{add(questionId);}} : null,null,userId,isAdopted,isDisabled,isPublished,isDeleted,null,null,null,null,null,null,null,null,null,null,null,beginTime,endTime);
         return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
     }
 
     @Override
-    public PageModel<QuestionAnswerDetailModel> page(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<QuestionAnswerDetailModel> page(Collection<Long> ids, Collection<Long> questionIds, String mode, Long searchUserId, Long userId, Boolean hasContent, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
-        List<QuestionAnswerDetailModel> data = search(ids,questionIds,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
-        Integer total = count(ids,questionIds,mode,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
+        List<QuestionAnswerDetailModel> data = search(ids,questionIds,mode,searchUserId,userId,hasContent,isAdopted,isDisabled,isPublished,isDeleted,ip,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+        Integer total = singleService.count(ids,questionIds,mode,userId,isAdopted,isDisabled,isPublished,isDeleted,ip,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
         return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
     }
 
     @Override
-    public List<QuestionAnswerModel> searchChild(HashSet<Long> ids, HashSet<Long> questionIds, String mode, Long userId, Integer childCount, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order) {
-        return RedisUtils.fetchByCache("question_answer",QuestionAnswerModel.class,ids,(HashSet<Long> fetchIds) ->
-                answerDao.searchChild(fetchIds,questionIds,mode,userId,childCount,isAdopted,isDisabled,isPublished,isDeleted,ip,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order)
+    public List<QuestionAnswerModel> searchChild(Collection<Long> ids, Collection<Long> questionIds, String mode, Long userId, Integer childCount, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long ip, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order) {
+        return RedisUtils.fetch(CacheKeys.QUESTION_ANSWER_KEY,QuestionAnswerModel.class,ids,(Collection<Long> fetchIds) ->
+                answerDao.searchChild(fetchIds,questionIds,mode,userId,childCount,isAdopted,isDisabled,isPublished,isDeleted,ip,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order)
         );
     }
 
@@ -302,40 +300,55 @@ public class QuestionAnswerSearchServiceImpl implements QuestionAnswerSearchServ
     }
 
     @Override
-    public List<Map<String,Object>> groupByUserId(Long questionId,Long searchId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        List<Map<String, String>> list = answerDao.groupByUserId(questionId,isAdopted,isDisabled,isPublished,isDeleted,beginTime,endTime,order,offset,limit);
-
-        HashSet<Long> userHash = new HashSet<>();
-        Map<Long, Integer> data = new LinkedHashMap<>();
-        for (Map<String, String> map : list){
-            Long userId=null;
-            Integer count=null;
-            for (Map.Entry<String, String> entry:map.entrySet()) {
-                if(entry.getKey().equals("user_id")) userId = Long.parseLong(String.valueOf(entry.getValue()));
-                if(entry.getKey().equals("count")) count = Integer.parseInt(String.valueOf(entry.getValue()));
-            }
-            userHash.add(userId);
-            data.put(userId,count);
+    public List<QuestionAnswerTotalDetailModel> totalByUser(Collection<Long> userIds,Long searchUserId, Long questionId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        List<QuestionAnswerTotalModel> infoModels = singleService.totalByUser(userIds,questionId,isAdopted,isDisabled,isPublished,isDeleted,beginTime,endTime,order,offset,limit);
+        List<QuestionAnswerTotalDetailModel> detailModels = new LinkedList<>();
+        if(infoModels.size() == 0) return detailModels;
+        EntityDataModel<CacheEntity> entityDataModel = entityService.search(infoModels,(QuestionAnswerTotalModel model, Function<EntityType,Map<String,Object>> getArgs) -> {
+            Map<String,Object> args = getArgs.apply(EntityType.USER);
+            Collection authorIds = (Collection)args.computeIfAbsent("ids",key -> new HashSet<>());
+            if(!authorIds.contains(model.getUserId())) authorIds.add(model.getUserId());
+            args.put("ids",authorIds);
+            args.put("searchUserId",searchUserId);
+            return new EntitySearchModel(EntityType.USER,args);
+        });
+        for(QuestionAnswerTotalModel totalModel : infoModels){
+            QuestionAnswerTotalDetailModel detailModel = new QuestionAnswerTotalDetailModel(totalModel);
+            // 获取作者
+            detailModel.setUser(entityDataModel.get(EntityType.USER,totalModel.getUserId()));
+            detailModels.add(detailModel);
         }
-        List<Map<String,Object>> resultData = new ArrayList<>();
-
-        List<UserDetailModel> userDetailModels = userSearchService.search(userHash,searchId,null,null,null,null,null,null,null,null,null,null);
-        for (Map.Entry<Long, Integer> entry:data.entrySet()){
-            for (UserDetailModel detailModel : userDetailModels){
-                if(detailModel.getId().equals(entry.getKey())){
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("user",detailModel);
-                    map.put("count",entry.getValue());
-                    resultData.add(map);
-                    break;
-                }
-            }
-        }
-        return resultData;
+        return detailModels;
     }
 
     @Override
-    public int groupCountByUserId(Long questionId, Boolean isAdopted, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Long beginTime, Long endTime) {
-        return answerDao.groupCountByUserId(questionId,isAdopted,isDisabled,isPublished,isDeleted,beginTime,endTime);
+    public List<QuestionAnswerDetailModel> search(Map<String, Object> args) {
+        Params params = new Params(args);
+        return search(params.get("ids",Collection.class),
+                params.get("questionIds",Collection.class),
+                params.get("mode",String.class),
+                params.get("searchUserId",Long.class),
+                params.get("userId",Long.class),
+                params.get("hasContent",Boolean.class),
+                params.get("isAdopted",Boolean.class),
+                params.get("isDisabled",Boolean.class),
+                params.get("isPublished",Boolean.class),
+                params.get("isDeleted",Boolean.class),
+                params.get("ip",Long.class),
+                params.get("minComment",Integer.class),
+                params.get("maxComment",Integer.class),
+                params.get("minView",Integer.class),
+                params.get("maxView",Integer.class),
+                params.get("minSupport",Integer.class),
+                params.get("maxSupport",Integer.class),
+                params.get("minOppose",Integer.class),
+                params.get("maxOppose",Integer.class),
+                params.get("minStar",Integer.class),
+                params.get("maxStar",Integer.class),
+                params.get("beginTime",Long.class),
+                params.get("endTime",Long.class),
+                params.get("order",Map.class),
+                params.get("offset",Integer.class),
+                params.get("limit",Integer.class));
     }
 }

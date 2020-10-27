@@ -77,19 +77,19 @@ public class OperationalServiceImpl implements OperationalService {
     }
 
     @Override
-    public List<OperationalModel> search(Long id, Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<OperationalModel> search(Long id, Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return operationalDao.search(id,actionsMap,targetUserId,userId,includeSelf,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    public int count(Long id, Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip) {
+    public int count(Long id, Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip) {
         return operationalDao.count(id,actionsMap,targetUserId,userId,includeSelf,beginTime,endTime,ip);
     }
 
     @Override
     public List<OperationalDetailModel> toDetail(List<OperationalModel> operationalModelList, Long searchUserId){
         List<OperationalDetailModel> operationalDetailModelList = new ArrayList<>();
-        Map<EntityType,HashSet<Long>> dataMap = new LinkedHashMap<>();
+        Map<EntityType,Collection<Long>> dataMap = new LinkedHashMap<>();
         for (OperationalModel operationalModel:operationalModelList) {
             operationalDetailModelList.add(new OperationalDetailModel(operationalModel));
             EntityAction action = operationalModel.getAction();
@@ -102,7 +102,7 @@ public class OperationalServiceImpl implements OperationalService {
                 if(type.equals(EntityType.SOFTWARE)) type = EntityType.SOFTWARE_COMMENT;
             }
             if(dataMap.containsKey(type)){
-                HashSet<Long> hashSet = dataMap.get(type);
+                Collection<Long> hashSet = dataMap.get(type);
                 if(!hashSet.contains(targetId))
                     hashSet.add(targetId);
             }else{
@@ -120,7 +120,7 @@ public class OperationalServiceImpl implements OperationalService {
                         if(operationalModel.getTargetId().equals(detailModel.getId())){
                             operationalModel.setTarget(detailModel);
                             if(dataMap.containsKey(EntityType.QUESTION)){
-                                HashSet<Long> hashSet = dataMap.get(EntityType.QUESTION);
+                                Collection<Long> hashSet = dataMap.get(EntityType.QUESTION);
                                 if(!hashSet.contains(detailModel.getQuestionId()))
                                     hashSet.add(detailModel.getQuestionId());
                             }else{
@@ -142,7 +142,7 @@ public class OperationalServiceImpl implements OperationalService {
                         if(operationalModel.getTargetId().equals(detailModel.getId())){
                             operationalModel.setTarget(detailModel);
                             if(dataMap.containsKey(EntityType.ANSWER)){
-                                HashSet<Long> hashSet = dataMap.get(EntityType.ANSWER);
+                                Collection<Long> hashSet = dataMap.get(EntityType.ANSWER);
                                 if(!hashSet.contains(detailModel.getAnswerId()))
                                     hashSet.add(detailModel.getAnswerId());
                             }else{
@@ -164,7 +164,7 @@ public class OperationalServiceImpl implements OperationalService {
                         if(operationalModel.getTargetId().equals(detailModel.getId())){
                             operationalModel.setTarget(detailModel);
                             if(dataMap.containsKey(EntityType.ARTICLE)){
-                                HashSet<Long> hashSet = dataMap.get(EntityType.ARTICLE);
+                                Collection<Long> hashSet = dataMap.get(EntityType.ARTICLE);
                                 if(!hashSet.contains(detailModel.getArticleId()))
                                     hashSet.add(detailModel.getArticleId());
                             }else{
@@ -186,7 +186,7 @@ public class OperationalServiceImpl implements OperationalService {
                         if(operationalModel.getTargetId().equals(detailModel.getId())){
                             operationalModel.setTarget(detailModel);
                             if(dataMap.containsKey(EntityType.SOFTWARE)){
-                                HashSet<Long> hashSet = dataMap.get(EntityType.SOFTWARE);
+                                Collection<Long> hashSet = dataMap.get(EntityType.SOFTWARE);
                                 if(!hashSet.contains(detailModel.getSoftwareId()))
                                     hashSet.add(detailModel.getSoftwareId());
                             }else{
@@ -208,7 +208,7 @@ public class OperationalServiceImpl implements OperationalService {
                         if(operationalModel.getTargetId().equals(detailModel.getId())){
                             operationalModel.setTarget(detailModel);
                             if(dataMap.containsKey(EntityType.QUESTION)){
-                                HashSet<Long> hashSet = dataMap.get(EntityType.QUESTION);
+                                Collection<Long> hashSet = dataMap.get(EntityType.QUESTION);
                                 if(!hashSet.contains(detailModel.getQuestionId()))
                                     hashSet.add(detailModel.getQuestionId());
                             }else{
@@ -349,7 +349,7 @@ public class OperationalServiceImpl implements OperationalService {
                 }
             }
         }
-        for (Map.Entry<EntityType,HashSet<Long>> entry:dataMap.entrySet()) {
+        for (Map.Entry<EntityType,Collection<Long>> entry:dataMap.entrySet()) {
             switch (entry.getKey()){
                 case USER:
                     List<UserDetailModel> userModels = userSearchService.search(entry.getValue(),searchUserId,null,null,null,null,null,null,null,null,null,null);
@@ -396,7 +396,7 @@ public class OperationalServiceImpl implements OperationalService {
     }
 
     @Override
-    public List<OperationalDetailModel> searchDetail(Long id, Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<OperationalDetailModel> searchDetail(Long id, Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Boolean includeSelf, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<OperationalModel> operationalModelList = search(id,actionsMap,targetUserId,userId,includeSelf,beginTime,endTime,ip,order,offset,limit);
         return toDetail(operationalModelList,userId);
     }

@@ -7,7 +7,7 @@ import com.itellyou.model.user.UserRankModel;
 import com.itellyou.model.user.UserRankRoleModel;
 import com.itellyou.service.sys.SysRoleService;
 import com.itellyou.service.user.rank.UserRankRoleService;
-import com.itellyou.service.user.rank.UserRankService;
+import com.itellyou.service.user.rank.UserRankSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -27,12 +27,12 @@ import java.util.Map;
 @RequestMapping("/user/rank/role")
 public class RankRoleController {
 
-    private final UserRankService rankService;
+    private final UserRankSingleService rankSingleService;
     private final UserRankRoleService rankRoleService;
     private final SysRoleService roleService;
 
-    public RankRoleController(UserRankService rankService, UserRankRoleService rankRoleService, SysRoleService roleService) {
-        this.rankService = rankService;
+    public RankRoleController(UserRankSingleService rankSingleService, UserRankRoleService rankRoleService, SysRoleService roleService) {
+        this.rankSingleService = rankSingleService;
         this.rankRoleService = rankRoleService;
         this.roleService = roleService;
     }
@@ -75,9 +75,9 @@ public class RankRoleController {
                            @MultiRequestBody(value = "rank_id") @NotNull Long rankId){
         SysRoleModel roleModel = roleService.findById(roleId);
         if(roleModel == null || !roleModel.getCreatedUserId().equals(userModel.getId())) return new ResultModel(500,"错误的角色编号");
-        UserRankModel rankModel = rankService.findById(rankId);
+        UserRankModel rankModel = rankSingleService.findById(rankId);
         if(rankModel == null) return new ResultModel(500,"错误的等级编号");
-        UserRankRoleModel rankRoleModel = new UserRankRoleModel(rankId,roleId, DateUtils.getTimestamp(),userModel.getId(), IPUtils.toLong(request));
+        UserRankRoleModel rankRoleModel = new UserRankRoleModel(rankId,roleId, DateUtils.toLocalDateTime(),userModel.getId(), IPUtils.toLong(request));
         int result = rankRoleService.insert(rankRoleModel);
         if(result != 1) return new ResultModel(500,"新增失败");
         return new ResultModel();

@@ -41,11 +41,11 @@ public class SoftwareCommentDetailModel extends SoftwareCommentModel implements 
     private boolean allowReply;
 
     public SoftwareCommentDetailModel(SoftwareCommentModel model){
-        super(model.getId(),model.getSoftwareId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getCommentCount(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+        super(model.getId(),model.getSoftwareId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getCommentCount(),model.getSupportCount(),model.getOpposeCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 
     @Override
-    public String cacheKey() {
-        return this.getId().toString();
+    public Long cacheKey() {
+        return this.getId();
     }
 }

@@ -11,9 +11,13 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
-import com.itellyou.service.question.*;
+import com.itellyou.service.question.QuestionAnswerPaidReadService;
+import com.itellyou.service.question.QuestionAnswerSearchService;
+import com.itellyou.service.question.QuestionAnswerService;
+import com.itellyou.service.question.QuestionAnswerSingleService;
 import com.itellyou.service.user.UserDraftService;
 import com.itellyou.util.IPUtils;
+import com.itellyou.util.UserAgentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -58,7 +62,7 @@ public class AnswerController {
 
         // 查询已采纳回答
         Map<String,String > order = new HashMap<>();
-        order.put("support","desc");
+        order.put("support_count","desc");
         List<QuestionAnswerDetailModel> adoptList = searchService.search(questionId,searchUserId,true,true,false,true,false,null,null,
                 order,0,10);
         int newOffset = 0;
@@ -98,11 +102,7 @@ public class AnswerController {
 
     @GetMapping("/draft") //一个问答只能有一个非禁用回答
     public ResultModel find(UserInfoModel userModel, @PathVariable Long questionId){
-        if(userModel == null){
-            return new ResultModel(401,"未登陆");
-        }
-
-        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userModel.getId());
+        QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(questionId,userModel.getId(),"draft");
         if(answerModel != null && !answerModel.isDisabled()){
             boolean result = draftService.exists(userModel.getId(), EntityType.ANSWER,answerModel.getId());
             Map<String,Object> userAnswerMap = new HashMap<>();
@@ -132,10 +132,10 @@ public class AnswerController {
             return new ResultModel(401,"未登陆");
         }
         try {
-            QuestionAnswerDetailModel answerModel = answerService.delete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
-            if(answerModel == null) return new ResultModel(0,"删除失败");
+            boolean result = answerService.delete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
+            if(!result) return new ResultModel(0,"删除失败");
             draftService.delete(userModel.getId(), EntityType.ANSWER,id);
-            return new ResultModel(answerModel);
+            return new ResultModel(searchService.getDetail(id,questionId,userModel.getId(),userModel.getId(),true));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
         }
@@ -147,9 +147,9 @@ public class AnswerController {
             return new ResultModel(401,"未登陆");
         }
         try {
-            QuestionAnswerDetailModel answerModel = answerService.revokeDelete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
-            if(answerModel == null) return new ResultModel(0,"撤销删除失败");
-            return new ResultModel(answerModel);
+            boolean result = answerService.revokeDelete(id,questionId,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
+            if(!result) return new ResultModel(0,"撤销删除失败");
+            return new ResultModel(searchService.getDetail(id,questionId,userModel.getId(),userModel.getId(),true));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
         }
@@ -157,9 +157,6 @@ public class AnswerController {
 
     @PostMapping(value = { "/{id:\\d+}/{type:support}","/{id:\\d+}/{type:oppose}"})
     public ResultModel vote(HttpServletRequest request, UserInfoModel userModel, @PathVariable Long id, @PathVariable String type){
-        if(userModel == null){
-            return new ResultModel(401,"未登陆");
-        }
         Map<String,Object> data = voteService.doVote(VoteType.valueOf(type.toUpperCase()),id,userModel.getId(), IPUtils.toLong(IPUtils.getClientIp(request)));
         if(data == null){
             return new ResultModel(0,"更新失败");
@@ -175,5 +172,23 @@ public class AnswerController {
         }catch (Exception e){
             return new ResultModel(500,e.getLocalizedMessage());
         }
+    }
+
+    @GetMapping("/{id:\\d+}/view")
+    public ResultModel view(HttpServletRequest request, UserInfoModel userInfo, @PathVariable Long id){
+        QuestionAnswerModel answerModel = answerSingleService.findById(id);
+        if(answerModel == null){
+            return new ResultModel(404,"错误的编号");
+        }
+        String ip = IPUtils.getClientIp(request);
+        Long longIp = IPUtils.toLong(ip);
+        String os = UserAgentUtils.getOs(request);
+        String browser = UserAgentUtils.getBrowser(request);
+        if(browser == "Robot/Spider"){
+            return new ResultModel(0,"Robot/Spider Error");
+        }
+        Long userId = userInfo == null ? 0 : userInfo.getId();
+        int count = answerService.updateView(userId,id,longIp,os,browser);
+        return new ResultModel(count);
     }
 }

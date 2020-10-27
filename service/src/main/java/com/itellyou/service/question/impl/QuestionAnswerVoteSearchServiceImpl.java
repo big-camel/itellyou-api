@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerVoteDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.QuestionAnswerVoteModel;
 import com.itellyou.service.common.VoteSearchService;
 import com.itellyou.service.question.QuestionAnswerVoteService;
@@ -9,10 +10,11 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "answer_vote")
+@CacheConfig(cacheNames = CacheKeys.ANSWER_VOTE_KEY)
 @Service
 public class QuestionAnswerVoteSearchServiceImpl implements VoteSearchService<QuestionAnswerVoteModel> , QuestionAnswerVoteService {
 
@@ -30,9 +32,10 @@ public class QuestionAnswerVoteSearchServiceImpl implements VoteSearchService<Qu
     }
 
     @Override
-    public List<QuestionAnswerVoteModel> search(HashSet<Long> answerIds, Long userId) {
-        return RedisUtils.fetchByCache("answer_vote_" + userId, QuestionAnswerVoteModel.class,answerIds,(HashSet<Long> fetchIds) ->
-                voteDao.search(fetchIds,userId)
-                ,(QuestionAnswerVoteModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<QuestionAnswerVoteModel> search(Collection<Long> answerIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.ANSWER_VOTE_KEY, QuestionAnswerVoteModel.class,answerIds,(Collection<Long> fetchIds) ->
+                voteDao.search(fetchIds,userId),
+                id -> id + "-" + userId,
+        QuestionAnswerVoteModel::cacheKey);
     }
 }

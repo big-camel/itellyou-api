@@ -2,7 +2,7 @@ package com.itellyou.service.question;
 
 import com.itellyou.model.question.QuestionAnswerPaidReadModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public interface QuestionAnswerPaidReadSearchService {
@@ -11,5 +11,5 @@ public interface QuestionAnswerPaidReadSearchService {
 
     boolean checkRead(QuestionAnswerPaidReadModel paidReadModel,Long questionId, Long authorId, Long userId);
 
-    List<QuestionAnswerPaidReadModel> search(HashSet<Long> answerIds);
+    List<QuestionAnswerPaidReadModel> search(Collection<Long> answerIds);
 }

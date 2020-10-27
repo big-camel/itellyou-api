@@ -1,53 +1,34 @@
 package com.itellyou.model.software;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.article.ArticleSourceType;
-import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.model.common.VersionModel;
 import com.itellyou.util.CacheEntity;
-import com.itellyou.util.serialize.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class SoftwareVersionModel implements CacheEntity {
-    private Long id;
+@NoArgsConstructor
+public class SoftwareVersionModel extends VersionModel implements CacheEntity {
     private Long softwareId = 0l;
     @JSONField(label = "draft,base")
     private Long groupId;
     private String name = "";
     private String logo = "";
-    private String content = "";
-    private String html = "";
-    private String description = "";
-    private List<TagDetailModel> tags;
-    private Integer version = 0;
-    private boolean isReviewed = false;
-    private boolean isDisabled = false;
-    private boolean isPublished = false;
-    private String remark;
-    private String saveType;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long createdTime;
-    @JSONField(serialize = false)
-    private Long createdUserId;
-    private UserInfoModel author;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long createdIp;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long updatedTime;
-    @JSONField(serialize = false)
-    private Long updatedUserId;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long updatedIp;
+
+    public SoftwareVersionModel(Long id, Long softwareId, Long groupId, String name, String logo, String content, String html, String description, Integer version, Boolean isReviewed, Boolean isDisabled, Boolean isPublished, String remark, String saveType, LocalDateTime createdTime, Long createdUserId, Long createdIp, LocalDateTime updatedTime, Long updatedUserId, Long updatedIp){
+        super(id,content,html,description,version,isReviewed,isDisabled,isPublished,remark,saveType,createdTime,createdUserId,createdIp,updatedTime,updatedUserId,updatedIp);
+        this.softwareId = softwareId;
+        this.groupId = groupId;
+        this.name = name;
+        this.logo = logo;
+    }
 
     @Override
     public String cacheKey() {
-        return String.valueOf(id);
+        return softwareId + "-" + getVersion();
     }
 }

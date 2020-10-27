@@ -3,14 +3,16 @@ package com.itellyou.model.user;
 import com.itellyou.util.BaseEnum;
 
 public enum UserPaymentType implements BaseEnum<UserPaymentType,Integer> {
-    ALIPAY(1,"alipay"),
-    WECHAT(2,"wechat");
+    ALIPAY(1,"alipay","支付宝"),
+    WECHAT(2,"wechat","微信");
 
     private int value;
     private String name;
-    UserPaymentType(int value, String name){
+    private String text;
+    UserPaymentType(int value, String name,String text){
         this.value = value;
         this.name = name;
+        this.text = text;
     }
 
     public static UserPaymentType valueOf(Integer value){
@@ -31,6 +33,10 @@ public enum UserPaymentType implements BaseEnum<UserPaymentType,Integer> {
 
     public String getName(){
         return this.name;
+    }
+
+    public String getText(){
+        return this.text;
     }
 
     public String toString(){

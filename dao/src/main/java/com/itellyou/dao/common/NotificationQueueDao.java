@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +17,7 @@ public interface NotificationQueueDao {
     int insert(NotificationQueueModel model);
 
     List<NotificationQueueModel> search(@Param("id") Long id,
-                                  @Param("actionsMap") Map<EntityAction, HashSet<EntityType>> actionsMap,
+                                  @Param("actionsMap") Map<EntityAction, Collection<EntityType>> actionsMap,
                                   @Param("targetUserId") Long targetUserId,
                                   @Param("userId") Long userId,
                                   @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -26,7 +26,7 @@ public interface NotificationQueueDao {
                                   @Param("offset") Integer offset,
                                   @Param("limit") Integer limit);
     int count(@Param("id") Long id,
-              @Param("actionsMap") Map<EntityAction, HashSet<EntityType>> actionsMap,
+              @Param("actionsMap") Map<EntityAction, Collection<EntityType>> actionsMap,
               @Param("targetUserId") Long targetUserId,
               @Param("userId") Long userId,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

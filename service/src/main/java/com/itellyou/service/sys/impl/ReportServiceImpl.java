@@ -26,7 +26,7 @@ import com.itellyou.service.user.UserSingleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -113,12 +113,12 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ReportModel> search(Long id, Map<ReportAction, HashSet<EntityType>> actionsMap, Integer state, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<ReportModel> search(Long id, Map<ReportAction, Collection<EntityType>> actionsMap, Integer state, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return reportDao.search(id,actionsMap,state,targetUserId,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    public int count(Long id, Map<ReportAction, HashSet<EntityType>> actionsMap, Integer state, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Long id, Map<ReportAction, Collection<EntityType>> actionsMap, Integer state, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
         return reportDao.count(id,actionsMap,state,targetUserId,userId,beginTime,endTime,ip);
     }
 }

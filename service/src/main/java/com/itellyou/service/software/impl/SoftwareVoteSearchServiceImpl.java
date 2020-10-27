@@ -1,18 +1,20 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareVoteDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareVoteModel;
-import com.itellyou.service.software.SoftwareVoteService;
 import com.itellyou.service.common.VoteSearchService;
+import com.itellyou.service.software.SoftwareVoteService;
 import com.itellyou.util.RedisUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "software_vote")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_VOTE_KEY)
 @Service
 public class SoftwareVoteSearchServiceImpl implements VoteSearchService<SoftwareVoteModel> , SoftwareVoteService {
 
@@ -30,9 +32,9 @@ public class SoftwareVoteSearchServiceImpl implements VoteSearchService<Software
     }
 
     @Override
-    public List<SoftwareVoteModel> search(HashSet<Long> softwareIds, Long userId) {
-        return RedisUtils.fetchByCache("software_vote_" + userId, SoftwareVoteModel.class,softwareIds,(HashSet<Long> fetchIds) ->
-                voteDao.search(fetchIds,userId)
-        ,(SoftwareVoteModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<SoftwareVoteModel> search(Collection<Long> softwareIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.SOFTWARE_VOTE_KEY, SoftwareVoteModel.class,softwareIds,(Collection<Long> fetchIds) ->
+                voteDao.search(fetchIds,userId),
+        id -> id + "-" + userId,SoftwareVoteModel::cacheKey);
     }
 }

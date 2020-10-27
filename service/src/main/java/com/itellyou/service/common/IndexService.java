@@ -7,7 +7,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public interface IndexService<T> {
@@ -20,7 +20,7 @@ public interface IndexService<T> {
     @Async
     void delete(Long id);
     @Async
-    void delete(HashSet<Long> ids);
+    void delete(Collection<Long> ids);
 
     void delete(IndexWriter indexWriter , Long id);
 
@@ -52,7 +52,7 @@ public interface IndexService<T> {
     void updateIndex(Long id);
 
     @Async
-    void updateIndex(HashSet<Long> ids);
+    void updateIndex(Collection<Long> ids);
 
     @Async
     void updateIndex(T detailModel);

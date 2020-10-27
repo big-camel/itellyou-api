@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.SysLinkDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.SysLinkModel;
 import com.itellyou.service.sys.SysLinkService;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@CacheConfig(cacheNames = "sys_link")
+@CacheConfig(cacheNames = CacheKeys.SYS_LINK_KEY)
 public class SysLinkServiceImpl implements SysLinkService {
 
     private final SysLinkDao linkDao;

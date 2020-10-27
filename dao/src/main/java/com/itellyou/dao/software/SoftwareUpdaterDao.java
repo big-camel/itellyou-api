@@ -5,7 +5,7 @@ import com.itellyou.model.software.SoftwareUpdaterModel;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -13,11 +13,11 @@ import java.util.List;
 public interface SoftwareUpdaterDao {
     int add(SoftwareUpdaterModel model);
 
-    int addAll(HashSet<SoftwareUpdaterModel> updaterValues);
+    int addAll(Collection<SoftwareUpdaterModel> updaterValues);
 
     int clear(Long releaseId);
 
     int remove(Long id);
 
-    List<SoftwareUpdaterModel> search(HashSet<Long> releaseIds);
+    List<SoftwareUpdaterModel> search(Collection<Long> releaseIds);
 }

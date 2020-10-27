@@ -47,7 +47,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             userInfoModel.setMobile(mobile);
             userInfoModel.setMobileStatus(true);
             userInfoModel.setDisabled(false);
-            userInfoModel.setCreatedTime(DateUtils.getTimestamp());
+            userInfoModel.setCreatedTime(DateUtils.toLocalDateTime());
             userInfoModel.setCreatedIp(ip != null ? IPUtils.toLong(ip) : 0);
             int result = infoDao.createUser(userInfoModel);
             if(result != 1){

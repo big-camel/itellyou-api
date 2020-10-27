@@ -1,36 +1,27 @@
 package com.itellyou.service.common;
 
-import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.common.ViewInfoModel;
-
-import java.util.List;
-import java.util.Map;
+import com.itellyou.model.sys.EntityType;
 
 public interface ViewService {
     int insert(ViewInfoModel viewModel);
 
-    List<ViewInfoModel> search(Long id, Long userId, EntityType dataType, Long dataKey, String os, String browser, Long beginTime, Long endTime, Long ip, Map<String,String> order, Integer offset, Integer limit);
-
-    List<ViewInfoModel> search(Long userId,Map<String,String> order,Integer offset,Integer limit);
-
-    List<ViewInfoModel> search(Long userId,Integer offset,Integer limit);
-
-    int count(Long id,Long userId,EntityType dataType,Long dataKey,String os,String browser,Long beginTime,Long endTime,Long ip);
-
-    PageModel<ViewInfoModel> page(Long id,Long userId,EntityType dataType,Long dataKey,String os,String browser,Long beginTime,Long endTime,Long ip,Map<String,String> order,Integer offset,Integer limit);
-
     int update(ViewInfoModel viewModel);
 
     /**
-     * 写入或更新浏览记录，返回最近一次浏览时间
-     * @param userId
-     * @param dataType
-     * @param dataKey
-     * @param ip
-     * @param os
-     * @param browser
-     * @return
+     * 记录浏览记录，如果存在，则更新浏览时间
+     * @param userId 浏览用户编号
+     * @param dataType 浏览的数据类型
+     * @param dataKey 浏览的数据主键
+     * @param title 浏览的标题
+     * @param ip 浏览的ip
+     * @param os 浏览的操作系统
+     * @param browser 浏览的浏览器
+     * @return 上一次浏览时间
      */
-    long insertOrUpdate(Long userId,EntityType dataType,Long dataKey,Long ip,String os,String browser) throws Exception;
+    long insertOrUpdate(Long userId, EntityType dataType, Long dataKey,String title, Long ip, String os, String browser) throws Exception;
+
+    ViewInfoModel findByUser(Long userId, EntityType dataType, Long dataKey);
+
+    ViewInfoModel findByIp(Long ip, EntityType dataType, Long dataKey);
 }

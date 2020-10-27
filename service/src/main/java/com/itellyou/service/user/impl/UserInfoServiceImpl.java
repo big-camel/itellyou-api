@@ -1,6 +1,7 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.event.UserEvent;
 import com.itellyou.model.user.UserInfoModel;
@@ -13,7 +14,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
-@CacheConfig(cacheNames = "user_info")
+@CacheConfig(cacheNames = CacheKeys.USER_INFO_KEY)
 @Service
 public class UserInfoServiceImpl implements UserInfoService {
 
@@ -38,7 +39,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
         int result = userInfoDao.updateByUserId(infoModel);
         if(result == 1 && (StringUtils.isNotEmpty(infoModel.getName()) || StringUtils.isNotEmpty(infoModel.getAvatar()))){
-            operationalPublisher.publish(new UserEvent(this, EntityAction.UPDATE,infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getUpdatedUserId(), DateUtils.getTimestamp(),infoModel.getUpdatedIp()));
+            operationalPublisher.publish(new UserEvent(this, EntityAction.UPDATE,infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getUpdatedUserId(), DateUtils.toLocalDateTime(),infoModel.getUpdatedIp()));
         }
         return result;
     }

@@ -16,9 +16,9 @@
         ${alias}cover ${prefix}cover,
         ${alias}draft ${prefix}draft,
         ${alias}comment_count ${prefix}comment_count,
-        ${alias}view ${prefix}view,
-        ${alias}support ${prefix}support,
-        ${alias}oppose ${prefix}oppose,
+        ${alias}view_count ${prefix}view_count,
+        ${alias}support_count ${prefix}support_count,
+        ${alias}oppose_count ${prefix}oppose_count,
         ${alias}star_count ${prefix}star_count,
         ${alias}created_time ${prefix}created_time,
         ${alias}created_user_id ${prefix}created_user_id,
@@ -28,9 +28,21 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into article_info(column_id,source_type,source_data,title,description,version,is_published,is_disabled,is_deleted,custom_description,cover,draft,comment_count,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{columnId},#{sourceType},#{sourceData},#{title},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{cover},#{draft},#{commentCount},#{view},#{support},#{oppose},#{starCount},
+        insert into article_info(column_id,source_type,source_data,title,description,version,is_published,is_disabled,is_deleted,custom_description,cover,draft,comment_count,view_count,support_count,oppose_count,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{columnId},#{sourceType},#{sourceData},#{title},#{description},#{version},#{isPublished},#{isDisabled},#{isDeleted},#{customDescription},#{cover},#{draft},#{commentCount},#{viewCount},#{supportCount},#{opposeCount},#{starCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <insert id="addStep">
+        insert into article_info(id,`view_count`,comment_count,support_count,oppose_count,star_count)
+        values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.id},#{item.viewStep},#{item.commentStep},#{item.supportStep},#{item.opposeStep},#{item.starStep})
+        </foreach>
+        on duplicate key update `view_count`=`view_count` + values(`view_count`),
+             comment_count=comment_count + values(comment_count),
+             support_count=support_count + values(support_count),
+             oppose_count=oppose_count + values(oppose_count),
+             star_count=star_count + values(star_count)
     </insert>
     <resultMap id="searchMap" type="ArticleInfoModel" autoMapping="true">
         <id property="id" column="id" />
@@ -70,29 +82,29 @@
             <if test="sourceType != null">
                 and ${alias}source_type=#{sourceType}
             </if>
-            <if test="minComments != null">
-                and ${alias}comment_count >= #{minComments}
+            <if test="minComment != null">
+                and ${alias}comment_count >= #{minComment}
             </if>
-            <if test="maxComments != null">
-                and ${alias}comment_count &lt;= #{maxComments}
+            <if test="maxComment != null">
+                and ${alias}comment_count &lt;= #{maxComment}
             </if>
             <if test="minView != null">
-                and ${alias}view >= #{minView}
+                and ${alias}view_count >= #{minView}
             </if>
             <if test="maxView != null">
-                and ${alias}view &lt;= #{maxView}
+                and ${alias}view_count &lt;= #{maxView}
             </if>
             <if test="minSupport != null">
-                and ${alias}support >= #{minSupport}
+                and ${alias}support_count >= #{minSupport}
             </if>
             <if test="maxSupport != null">
-                and ${alias}support &lt;= #{maxSupport}
+                and ${alias}support_count &lt;= #{maxSupport}
             </if>
             <if test="minOppose != null">
-                and ${alias}oppose >= #{minOppose}
+                and ${alias}oppose_count >= #{minOppose}
             </if>
             <if test="maxOppose != null">
-                and ${alias}oppose &lt;= #{maxOppose}
+                and ${alias}oppose_count &lt;= #{maxOppose}
             </if>
             <if test="minStar != null">
                 and ${alias}star_count >= #{minStar}
@@ -134,6 +146,46 @@
     <select id="findById" resultType="ArticleInfoModel">
         select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include> from article_info where id=#{id}
     </select>
+    <sql id="totalWhere">
+        <where>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="isDisabled != null">
+                and ${alias}is_disabled = #{isDisabled}
+            </if>
+            <if test="isPublished != null">
+                and ${alias}is_published = #{isPublished}
+            </if>
+            <if test="isDeleted != null">
+                and ${alias}is_deleted = #{isDeleted}
+            </if>
+            <if test="userIds != null">
+                and ${alias}created_user_id <foreach collection="userIds" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="totalByUser" resultType="ArticleTotalModel">
+        select created_user_id user_id,count(id) total_count,sum(view_count) view_count,sum(support_count) support_count,sum(oppose_count) oppose_count,sum(star_count) star_count,sum(comment_count) comment_count
+        from article_info
+        <include refid="totalWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by created_user_id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open=" order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
     <update id="updateVersion">
         update article_info
         <set>
@@ -153,7 +205,7 @@
         where id = #{id}
     </update>
     <update id="updateView">
-        update article_info set view=view+#{view} where id=#{id}
+        update article_info set view_count=view_count+#{viewCount} where id=#{id}
     </update>
     <update id="updateComments">
         update article_info set comment_count=comment_count+#{value} where id=#{id}
@@ -165,10 +217,10 @@
         update article_info
         <set>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
-                oppose=oppose+#{value},
+                oppose_count=oppose_count+#{value},
             </if>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
-                support=support+#{value},
+                support_count=support_count+#{value},
             </if>
         </set>
         where id=#{id}

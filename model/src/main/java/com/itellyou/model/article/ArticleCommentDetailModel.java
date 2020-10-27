@@ -14,7 +14,7 @@ import java.util.List;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @JSONDefault(includes = "base")
-public class ArticleCommentDetailModel extends ArticleCommentModel implements CacheEntity {
+public class ArticleCommentDetailModel extends ArticleCommentModel implements CacheEntity<Long> {
     @JSONField(label = "base")
     private ArticleCommentDetailModel reply;
     @JSONField(label = "base")
@@ -41,11 +41,11 @@ public class ArticleCommentDetailModel extends ArticleCommentModel implements Ca
     private boolean allowReply;
 
     public ArticleCommentDetailModel(ArticleCommentModel model){
-        super(model.getId(),model.getArticleId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getCommentCount(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+        super(model.getId(),model.getArticleId(),model.getParentId(),model.getReplyId(),model.isDeleted(),model.getContent(),model.getHtml(),model.getCommentCount(),model.getSupportCount(),model.getOpposeCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 
     @Override
-    public String cacheKey() {
-        return this.getId().toString();
+    public Long cacheKey() {
+        return this.getId();
     }
 }

@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.SysRoleDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.service.sys.SysRolePermissionService;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@CacheConfig(cacheNames = "sys_role")
+@CacheConfig(cacheNames = CacheKeys.SYS_ROLE_KEY)
 public class SysRoleServiceImpl implements SysRoleService {
 
     private final SysRoleDao roleDao;
@@ -75,19 +76,16 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public List<SysRoleModel> search(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return roleDao.search(id,name,disabled,system,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public int count(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip) {
         return roleDao.count(id,name,disabled,system,userId,beginTime,endTime,ip);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public PageModel<SysRoleModel> page(Long id, String name, Boolean disabled,Boolean system, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;

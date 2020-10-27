@@ -53,17 +53,17 @@ public class SmsServiceImpl implements SmsService {
         Long lastMinuteCreatedTime = 0L;
         Long lastHourCreatedTime = 0L;
         if(listSmsLogModel.size() >= smsConfigModel.getDay()){
-            Long seconds = 86400 - (DateUtils.getTimestamp() - listSmsLogModel.get(listSmsLogModel.size() - 1).getCreatedTime());
+            Long seconds = 86400 - DateUtils.minus(listSmsLogModel.get(listSmsLogModel.size() - 1).getCreatedTime());
             String message = getTimeTemplate(seconds,"HH时mm分ss秒");
             throw new VerifyCodeException(seconds,message);
         }
         for(SmsLogModel smsLogModel : listSmsLogModel) {
-            if(smsLogModel.getCreatedTime() >= DateUtils.getTimestamp() - 60){
+            if(DateUtils.getTimestamp(smsLogModel.getCreatedTime()) >= DateUtils.getTimestamp() - 60){
                 minuteCount++;
-                lastMinuteCreatedTime = smsLogModel.getCreatedTime();
-            }else if(smsLogModel.getCreatedTime() >= DateUtils.getTimestamp() - 3600){
+                lastMinuteCreatedTime = DateUtils.getTimestamp(smsLogModel.getCreatedTime());
+            }else if(DateUtils.getTimestamp(smsLogModel.getCreatedTime()) >= DateUtils.getTimestamp() - 3600){
                 hourCount++;
-                lastHourCreatedTime = smsLogModel.getCreatedTime();
+                lastHourCreatedTime = DateUtils.getTimestamp(smsLogModel.getCreatedTime());
             }
         };
         if(hourCount >= smsConfigModel.getHour()){
@@ -158,7 +158,7 @@ public class SmsServiceImpl implements SmsService {
         }
         logger.info("mobile:{},data:{}",mobile, param);
         Long ipLong = IPUtils.toLong(ip);
-        SmsLogModel smsLogModel = new SmsLogModel(null,mobile,smsTemplateModel.getId(),param,0,DateUtils.getTimestamp(),ipLong);
+        SmsLogModel smsLogModel = new SmsLogModel(null,mobile,smsTemplateModel.getId(),param,0,DateUtils.toLocalDateTime(),ipLong);
         if(smsLogService.insert(smsLogModel) == 0)
             throw new VerifyCodeException("写入日志出错啦");
 

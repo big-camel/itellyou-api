@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public interface TagVersionDao {
 
     Integer findVersionById(Long id);
 
-    List<TagVersionModel> search(@Param("ids") HashSet<Long> ids,
+    List<TagVersionModel> search(@Param("ids") Collection<Long> ids,
                                         @Param("tagMap") Map<Long,Integer> tagMap,
                                       @Param("userId") Long userId,
                                       @Param("hasContent") Boolean hasContent,
@@ -32,7 +32,7 @@ public interface TagVersionDao {
                                       @Param("offset") Integer offset,
                                       @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,
+    int count(@Param("ids") Collection<Long> ids,
               @Param("tagMap") Map<Long,Integer> tagMap,
                      @Param("userId") Long userId,
                      @Param("isReviewed") Boolean isReview,

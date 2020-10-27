@@ -16,11 +16,11 @@
         ${alias}draft ${prefix}draft,
         ${alias}cover ${prefix}cover,
         ${alias}adoption_id ${prefix}adoption_id,
-        ${alias}answers ${prefix}answers,
-        ${alias}comments ${prefix}comments,
-        ${alias}view ${prefix}view,
-        ${alias}support ${prefix}support,
-        ${alias}oppose ${prefix}oppose,
+        ${alias}answer_count ${prefix}answer_count,
+        ${alias}comment_count ${prefix}comment_count,
+        ${alias}view_count ${prefix}view_count,
+        ${alias}support_count ${prefix}support_count,
+        ${alias}oppose_count ${prefix}oppose_count,
         ${alias}star_count ${prefix}star_count,
         ${alias}created_time ${prefix}created_time,
         ${alias}created_user_id ${prefix}created_user_id,
@@ -30,9 +30,22 @@
         ${alias}updated_ip ${prefix}updated_ip
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into question_info(title,description,reward_type,reward_value,reward_add,version,is_published,is_adopted,is_disabled,is_deleted,draft,cover,adoption_id,answers,comments,view,support,oppose,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
-        (#{title},#{description},#{rewardType},#{rewardValue},#{rewardAdd},#{version},#{isPublished},#{isAdopted},#{isDisabled},#{isDeleted},#{draft},#{cover},#{adoptionId},#{answers},#{comments},#{view},#{support},#{oppose},#{starCount},
+        insert into question_info(title,description,reward_type,reward_value,reward_add,version,is_published,is_adopted,is_disabled,is_deleted,draft,cover,adoption_id,answer_count,comment_count,view_count,support_count,oppose_count,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{title},#{description},#{rewardType},#{rewardValue},#{rewardAdd},#{version},#{isPublished},#{isAdopted},#{isDisabled},#{isDeleted},#{draft},#{cover},#{adoptionId},#{answerCount},#{commentCount},#{viewCount},#{supportCount},#{opposeCount},#{starCount},
         #{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <insert id="addStep">
+        insert into question_info(id,`view_count`,comment_count,support_count,oppose_count,star_count,answer_count)
+        values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.id},#{item.viewStep},#{item.commentStep},#{item.supportStep},#{item.opposeStep},#{item.starStep},#{item.answerStep})
+        </foreach>
+        on duplicate key update `view_count`=`view_count` + values(`view_count`),
+        comment_count=comment_count + values(comment_count),
+        support_count=support_count + values(support_count),
+        oppose_count=oppose_count + values(oppose_count),
+        star_count=star_count + values(star_count),
+        answer_count=answer_count + values(answer_count)
     </insert>
     <sql id="searchWhere">
         <where>
@@ -75,35 +88,35 @@
                 #{id}
                 </foreach>
             </if>
-            <if test="minAnswers != null">
-                and ${alias}answers >= #{minAnswers}
+            <if test="minAnswer != null">
+                and ${alias}answer_count >= #{minAnswer}
             </if>
-            <if test="maxAnswers != null">
-                and ${alias}answers &lt;= #{maxAnswers}
+            <if test="maxAnswer != null">
+                and ${alias}answer_count &lt;= #{maxAnswer}
             </if>
-            <if test="minComments != null">
-                and ${alias}comments >= #{minComments}
+            <if test="minComment != null">
+                and ${alias}comment_count >= #{minComment}
             </if>
-            <if test="maxComments != null">
-                and ${alias}comments &lt;= #{maxComments}
+            <if test="maxComment != null">
+                and ${alias}comment_count &lt;= #{maxComment}
             </if>
             <if test="minView != null">
-                and ${alias}view >= #{minView}
+                and ${alias}view_count >= #{minView}
             </if>
             <if test="maxView != null">
-                and ${alias}view &lt;= #{maxView}
+                and ${alias}view_count &lt;= #{maxView}
             </if>
             <if test="minSupport != null">
-                and ${alias}support >= #{minSupport}
+                and ${alias}support_count >= #{minSupport}
             </if>
             <if test="maxSupport != null">
-                and ${alias}support &lt;= #{maxSupport}
+                and ${alias}support_count &lt;= #{maxSupport}
             </if>
             <if test="minOppose != null">
-                and ${alias}oppose >= #{minOppose}
+                and ${alias}oppose_count >= #{minOppose}
             </if>
             <if test="maxOppose != null">
-                and ${alias}oppose &lt;= #{maxOppose}
+                and ${alias}oppose_count &lt;= #{maxOppose}
             </if>
             <if test="minStar != null">
                 and ${alias}star_count >= #{minStar}
@@ -165,13 +178,13 @@
         where id = #{id}
     </update>
     <update id="updateView">
-        update question_info set view=view+#{view} where id=#{id}
+        update question_info set view_count=view_count+#{viewCount} where id=#{id}
     </update>
     <update id="updateAnswers">
-        update question_info set answers=answers+#{value} where id=#{id}
+        update question_info set answer_count=answer_count+#{value} where id=#{id}
     </update>
     <update id="updateComments">
-        update question_info set comments=comments+#{value} where id=#{id}
+        update question_info set comment_count=comment_count+#{value} where id=#{id}
     </update>
     <update id="updateStarCountById">
         update question_info set star_count=star_count+#{step} where id=#{id}

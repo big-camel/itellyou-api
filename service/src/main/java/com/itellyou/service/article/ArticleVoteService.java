@@ -2,10 +2,10 @@ package com.itellyou.service.article;
 
 import com.itellyou.model.article.ArticleVoteModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public interface ArticleVoteService {
 
-    List<ArticleVoteModel> search(HashSet<Long> articleIds,Long userId);
+    List<ArticleVoteModel> search(Collection<Long> articleIds,Long userId);
 }

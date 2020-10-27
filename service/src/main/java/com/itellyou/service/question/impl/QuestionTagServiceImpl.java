@@ -1,20 +1,20 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionTagDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.QuestionTagModel;
 import com.itellyou.service.question.QuestionTagService;
 import com.itellyou.util.RedisUtils;
-import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@CacheConfig(cacheNames = "question_tag")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_TAG_KEY)
 public class QuestionTagServiceImpl implements QuestionTagService {
 
     private final QuestionTagDao questionTagDao;
@@ -24,66 +24,54 @@ public class QuestionTagServiceImpl implements QuestionTagService {
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#model.questionId") , @CacheEvict(value = "tag_question" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#model.questionId") , @CacheEvict(value = CacheKeys.TAG_QUESTION_KEY , key = "#model.tagId")})
     public int add(QuestionTagModel model) {
         return questionTagDao.add(model);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#questionId") , @CacheEvict(value = "tag_question" , allEntries = true)})
-    public int addAll(Long questionId, HashSet<Long> tagIds) {
+    @Caching( evict = { @CacheEvict(key = "#questionId") })
+    public int addAll(Long questionId, Collection<Long> tagIds) {
+        tagIds.forEach((Long id) -> RedisUtils.remove(CacheKeys.TAG_QUESTION_KEY,id));
         return questionTagDao.addAll(questionId,tagIds);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#questionId") , @CacheEvict(value = "tag_question" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#questionId") })
     public int clear(Long questionId) {
+        Map<Long, List<QuestionTagModel>> tags = searchTags(new HashSet<Long>(){{add(questionId);}});
+        tags.values().forEach((List<QuestionTagModel> models) ->
+                models.forEach((QuestionTagModel model) -> RedisUtils.remove(CacheKeys.TAG_QUESTION_KEY,model.getTagId()))
+        );
         return questionTagDao.clear(questionId);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#questionId") , @CacheEvict(value = "tag_question" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#questionId") , @CacheEvict(value = CacheKeys.TAG_QUESTION_KEY , key = "#tagId")})
     public int remove(Long questionId, Long tagId) {
         return questionTagDao.remove(questionId,tagId);
     }
 
     @Override
-    public Map<Long, List<QuestionTagModel>> searchTags(HashSet<Long> questionIds) {
-        List<QuestionTagModel> models = questionTagDao.searchTags(questionIds);
-        Map<Long, List<QuestionTagModel>> map = new LinkedHashMap<>();
-        for (QuestionTagModel model : models){
-            if(!map.containsKey(model.getQuestionId())){
-                map.put(model.getQuestionId(),new LinkedList<>());
-            }
-            map.get(model.getQuestionId()).add(model);
-        }
-        return map;
+    public Map<Long, List<QuestionTagModel>> searchTags(Collection<Long> questionIds) {
+        return RedisUtils.fetch(CacheKeys.QUESTION_TAG_KEY,questionIds,
+                fetchIds -> questionTagDao.searchTags(fetchIds),
+                QuestionTagModel::getQuestionId);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
-    public HashSet<Long> searchTagId(Long questionId) {
-        return questionTagDao.searchTagId(questionId);
+    public Map<Long, List<QuestionTagModel>> searchQuestions(Collection<Long> tagIds) {
+        return RedisUtils.fetch(CacheKeys.TAG_QUESTION_KEY,tagIds,
+                fetchIds -> questionTagDao.searchQuestions(fetchIds),
+                QuestionTagModel::getTagId);
     }
 
     @Override
-    @Cacheable(value = "tag_question",key = "#tagId",unless = "#result == null")
-    public HashSet<Long> searchQuestionId(Long tagId) {
-        return searchQuestionId(tagId != null ? new HashSet<Long>(){{ add(tagId);}} : null);
-    }
-
-    @Override
-    public HashSet<Long> searchQuestionId(HashSet<Long> tagId) {
-        StringBuilder keySb = new StringBuilder();
-        for (Long id : tagId){
-            keySb.append(id);
-        }
-        String key = StringUtils.md5(keySb.toString());
-        HashSet<Long> ids = RedisUtils.getCache("tag_question",key,HashSet.class);
-        if(ids == null || ids.size() == 0)
-        {
-            ids = questionTagDao.searchQuestionId(tagId);
-            RedisUtils.setCache("tag_question",key,ids);
+    public Collection<Long> searchQuestionIds(Collection<Long> tagIds) {
+        Map<Long, List<QuestionTagModel>> list = searchQuestions(tagIds);
+        Collection<Long> ids = new LinkedHashSet<>();
+        for (Long id : list.keySet()){
+            ids.addAll(list.get(id).stream().map(QuestionTagModel::getQuestionId).collect(Collectors.toSet()));
         }
         return ids;
     }

@@ -2,10 +2,14 @@ package com.itellyou.model.thirdparty;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.util.annotation.JSONDefault;
-import com.itellyou.util.serialize.*;
+import com.itellyou.util.serialize.EnumSerializer;
+import com.itellyou.util.serialize.IpDeserializer;
+import com.itellyou.util.serialize.IpSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -29,8 +33,8 @@ public class ThirdAccountModel {
     private String home;//第三方账号主页链接
     @JSONField(label = "base")
     private Long star;//第三方账号关注人数
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class,label = "base")
-    private Long createdTime=0l;//创建时间
+    @JSONField(label = "base")
+    private LocalDateTime createdTime;//创建时间
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp;//创建ip
 }

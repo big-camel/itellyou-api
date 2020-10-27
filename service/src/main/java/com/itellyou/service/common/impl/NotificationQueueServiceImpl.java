@@ -8,7 +8,7 @@ import com.itellyou.service.common.NotificationQueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,12 +28,12 @@ public class NotificationQueueServiceImpl implements NotificationQueueService {
     }
 
     @Override
-    public List<NotificationQueueModel> search(Long id, Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<NotificationQueueModel> search(Long id, Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return queueDao.search(id,actionsMap,targetUserId,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    public int count(Long id, Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Long id, Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
         return queueDao.count(id,actionsMap,targetUserId,userId,beginTime,endTime,ip);
     }
 

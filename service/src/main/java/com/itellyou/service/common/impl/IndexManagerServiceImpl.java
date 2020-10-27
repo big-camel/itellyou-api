@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 @Service
 public class IndexManagerServiceImpl implements IndexManagerService {
@@ -18,7 +18,7 @@ public class IndexManagerServiceImpl implements IndexManagerService {
 
     private final Scheduler scheduler;
 
-    private final int maxCount = 100;
+    private final int maxCount = 1000;
 
     private final IndexQueueService queueService;
 
@@ -26,7 +26,7 @@ public class IndexManagerServiceImpl implements IndexManagerService {
         this.scheduler = scheduler;
         this.queueService = queueService;
         JobDetail job = JobBuilder.newJob(IndexJobServiceImpl.class).withIdentity("indexManager").storeDurably().build();
-        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("0 0/30 * * * ?");
+        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("0 0 0/2 * * ?");
 
         Trigger trigger = TriggerBuilder.newTrigger()
             .withIdentity("indexManager")
@@ -54,7 +54,7 @@ public class IndexManagerServiceImpl implements IndexManagerService {
     }
 
     @Override
-    public void put(EntityType type, HashSet<Long> ids) {
+    public void put(EntityType type, Collection<Long> ids) {
         for (Long id : ids){
             IndexQueueModel model = new IndexQueueModel(type,id);
             put(model);

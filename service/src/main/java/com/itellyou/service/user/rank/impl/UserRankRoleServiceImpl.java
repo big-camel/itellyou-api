@@ -1,11 +1,12 @@
 package com.itellyou.service.user.rank.impl;
 
 import com.itellyou.dao.user.UserRankRoleDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.user.UserRankModel;
 import com.itellyou.model.user.UserRankRoleModel;
 import com.itellyou.service.user.rank.UserRankRoleService;
-import com.itellyou.service.user.rank.UserRankService;
+import com.itellyou.service.user.rank.UserRankSingleService;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -14,16 +15,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "user_rank_role")
+@CacheConfig(cacheNames = CacheKeys.USER_RANK_ROLE_KEY)
 @Service
 public class UserRankRoleServiceImpl implements UserRankRoleService {
 
     private final UserRankRoleDao rankRoleDao;
-    private final UserRankService rankService;
+    private final UserRankSingleService rankSingleService;
 
-    public UserRankRoleServiceImpl(UserRankRoleDao rankRoleDao, UserRankService rankService) {
+    public UserRankRoleServiceImpl(UserRankRoleDao rankRoleDao, UserRankSingleService rankSingleService) {
         this.rankRoleDao = rankRoleDao;
-        this.rankService = rankService;
+        this.rankSingleService = rankSingleService;
     }
 
     @Override
@@ -53,7 +54,7 @@ public class UserRankRoleServiceImpl implements UserRankRoleService {
     @Override
     @Cacheable(key = "T(String).valueOf(#userId).concat('-user')")
     public List<SysRoleModel> findRoleByUserId(Long userId) {
-        UserRankModel rankModel = rankService.find(userId);
+        UserRankModel rankModel = rankSingleService.find(userId);
         if(rankModel == null) return null;
         return findRoleByRankId(rankModel.getId());
     }

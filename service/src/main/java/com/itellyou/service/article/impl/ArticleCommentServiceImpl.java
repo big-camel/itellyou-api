@@ -3,6 +3,7 @@ package com.itellyou.service.article.impl;
 import com.itellyou.dao.article.ArticleCommentDao;
 import com.itellyou.model.article.ArticleCommentModel;
 import com.itellyou.model.article.ArticleInfoModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.ArticleCommentEvent;
 import com.itellyou.model.event.ArticleEvent;
 import com.itellyou.model.event.OperationalEvent;
@@ -10,7 +11,6 @@ import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.article.ArticleCommentService;
-import com.itellyou.service.article.ArticleInfoService;
 import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.util.DateUtils;
@@ -23,21 +23,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "article_comment")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_COMMENT_KEY)
 @Service
 public class ArticleCommentServiceImpl implements ArticleCommentService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ArticleCommentDao commentDao;
-    private final ArticleInfoService articleService;
     private final ArticleSingleService searchService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public ArticleCommentServiceImpl(ArticleCommentDao commentDao, ArticleInfoService articleService, ArticleSingleService searchService, OperationalPublisher operationalPublisher){
+    public ArticleCommentServiceImpl(ArticleCommentDao commentDao, ArticleSingleService searchService, OperationalPublisher operationalPublisher){
         this.commentDao = commentDao;
-        this.articleService = articleService;
         this.searchService = searchService;
         this.operationalPublisher = operationalPublisher;
     }
@@ -55,7 +53,7 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
                 if(replyCommentModel == null) throw new Exception("错误的回复ID");
             }
 
-            ArticleCommentModel commentModel = new ArticleCommentModel(null,articleId,parentId,replyId,false,content,html,0,0,0, DateUtils.getTimestamp(),userId, ip,null,null,null);
+            ArticleCommentModel commentModel = new ArticleCommentModel(null,articleId,parentId,replyId,false,content,html,0,0,0, DateUtils.toLocalDateTime(),userId, ip,null,null,null);
             int result = commentDao.insert(commentModel);
 
             if(result != 1) throw new Exception("写入评论失败");
@@ -63,8 +61,6 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
                 result = updateComments(parentId,1);
                 if(result != 1) throw new Exception("更新父级子评论数失败");
             }
-            result = articleService.updateComments(articleId,1);
-            if(result != 1) throw new Exception("更新文章评论数失败");
 
             EntityType notificationType = EntityType.ARTICLE;
             Long targetUserId = articleModel.getCreatedUserId();
@@ -76,9 +72,9 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
                 OperationalEvent event = notificationType.equals(EntityType.ARTICLE) ?
 
                         new ArticleEvent(this, EntityAction.COMMENT,
-                                commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip) :
+                                commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip) :
 
-                        new ArticleCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip);
+                        new ArticleCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip);
                 operationalPublisher.publish(event);
             }
             return commentModel;
@@ -98,7 +94,7 @@ public class ArticleCommentServiceImpl implements ArticleCommentService {
         int result = commentDao.updateDeleted(id,isDeleted);
         if(result != 1) return 0;
         operationalPublisher.publish(new ArticleCommentEvent(this, isDeleted ? EntityAction.DELETE : EntityAction.REVERT,
-                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.getTimestamp(),ip));
+                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.toLocalDateTime(),ip));
         return 1;
     }
 

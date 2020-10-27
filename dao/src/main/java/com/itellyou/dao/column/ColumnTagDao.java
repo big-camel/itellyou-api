@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -13,15 +13,13 @@ import java.util.List;
 public interface ColumnTagDao {
     int add(ColumnTagModel model);
 
-    int addAll(@Param("columnId") Long columnId, @Param("tagIds") HashSet<Long> tagIds);
+    int addAll(@Param("columnId") Long columnId, @Param("tagIds") Collection<Long> tagIds);
 
     int clear(Long columnId);
 
     int remove(@Param("columnId") Long columnId, @Param("tagId") Long tagId);
 
-    List<ColumnTagModel> searchTags(@Param("columnIds")HashSet<Long> columnIds);
+    List<ColumnTagModel> searchTags(@Param("columnIds")Collection<Long> columnIds);
 
-    HashSet<Long> searchTagId(@Param("columnIds") HashSet<Long> columnIds);
-
-    HashSet<Long> searchColumnId(@Param("tagIds") HashSet<Long> tagIds);
+    List<ColumnTagModel> searchColumns(@Param("tagIds") Collection<Long> tagIds);
 }

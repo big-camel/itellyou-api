@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.Map;
 
 @Validated
@@ -27,25 +26,21 @@ public class SysRoleController {
 
     private final SysRoleService roleService;
 
-
     public SysRoleController(SysRoleService roleService) {
         this.roleService = roleService;
     }
 
     @GetMapping("")
-    public ResultModel list(UserInfoModel userModel, @RequestParam Map params) {
-        Integer offset = Params.getOrDefault(params, "offset", Integer.class, 0);
-        Integer limit = Params.getOrDefault(params, "limit", Integer.class, 20);
-        String name = Params.getOrDefault(params, "name", String.class, null);
-        Boolean disabled = Params.getOrDefault(params, "disabled", Boolean.class, null);
-        String beginTime = Params.getOrDefault(params,"begin",String.class,null);
-        Long begin = DateUtils.getTimestamp(beginTime);
-        String endTime = Params.getOrDefault(params,"end",String.class,null);
-        Long end = DateUtils.getTimestamp(endTime);
-        String ip = Params.getOrDefault(params,"ip",String.class,null);
-        Long ipLong = IPUtils.toLong(ip,null);
-        Map<String,String> order = new HashMap<>();
-        order.put("created_time","desc");
+    public ResultModel list(UserInfoModel userModel, @RequestParam Map args) {
+        Params params = new Params(args);
+        Integer offset = params.getPageOffset(0);
+        Integer limit = params.getPageLimit(20);
+        String name = params.get( "name");
+        Boolean disabled = params.getBoolean( "disabled", false);
+        Long begin = params.getTimestamp("begin");
+        Long end = params.getTimestamp("end");
+        Long ipLong = params.getIPLong();
+        Map<String,String> order = params.getOrderDefault("created_time","desc");
         PageModel<SysRoleModel> data = roleService.page(null,name,disabled,null,userModel.getId(),begin,end,ipLong,order,offset,limit);
         return new ResultModel(data,new Labels.LabelModel(SysRoleModel.class,"info"));
     }
@@ -71,7 +66,7 @@ public class SysRoleController {
         roleModel.setDisabled(false);
         roleModel.setDescription(description);
         roleModel.setCreatedUserId(userModel.getId());
-        roleModel.setCreatedTime(DateUtils.getTimestamp());
+        roleModel.setCreatedTime(DateUtils.toLocalDateTime());
         roleModel.setCreatedIp(IPUtils.toLong(request));
         int result = roleService.insert(roleModel);
         if(result != 1) return new ResultModel(0,"新增失败");

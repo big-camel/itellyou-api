@@ -1,6 +1,7 @@
 package com.itellyou.api.controller.question;
 
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.QuestionVersionDetailModel;
 import com.itellyou.model.question.QuestionVersionModel;
 import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
@@ -37,7 +38,7 @@ public class QuestionVersionController {
     @GetMapping("")
     public ResultModel list(@PathVariable @NotNull Long questionId){
 
-        List<QuestionVersionModel> listVersion = versionSearchService.searchByQuestionId(questionId);
+        List<QuestionVersionDetailModel> listVersion = versionSearchService.searchByQuestionId(questionId);
         return new ResultModel(listVersion,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
@@ -45,8 +46,8 @@ public class QuestionVersionController {
 
     @GetMapping("/{versionId:\\d+}")
     public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long questionId){
-        QuestionVersionModel versionModel = versionSearchService.findByQuestionIdAndId(versionId,questionId);
-        if(versionModel == null){
+        QuestionVersionModel versionModel = versionSearchService.getDetail(versionId);
+        if(versionModel == null || !versionModel.getQuestionId().equals(questionId)){
             return new ResultModel(0,"错误的编号");
         }
         return new ResultModel(versionModel,
@@ -54,7 +55,7 @@ public class QuestionVersionController {
                 new Labels.LabelModel(TagInfoModel.class,"base"));
     }
 
-    private String getVersionHtml(QuestionVersionModel versionModel){
+    private String getVersionHtml(QuestionVersionDetailModel versionModel){
         StringBuilder currentString = new StringBuilder("<div>");
         currentString.append("<h2>" + versionModel.getTitle() + "</h2>");
         List<TagDetailModel> currentTagList = versionModel.getTags();
@@ -82,13 +83,13 @@ public class QuestionVersionController {
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
     public ResultModel compare(@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long questionId){
-        QuestionVersionModel currentVersion = versionSearchService.findByQuestionIdAndId(current,questionId);
-        if(currentVersion == null){
+        QuestionVersionDetailModel currentVersion = versionSearchService.getDetail(current);
+        if(currentVersion == null || !currentVersion.getQuestionId().equals(questionId)){
             return new ResultModel(0,"错误的当前编号");
         }
 
-        QuestionVersionModel targetVersion = versionSearchService.findByQuestionIdAndId(target,questionId);
-        if(targetVersion == null){
+        QuestionVersionDetailModel targetVersion = versionSearchService.getDetail(target);
+        if(targetVersion == null || !targetVersion.getQuestionId().equals(questionId)){
             return new ResultModel(0,"错误的目标编号");
         }
 

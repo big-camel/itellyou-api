@@ -30,7 +30,7 @@ public class UserDetailModel extends UserInfoModel implements Serializable, Cach
     @JSONField(label = "rank")
     private UserRankModel rank;
     @Override
-    public String cacheKey() {
-        return String.valueOf(this.getId());
+    public Long cacheKey() {
+        return this.getId();
     }
 }

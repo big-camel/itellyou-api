@@ -1,23 +1,22 @@
 package com.itellyou.model.common;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.util.CacheEntity;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationMarkModel implements CacheEntity {
     private Long userId;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long updatedTime=0l;
+
+    private LocalDateTime updatedTime;
 
     @Override
-    public String cacheKey() {
-        return userId.toString();
+    public Long cacheKey() {
+        return userId;
     }
 }

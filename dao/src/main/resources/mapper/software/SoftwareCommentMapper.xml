@@ -10,8 +10,8 @@
         (case when ${alias}is_deleted=1 then '' else ${alias}content end)${prefix}content,
         (case when ${alias}is_deleted=1 then '' else ${alias}html end) ${prefix}html,
         ${alias}comment_count ${prefix}comment_count,
-        ${alias}support ${prefix}support,
-        ${alias}oppose ${prefix}oppose,
+        ${alias}support_count ${prefix}support_count,
+        ${alias}oppose_count ${prefix}oppose_count,
         ${alias}created_time ${prefix}created_time,
         ${alias}created_ip ${prefix}created_ip,
         ${alias}created_user_id ${prefix}created_user_id,
@@ -20,8 +20,8 @@
         ${alias}updated_user_id ${prefix}updated_user_id
     </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into software_comment (software_id,parent_id,reply_id,is_deleted,content,html,comment_count,support,oppose,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
-        (#{softwareId},#{parentId},#{replyId},#{isDeleted},#{content},#{html},#{commentCount},#{support},#{oppose},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
+        insert into software_comment (software_id,parent_id,reply_id,is_deleted,content,html,comment_count,support_count,oppose_count,created_time,created_ip,created_user_id,updated_time,updated_ip,updated_user_id) values
+        (#{softwareId},#{parentId},#{replyId},#{isDeleted},#{content},#{html},#{commentCount},#{supportCount},#{opposeCount},#{createdTime},#{createdIp},#{createdUserId},#{updatedTime},#{updatedIp},#{updatedUserId})
     </insert>
     <sql id="searchWhere">
         <where>
@@ -57,23 +57,23 @@
             <if test="replyId != null">
                 and ${alias}reply_id = #{replyId}
             </if>
-            <if test="minComments != null">
-                and ${alias}comment_count >= #{minComments}
+            <if test="minComment != null">
+                and ${alias}comment_count >= #{minComment}
             </if>
-            <if test="maxComments != null">
-                and ${alias}comment_count &lt;= #{maxComments}
+            <if test="maxComment != null">
+                and ${alias}comment_count &lt;= #{maxComment}
             </if>
             <if test="minSupport != null">
-                and ${alias}support >= #{minSupport}
+                and ${alias}support_count >= #{minSupport}
             </if>
             <if test="maxSupport != null">
-                and ${alias}support &lt;= #{maxSupport}
+                and ${alias}support_count &lt;= #{maxSupport}
             </if>
             <if test="minOppose != null">
-                and ${alias}oppose >= #{minOppose}
+                and ${alias}oppose_count >= #{minOppose}
             </if>
             <if test="maxOppose != null">
-                and ${alias}oppose &lt;= #{maxOppose}
+                and ${alias}oppose_count &lt;= #{maxOppose}
             </if>
         </where>
     </sql>
@@ -150,10 +150,10 @@
         update software_comment
         <set>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@OPPOSE.getValue">
-                oppose=oppose+#{value},
+                oppose_count=oppose_count+#{value},
             </if>
             <if test="type.getValue() == @com.itellyou.model.sys.VoteType@SUPPORT.getValue">
-                support=support+#{value},
+                support_count=support_count+#{value},
             </if>
         </set>
         where id=#{id}

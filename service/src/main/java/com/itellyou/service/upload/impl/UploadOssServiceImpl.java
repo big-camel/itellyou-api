@@ -54,7 +54,7 @@ public class UploadOssServiceImpl implements UploadOssService {
             if (fileConfigModel == null) throw new Exception("不支持的文件格式 " + extname);
             String key = userId + "/" + source.getName() + "/" + DateUtils.format("yyyy/MM/dd") + "/" + DateUtils.getTimestamp() + "-" + UUID.randomUUID() + "." + extname;
 
-            UploadFileModel fileModel = new UploadFileModel(key, name, extname, configModel.getDomain(), configModel.getBucket(), source, size, DateUtils.getTimestamp(), userId, IPUtils.toLong(ip));
+            UploadFileModel fileModel = new UploadFileModel(key, name, extname, configModel.getDomain(), configModel.getBucket(), source, size, DateUtils.toLocalDateTime(), userId, IPUtils.toLong(ip));
             int result = fileService.insert(fileModel);
             if (result != 1) throw new Exception("写入上传记录失败");
 

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public class IndexServiceImpl<T> implements IndexService<T> {
@@ -66,7 +66,7 @@ public class IndexServiceImpl<T> implements IndexService<T> {
 
     @Override
     @Async
-    public void delete(HashSet<Long> ids) {
+    public void delete(Collection<Long> ids) {
         try {
             IndexWriter indexWriter = getIndexWriter();
             for (Long id : ids){
@@ -206,7 +206,7 @@ public class IndexServiceImpl<T> implements IndexService<T> {
 
     @Async
     @Override
-    public void updateIndex(HashSet<Long> ids) {
+    public void updateIndex(Collection<Long> ids) {
 
     }
 

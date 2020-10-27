@@ -4,7 +4,6 @@ import com.itellyou.model.common.IndexQueueModel;
 import com.itellyou.model.common.OperationalModel;
 import com.itellyou.model.event.UserEvent;
 import com.itellyou.service.common.IndexManagerService;
-import com.itellyou.service.user.UserActivityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -15,11 +14,9 @@ import org.springframework.stereotype.Service;
 public class UserEventListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final UserActivityService activityService;
     private final IndexManagerService indexManagerService;
 
-    public UserEventListener(UserActivityService activityService, IndexManagerService indexManagerService) {
-        this.activityService = activityService;
+    public UserEventListener(IndexManagerService indexManagerService) {
         this.indexManagerService = indexManagerService;
     }
 

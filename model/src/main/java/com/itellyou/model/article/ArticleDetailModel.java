@@ -3,7 +3,6 @@ package com.itellyou.model.article;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.itellyou.model.collab.CollabInfoModel;
 import com.itellyou.model.column.ColumnDetailModel;
-import com.itellyou.util.CacheEntity;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.annotation.JSONDefault;
@@ -18,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JSONDefault(includes = "base")
-public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity {
+public class ArticleDetailModel extends ArticleInfoModel {
     @JSONField(label = "draft,base")
     private String content = "";
     @JSONField(label = "draft,base")
@@ -49,11 +48,6 @@ public class ArticleDetailModel extends ArticleInfoModel implements CacheEntity 
     private ArticlePaidReadModel paidRead;
 
     public ArticleDetailModel(ArticleInfoModel model){
-        super(model.getId(),model.getColumnId(),model.getSourceType(),model.getSourceData(),model.getTitle(),model.getDescription(),model.getDraft(),model.isPublished(),model.isDisabled(),model.isDeleted(),model.getCustomDescription(),model.getCover(),model.getDraft(),model.getCommentCount(),model.getView(),model.getSupport(),model.getOppose(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
-    }
-
-    @Override
-    public String cacheKey() {
-        return String.valueOf(this.getId());
+        super(model.getId(),model.getColumnId(),model.getSourceType(),model.getSourceData(),model.getTitle(),model.getDescription(),model.getDraft(),model.isPublished(),model.isDisabled(),model.isDeleted(),model.getCustomDescription(),model.getCover(),model.getDraft(),model.getCommentCount(),model.getViewCount(),model.getSupportCount(),model.getOpposeCount(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 }

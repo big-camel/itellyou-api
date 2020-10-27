@@ -95,7 +95,7 @@ public class ColumnController {
         infoModel.setDescription(description);
         infoModel.setReviewed(true);
         infoModel.setCreatedUserId(userModel.getId());
-        infoModel.setCreatedTime(DateUtils.getTimestamp());
+        infoModel.setCreatedTime(DateUtils.toLocalDateTime());
         infoModel.setCreatedIp(IPUtils.toLong(IPUtils.getClientIp(request)));
         try {
             int result = infoService.insert(infoModel,tags);
@@ -127,7 +127,7 @@ public class ColumnController {
         String ip = IPUtils.getClientIp(request);
         ColumnInfoModel updateModel = new ColumnInfoModel(
                id,name,avatar,description,userModel.getId(),
-                DateUtils.getTimestamp(),IPUtils.toLong(ip)
+                DateUtils.toLocalDateTime(),IPUtils.toLong(ip)
         );
 
         try {

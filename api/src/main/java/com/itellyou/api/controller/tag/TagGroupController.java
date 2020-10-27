@@ -45,7 +45,7 @@ public class TagGroupController {
         groupModel = new TagGroupModel();
         groupModel.setName(name);
         groupModel.setCreatedUserId(userModel.getId());
-        groupModel.setCreatedTime(DateUtils.getTimestamp());
+        groupModel.setCreatedTime(DateUtils.toLocalDateTime());
         groupModel.setCreatedIp(IPUtils.toLong(request));
         int result = groupService.insert(groupModel);
         if(result != 1) return new ResultModel(0,"创建失败");

@@ -1,6 +1,7 @@
 package com.itellyou.service.user.star.impl;
 
 import com.itellyou.dao.user.UserStarDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserStarDetailModel;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "user_star")
+@CacheConfig(cacheNames = CacheKeys.USER_STAR_KEY)
 @Service
 public class UserStarSearchServiceImpl implements UserStarSearchService {
 
@@ -34,7 +35,8 @@ public class UserStarSearchServiceImpl implements UserStarSearchService {
     public List<UserStarDetailModel> search(Long userId, Long followerId,Long searchId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<UserStarModel> models = starDao.search(userId != null ? new HashSet<Long>(){{ add(userId);}} : null,followerId,beginTime,endTime,ip,order,offset,limit);
         List<UserStarDetailModel> detailModels = new ArrayList<>();
-        HashSet<Long> userHash = new LinkedHashSet<>();
+        if(models.size() == 0) return detailModels;
+        Collection<Long> userHash = new LinkedHashSet<>();
         for (UserStarModel model : models){
             if(!userHash.contains(model.getUserId())){
                 userHash.add(model.getUserId());

@@ -1,18 +1,18 @@
 package com.itellyou.service.column.impl;
 
-import com.itellyou.model.article.ArticleDetailModel;
 import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.column.ColumnIndexModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.column.ColumnSearchService;
 import com.itellyou.service.common.impl.IndexServiceImpl;
+import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
 import org.apache.lucene.document.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,8 +40,8 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
         }
         doc.add(new IntPoint("article_count",detailModel.getArticleCount()));
         doc.add(new IntPoint("star_count",detailModel.getStarCount()));
-        doc.add(new LongPoint("created_time",detailModel.getCreatedTime()));
-        doc.add(new LongPoint("updated_time",detailModel.getUpdatedTime()));
+        doc.add(new LongPoint("created_time", DateUtils.getTimestamp(detailModel.getCreatedTime(),0l)));
+        doc.add(new LongPoint("updated_time",DateUtils.getTimestamp(detailModel.getUpdatedTime(),0l)));
         doc.add(new LongPoint("created_user_id",detailModel.getAuthor().getId()));
 
         double score = 1.0;
@@ -53,13 +53,7 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
 
     @Override
     public ColumnIndexModel getModel(Document document) {
-        ColumnIndexModel model = new ColumnIndexModel();
-        model.setId(super.getModel(document).getId());
-        model.setName(document.get("name"));
-        model.setDescription(document.get("description"));
-        String userId = document.get("created_user_id");
-        model.setCreatedUserId(StringUtils.isNotEmpty(userId) ? Long.parseLong(userId) : 0);
-        return model;
+        return new ColumnIndexModel(document);
     }
 
     @Override
@@ -86,7 +80,7 @@ public class ColumnIndexServiceImpl extends IndexServiceImpl<ColumnDetailModel> 
 
     @Override
     @Async
-    public void updateIndex(HashSet<Long> ids) {
+    public void updateIndex(Collection<Long> ids) {
         List<ColumnDetailModel> list = searchService.search(ids,null,null,null,null
                 ,null,true,null,null,null,null,null,null,null,null,null,null,null,null);
         List<ColumnDetailModel> updateModels = new LinkedList<>();

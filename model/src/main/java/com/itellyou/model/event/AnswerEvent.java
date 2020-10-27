@@ -1,14 +1,15 @@
 package com.itellyou.model.event;
 
+import com.itellyou.model.question.QuestionAnswerOperationalModel;
 import com.itellyou.model.sys.EntityAction;
-import com.itellyou.model.common.OperationalModel;
 import com.itellyou.model.sys.EntityType;
 
-public class AnswerEvent extends OperationalEvent {
+import java.time.LocalDateTime;
 
-    public AnswerEvent(Object source, EntityAction action , Long targetId, Long targetUserId, Long createdUserId, Long createdTime, Long createdIp) {
+public class AnswerEvent extends OperationalEvent<QuestionAnswerOperationalModel> {
+    public AnswerEvent(Object source, EntityAction action , Long questionId ,Long questionUserId , Long targetId, Long targetUserId, Long createdUserId, LocalDateTime createdTime, Long createdIp) {
         super(source);
-        OperationalModel model = new OperationalModel(action, EntityType.ANSWER,targetId,targetUserId,createdUserId,createdTime,createdIp);
+        QuestionAnswerOperationalModel model = new QuestionAnswerOperationalModel(action, EntityType.ANSWER,questionId,questionUserId,targetId,targetUserId,createdUserId,createdTime,createdIp);
         super.setOperationalModel(model);
     }
 }

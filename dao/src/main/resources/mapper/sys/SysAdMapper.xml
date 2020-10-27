@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysAdDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}type ${prefix}type,
+        ${alias}`name` ${prefix}`name`,
+        ${alias}data_id ${prefix}data_id,
+        ${alias}enabled_foreign ${prefix}enabled_foreign,
+        ${alias}enabled_cn ${prefix}enabled_cn,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_ad(type,`name`,data_id,enabled_foreign,enabled_cn,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{type},#{name},#{dataId},#{enabledForeign},#{enabledCn},#{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="name != null">
+                <bind name="bindName" value="name + '%'"/>
+                and ${alias}`name` like #{bindName}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="enabledForeign != null">
+                and ${alias}enabled_foreign = #{enabledForeign}
+            </if>
+            <if test="enabledCn != null">
+                and ${alias}enabled_cn = #{enabledCn}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysAdModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from sys_ad
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_ad
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <update id="updateById">
+        update sys_ad
+        <set>
+            <if test="name != null">
+                `name`=#{name},
+            </if>
+            <if test="type != null">
+                type=#{type},
+            </if>
+            <if test="dataId != null">
+                data_id=#{dataId},
+            </if>
+            <if test="enabledForeign != null">
+                enabled_foreign=#{enabledForeign},
+            </if>
+            <if test="enabledCn != null">
+                enabled_cn=#{enabledCn},
+            </if>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <update id="updateEnabledForeignAll">
+        update sys_ad set enabled_foreign=#{enabled}
+    </update>
+    <update id="updateEnabledCnAll">
+        update sys_ad set enabled_cn=#{enabled}
+    </update>
+    <delete id="deleteById">
+        delete from sys_ad where id=#{id}
+    </delete>
+</mapper>

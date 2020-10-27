@@ -2,6 +2,7 @@ package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleVoteDao;
 import com.itellyou.model.article.ArticleVoteModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.service.article.ArticleVoteService;
 import com.itellyou.service.common.VoteSearchService;
 import com.itellyou.util.RedisUtils;
@@ -9,10 +10,11 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "article_vote")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_VOTE_KEY)
 @Service
 public class ArticleVoteSearchServiceImpl implements VoteSearchService<ArticleVoteModel> , ArticleVoteService {
 
@@ -30,9 +32,10 @@ public class ArticleVoteSearchServiceImpl implements VoteSearchService<ArticleVo
     }
 
     @Override
-    public List<ArticleVoteModel> search(HashSet<Long> articleIds, Long userId) {
-        return RedisUtils.fetchByCache("article_vote_" + userId, ArticleVoteModel.class,articleIds,(HashSet<Long> fetchIds) ->
-                voteDao.search(fetchIds,userId)
-        ,(ArticleVoteModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<ArticleVoteModel> search(Collection<Long> articleIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.ARTICLE_VOTE_KEY, ArticleVoteModel.class,articleIds,
+                (Collection<Long> fetchIds) -> voteDao.search(fetchIds,userId) ,
+                id -> id + "-" + userId,
+                model -> model.cacheKey());
     }
 }

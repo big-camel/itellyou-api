@@ -1,19 +1,18 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareInfoDao;
-import com.itellyou.model.software.SoftwareInfoModel;
+import com.itellyou.model.common.DataUpdateStepModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.SoftwareEvent;
+import com.itellyou.model.software.SoftwareInfoModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
-import com.itellyou.service.software.SoftwareInfoService;
-import com.itellyou.service.software.SoftwareSingleService;
-import com.itellyou.service.column.ColumnInfoService;
 import com.itellyou.service.common.ViewService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.software.SoftwareInfoService;
+import com.itellyou.service.software.SoftwareSingleService;
 import com.itellyou.service.user.UserDraftService;
-import com.itellyou.service.user.UserInfoService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "software")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_KEY)
 @Service
 public class SoftwareInfoServiceImpl implements SoftwareInfoService {
 
@@ -52,26 +51,27 @@ public class SoftwareInfoServiceImpl implements SoftwareInfoService {
     }
 
     @Override
-    @Transactional
+    public int addStep(DataUpdateStepModel... models) {
+        for (DataUpdateStepModel model : models) {
+            RedisUtils.remove(CacheKeys.SOFTWARE_KEY,model.getId());
+        }
+        return softwareInfoDao.addStep(models);
+    }
+
+    @Override
     public int updateView(Long userId,Long id,Long ip,String os,String browser) {
         try{
             SoftwareInfoModel softwareModel = softwareSingleService.findById(id);
             if(softwareModel == null) throw new Exception("错误的编号");
 
-            long prevTime = viewService.insertOrUpdate(userId,EntityType.SOFTWARE,id,ip,os,browser);
+            long prevTime = viewService.insertOrUpdate(userId,EntityType.SOFTWARE,id,softwareModel.getName(),ip,os,browser);
             if(DateUtils.getTimestamp() - prevTime > 3600){
-                int result = softwareInfoDao.updateView(id,1);
-                if(result != 1){
-                    throw new Exception("更新浏览次数失败");
-                }
-                softwareModel.setView(softwareModel.getView() + 1);
-                RedisUtils.setCache("software",id,softwareModel);
-                operationalPublisher.publish(new SoftwareEvent(this, EntityAction.VIEW,id,softwareModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                softwareModel.setViewCount(softwareModel.getViewCount() + 1);
+                operationalPublisher.publish(new SoftwareEvent(this, EntityAction.VIEW,id,softwareModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
             }
-            return 1;
+            return softwareModel.getViewCount();
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 0;
         }
     }
@@ -111,7 +111,7 @@ public class SoftwareInfoServiceImpl implements SoftwareInfoService {
             }
 
             operationalPublisher.publish(new SoftwareEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,
-                    id,softwareInfoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                    id,softwareInfoModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
             return result;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

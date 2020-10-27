@@ -1,6 +1,7 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagStarDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.TagEvent;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.PageModel;
@@ -29,7 +30,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "tag_star")
+@CacheConfig(cacheNames = CacheKeys.TAG_STAR_KEY)
 @Service
 public class TagStarServiceImpl implements StarService<TagStarModel> {
 
@@ -67,13 +68,13 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
             if(result != 1) throw new Exception("写入关注记录失败");
             result = infoService.updateStarCountById(model.getTagId(),1);
             if(result != 1) throw new Exception("更新关注数失败");
-            operationalPublisher.publish(new TagEvent(this, EntityAction.FOLLOW,model.getTagId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.getTimestamp(),model.getCreatedIp()));
+            operationalPublisher.publish(new TagEvent(this, EntityAction.FOLLOW,model.getTagId(),infoModel.getCreatedUserId(),model.getCreatedUserId(), DateUtils.toLocalDateTime(),model.getCreatedIp()));
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        RedisUtils.clear("tag_star_" + model.getCreatedUserId());
+        RedisUtils.clear(CacheKeys.TAG_STAR_KEY + "_" + model.getCreatedUserId());
         return 1;
     }
 
@@ -91,35 +92,34 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
             if(result != 1) throw new Exception("删除关注记录失败");
             result = infoService.updateStarCountById(tagId,-1);
             if(result != 1) throw new Exception("更新关注数失败");
-            operationalPublisher.publish(new TagEvent(this, EntityAction.UNFOLLOW,tagId,infoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+            operationalPublisher.publish(new TagEvent(this, EntityAction.UNFOLLOW,tagId,infoModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             throw e;
         }
-        RedisUtils.clear("tag_star_" + userId);
+        RedisUtils.clear(CacheKeys.TAG_STAR_KEY + "_" + userId);
         return 1;
     }
 
     @Override
-    public List<TagStarDetailModel> search(HashSet<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<TagStarDetailModel> search(Collection<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<TagStarModel> starModels = starDao.search(tagIds,userId,beginTime,endTime,ip,order,offset,limit);
 
         List<TagStarDetailModel> detailModels = new ArrayList<>();
-
-        HashSet<Long> tagFetchIds = new LinkedHashSet<>();
-        HashSet<Long> userIds = new LinkedHashSet<>();
+        if(starModels.size() == 0) return detailModels;
+        Collection<Long> tagFetchIds = new LinkedHashSet<>();
+        Collection<Long> userIds = new LinkedHashSet<>();
 
         for (TagStarModel starModel : starModels){
             TagStarDetailModel detailModel = new TagStarDetailModel(starModel);
             tagFetchIds.add(starModel.getTagId());
             userIds.add(starModel.getCreatedUserId());
-
             detailModels.add(detailModel);
         }
 
         // 一次取出所有标签
-        List<TagDetailModel> tagDetailModels = searchService.search(tagFetchIds,null,null,null,null,userId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<TagDetailModel> tagDetailModels = searchService.search(tagFetchIds,null,null,null,null,userId,false,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
         List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (TagStarDetailModel detailModel : detailModels){
             for (TagDetailModel tagDetailModel :  tagDetailModels){
@@ -140,12 +140,12 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
     }
 
     @Override
-    public int count(HashSet<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Collection<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip) {
         return starDao.count(tagIds,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<TagStarDetailModel> page(HashSet<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<TagStarDetailModel> page(Collection<Long> tagIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<TagStarDetailModel> data = search(tagIds,userId,beginTime,endTime,ip,order,offset,limit);

@@ -1,10 +1,13 @@
 package com.itellyou.service.question;
 
 import com.itellyou.model.question.QuestionInfoModel;
+import com.itellyou.model.question.QuestionUpdateStepModel;
 import com.itellyou.model.sys.RewardType;
 
 public interface QuestionInfoService {
     int insert(QuestionInfoModel questionInfoModel);
+
+    int addStep(QuestionUpdateStepModel... models);
 
     int updateView(Long userId, Long id, Long ip, String os, String browser);
 

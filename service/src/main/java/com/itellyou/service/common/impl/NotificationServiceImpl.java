@@ -76,7 +76,7 @@ public class NotificationServiceImpl implements NotificationService {
                 actorsModels.add(actorsModel);
                 actorsModelMap.put(key,actorsModels);
 
-                notificationModelMap.put(key,new NotificationModel(false,false,receiveId,queueModel.getAction(),queueModel.getType(),queueModel.getTargetId(),1, DateUtils.getTimestamp(),queueModel.getCreatedIp()));
+                notificationModelMap.put(key,new NotificationModel(false,false,receiveId,queueModel.getAction(),queueModel.getType(),queueModel.getTargetId(),1, DateUtils.toLocalDateTime(),queueModel.getCreatedIp()));
             }
         }
         NotificationModel[] notificationModels = new NotificationModel[notificationModelMap.values().size()];

@@ -1,6 +1,7 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagStarDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.tag.TagStarModel;
 import com.itellyou.service.tag.TagStarSingleService;
 import com.itellyou.util.RedisUtils;
@@ -8,10 +9,11 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "tag_star")
+@CacheConfig(cacheNames = CacheKeys.TAG_STAR_KEY)
 @Service
 public class TagStarSingleServiceImpl implements TagStarSingleService {
 
@@ -29,9 +31,10 @@ public class TagStarSingleServiceImpl implements TagStarSingleService {
     }
 
     @Override
-    public List<TagStarModel> search(HashSet<Long> tagIds, Long userId) {
-        return RedisUtils.fetchByCache("tag_star_" + userId, TagStarModel.class,tagIds,(HashSet<Long> fetchIds) ->
-                starDao.search(fetchIds,userId,null,null,null,null,null,null)
-                ,(TagStarModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<TagStarModel> search(Collection<Long> tagIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.TAG_STAR_KEY + "_" + userId, TagStarModel.class,tagIds,(Collection<Long> fetchIds) ->
+                starDao.search(fetchIds,userId,null,null,null,null,null,null),
+                id -> id + "-" + userId,
+                TagStarModel::cacheKey);
     }
 }

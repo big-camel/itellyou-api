@@ -13,9 +13,8 @@ import com.itellyou.service.software.SoftwareSingleService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.common.impl.VoteFactory;
 import com.itellyou.service.user.UserDraftService;
-import com.itellyou.util.BrowserUtils;
 import com.itellyou.util.IPUtils;
-import com.itellyou.util.OsUtils;
+import com.itellyou.util.UserAgentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -52,15 +51,14 @@ public class SoftwareController {
         }
         String ip = IPUtils.getClientIp(request);
         Long longIp = IPUtils.toLong(ip);
-        String os = OsUtils.getClientOs(request);
-        String browser = BrowserUtils.getClientBrowser(request);
+        String os = UserAgentUtils.getOs(request);
+        String browser = UserAgentUtils.getBrowser(request);
         if(browser == "Robot/Spider"){
             return new ResultModel(0,"Robot/Spider Error");
         }
         Long userId = userInfo == null ? 0 : userInfo.getId();
-        int result = infoService.updateView(userId,id,longIp,os,browser);
-        if(result == 1) return new ResultModel();
-        return new ResultModel(0,"更新失败");
+        int count = infoService.updateView(userId,id,longIp,os,browser);
+        return new ResultModel(count);
     }
 
     @GetMapping("/{id:\\d+}/user_draft")

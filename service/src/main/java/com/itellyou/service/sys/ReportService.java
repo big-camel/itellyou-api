@@ -4,7 +4,7 @@ import com.itellyou.model.sys.ReportAction;
 import com.itellyou.model.sys.ReportModel;
 import com.itellyou.model.sys.EntityType;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public interface ReportService {
     int insert(ReportAction action, EntityType type, Long targetId, String description, Long userId, Long ip) throws Exception;
 
     List<ReportModel> search(Long id,
-                                      Map<ReportAction, HashSet<EntityType>> actionsMap,
+                                      Map<ReportAction, Collection<EntityType>> actionsMap,
                                       Integer state,
                                       Long targetUserId,
                                       Long userId,
@@ -22,7 +22,7 @@ public interface ReportService {
                                       Integer offset,
                                       Integer limit);
     int count(Long id,
-              Map<ReportAction, HashSet<EntityType>> actionsMap,
+              Map<ReportAction, Collection<EntityType>> actionsMap,
               Integer state,
               Long targetUserId,
               Long userId,

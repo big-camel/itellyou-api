@@ -76,7 +76,7 @@ public class RoleController {
         if(roleModel == null || !roleModel.getCreatedUserId().equals(userModel.getId())) return new ResultModel(500,"错误的角色编号");
         UserInfoModel infoModel = searchService.findById(userId);
         if(infoModel == null) return new ResultModel(500,"错误的用户编号");
-        UserRoleModel rankRoleModel = new UserRoleModel(userId,roleId, DateUtils.getTimestamp(),userModel.getId(), IPUtils.toLong(request));
+        UserRoleModel rankRoleModel = new UserRoleModel(userId,roleId, DateUtils.toLocalDateTime(),userModel.getId(), IPUtils.toLong(request));
         int result = userRoleService.insert(rankRoleModel);
         if(result != 1) return new ResultModel(500,"新增失败");
         return new ResultModel();

@@ -26,11 +26,11 @@ public class ColumnDetailModel extends ColumnInfoModel implements CacheEntity {
     private UserDetailModel author;
 
     public ColumnDetailModel(ColumnInfoModel model){
-        super(model.getId(),model.getName(),model.getAvatar(),model.getDescription(),model.isDisabled(),model.isDeleted(),model.isReviewed(),model.getMemberCount(),model.getArticleCount(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedUserId(),model.getUpdatedTime(),model.getUpdatedIp());
+        super(model.getId(),model.getName(),model.getAvatar(),model.getDescription(),model.isDisabled(),model.isDeleted(),model.isReviewed(),model.getMemberCount(),model.getArticleCount(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 
     @Override
-    public String cacheKey() {
-        return String.valueOf(this.getId());
+    public Long cacheKey() {
+        return this.getId();
     }
 }

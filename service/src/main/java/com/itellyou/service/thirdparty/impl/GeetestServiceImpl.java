@@ -43,7 +43,7 @@ public class GeetestServiceImpl implements GeetestService {
         geetestSdk.debugCode = false;
         int gtServerStatus = geetestSdk.preProcess(data);
         long ipLong = IPUtils.toLong(ip);
-        GeetestLogModel logModel = new GeetestLogModel(key,clientType,ipLong,gtServerStatus,mode,userId,DateUtils.getTimestamp());
+        GeetestLogModel logModel = new GeetestLogModel(key,clientType,ipLong,gtServerStatus,mode,userId,DateUtils.toLocalDateTime());
         int result = geetestLogService.insert(logModel);
         if(result == 1){
             try {
@@ -75,7 +75,7 @@ public class GeetestServiceImpl implements GeetestService {
         HashMap<String,String> data = new HashMap<>();
         data.put("user_id",geetestLogModel.getCreatedUserId().toString());
         data.put("client_type",geetestLogModel.getType().getValue());
-        data.put("ip_address", IPUtils.toIpv4(geetestLogModel.getIp()));
+        data.put("ip_address", IPUtils.toString(geetestLogModel.getIp()));
 
         int gtResult = 0;
         if(geetestLogModel.getStatus() == 1){

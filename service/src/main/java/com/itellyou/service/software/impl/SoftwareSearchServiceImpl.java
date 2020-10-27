@@ -1,27 +1,28 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.*;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.software.*;
+import com.itellyou.service.sys.EntitySearchService;
 import com.itellyou.service.tag.TagSearchService;
 import com.itellyou.service.user.UserSearchService;
-import com.itellyou.util.RedisUtils;
+import com.itellyou.util.Params;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "software")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_KEY)
 @Service
-public class SoftwareSearchServiceImpl implements SoftwareSearchService {
+public class SoftwareSearchServiceImpl implements SoftwareSearchService , EntitySearchService<SoftwareDetailModel> {
 
     private final SoftwareInfoDao softwareInfoDao;
-    private final SoftwareVersionSearchService versionSearchService;
     private final SoftwareTagService softwareTagService;
     private final TagSearchService tagSearchService;
     private final SoftwareVersionTagService versionTagService;
@@ -30,11 +31,12 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
     private final SoftwareVoteService softwareVoteService;
     private final SoftwareAttributesService attributesService;
     private final SoftwareReleaseService releaseService;
+    private final SoftwareSingleService singleService;
+    private final SoftwareVersionSingleService versionSingleService;
 
     @Autowired
-    public SoftwareSearchServiceImpl(SoftwareInfoDao softwareInfoDao, SoftwareVersionSearchService versionSearchService, SoftwareTagService softwareTagService, TagSearchService tagSearchService, SoftwareVersionTagService versionTagService, SoftwareGroupService groupService, UserSearchService userSearchService, SoftwareVoteService softwareVoteService, SoftwareAttributesService attributesService, SoftwareReleaseService releaseService){
+    public SoftwareSearchServiceImpl(SoftwareInfoDao softwareInfoDao, SoftwareTagService softwareTagService, TagSearchService tagSearchService, SoftwareVersionTagService versionTagService, SoftwareGroupService groupService, UserSearchService userSearchService, SoftwareVoteService softwareVoteService, SoftwareAttributesService attributesService, SoftwareReleaseService releaseService, SoftwareSingleService singleService, SoftwareVersionSingleService versionSingleService){
         this.softwareInfoDao = softwareInfoDao;
-        this.versionSearchService = versionSearchService;
         this.softwareTagService = softwareTagService;
         this.tagSearchService = tagSearchService;
         this.versionTagService = versionTagService;
@@ -43,32 +45,32 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
         this.softwareVoteService = softwareVoteService;
         this.attributesService = attributesService;
         this.releaseService = releaseService;
+        this.singleService = singleService;
+        this.versionSingleService = versionSingleService;
     }
 
-    private HashSet<Long> formTags(HashSet<Long> tags){
+    private Collection<Long> formTags(Collection<Long> tags){
         if(tags != null && tags.size() > 0){
-            return softwareTagService.searchSoftwareId(tags);
+            return softwareTagService.searchSoftwareIds(tags);
         }
         return new HashSet<>();
     }
 
     @Override
-    public List<SoftwareDetailModel> search(HashSet<Long> ids, String mode, Long groupId, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isPublished,
-                                           HashSet<Long> tags, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose,Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<SoftwareDetailModel> search(Collection<Long> ids, String mode, Long groupId, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isPublished,
+                                           Collection<Long> tags, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose,Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
 
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
         if(tags != null && ids.size() == 0){
             return new LinkedList<>();
         }
-        List<SoftwareInfoModel> infoModels = RedisUtils.fetchByCache("software",SoftwareInfoModel.class,ids,(HashSet<Long> fetchIds) ->
-                        softwareInfoDao.search(fetchIds,mode,groupId,userId,isDisabled,isPublished,isDeleted, minComments, maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit)
-                );
+        List<SoftwareInfoModel> infoModels = singleService.search(ids,mode,groupId,userId,isDisabled,isPublished,isDeleted, minComment, maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit);
         List<SoftwareDetailModel> detailModels = new LinkedList<>();
         if(infoModels.size() == 0) return detailModels;
-        HashSet<Long> groupIds = new LinkedHashSet<>();
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> groupIds = new LinkedHashSet<>();
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
         HashMap<Long,Integer> versionMap = new LinkedHashMap<>();
         List<SoftwareVersionModel> versionModels = new LinkedList<>();
         for (SoftwareInfoModel infoModel : infoModels){
@@ -97,8 +99,8 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
             detailModels.add(detailModel);
         }
         // 一次查出需要的版本信息
-        HashSet<Long> versionIds = new LinkedHashSet<>();
-        versionModels = versionMap.size() > 0 ? versionSearchService.searchBySoftwareMap(versionMap,hasContent) : new ArrayList<>();
+        Collection<Long> versionIds = new LinkedHashSet<>();
+        versionModels = versionMap.size() > 0 ? versionSingleService.searchBySoftwareMap(versionMap,hasContent) : new ArrayList<>();
         for (SoftwareVersionModel versionModel : versionModels){
             versionIds.add(versionModel.getId());
         }
@@ -107,7 +109,7 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
         // 一次查出需要的作者
         List<UserDetailModel> userDetailModels = authorIds.size() > 0 ? userSearchService.search(authorIds,searchUserId,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
         // 一次查出需要的标签id列表
-        HashSet<Long> tagIds = new LinkedHashSet<>();
+        Collection<Long> tagIds = new LinkedHashSet<>();
         Map<Long, List<SoftwareVersionTagModel>> tagVersionIdList = new HashMap<>();
         Map<Long, List<SoftwareTagModel>> tagSoftwareIdList = new HashMap<>();
         if("draft".equals(mode) && versionIds.size() > 0){
@@ -127,7 +129,7 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
             }
         }
         // 一次查出需要的标签
-        List<TagDetailModel> tagDetailModels = tagIds.size() > 0 ? tagSearchService.search(tagIds,null,null,null,null,searchUserId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
+        List<TagDetailModel> tagDetailModels = tagIds.size() > 0 ? tagSearchService.search(tagIds,null,null,null,null,searchUserId,false,null,null,null,null,null,null,null,null,null,null,null,null,null,null) : new ArrayList<>();
         // 一次查出是否有关注,是否点赞
         List<SoftwareVoteModel> voteModels = new ArrayList<>();
         if(searchUserId != null){
@@ -224,36 +226,36 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
     }
 
     @Override
-    public int count(HashSet<Long> ids, String mode,Long groupId, Long userId, Boolean isDisabled,Boolean isDeleted, Boolean isPublished,HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
+    public int count(Collection<Long> ids, String mode,Long groupId, Long userId, Boolean isDisabled,Boolean isDeleted, Boolean isPublished,Collection<Long> tags,Integer minComment,Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip) {
         if(ids == null) ids = new HashSet<>();
         ids.addAll(formTags(tags));
         if(tags != null && ids.size() == 0){
             return 0;
         }
-        return softwareInfoDao.count(ids,mode,groupId,userId,isDisabled,isPublished,isDeleted,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
+        return softwareInfoDao.count(ids,mode,groupId,userId,isDisabled,isPublished,isDeleted,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
     }
 
     @Override
-    public List<SoftwareDetailModel> search(HashSet<Long> ids, String mode,Long groupId, Long userId,Long searchUserId,Boolean hasContent, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+    public List<SoftwareDetailModel> search(Collection<Long> ids, String mode,Long groupId, Long userId,Long searchUserId,Boolean hasContent, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         return search(ids,mode,groupId,userId,searchUserId,hasContent,null,null,null,null,null,null,null,null,null,null,null,null,beginTime,endTime,null,order,offset,limit);
     }
 
     @Override
     public List<SoftwareDetailModel> search(Long groupId,Long searchUserId,Boolean hasContent,Boolean isDisabled,Boolean isDeleted, Boolean isPublished,
-                                           HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
-        return search(null,null,groupId,null,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
+                                           Collection<Long> tags,Integer minComment,Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        return search(null,null,groupId,null,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
     }
 
     @Override
-    public List<SoftwareDetailModel> search(Long groupId,Long searchUserId,Boolean hasContent,Boolean isDisabled,Boolean isDeleted, Boolean isPublished,HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Integer offset, Integer limit) {
+    public List<SoftwareDetailModel> search(Long groupId,Long searchUserId,Boolean hasContent,Boolean isDisabled,Boolean isDeleted, Boolean isPublished,Collection<Long> tags,Integer minComment,Integer maxComment, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStars, Integer maxStars, Long beginTime, Long endTime, Integer offset, Integer limit) {
         Map<String, String> order = new HashMap<>();
         order.put("created_time","desc");
-        return search(groupId,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,order,offset,limit);
+        return search(groupId,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minSupport,maxSupport,minOppose,maxOppose,minStars,maxStars,beginTime,endTime,order,offset,limit);
     }
 
     @Override
-    public int count(Long groupId, Boolean isDisabled,Boolean isDeleted, Boolean isPublished,HashSet<Long> tags,Integer minComments,Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
-        return count(null,null,groupId,null,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
+    public int count(Long groupId, Boolean isDisabled,Boolean isDeleted, Boolean isPublished,Collection<Long> tags,Integer minComment,Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime) {
+        return count(null,null,groupId,null,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null);
     }
 
     @Override
@@ -274,17 +276,17 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
     }
 
     @Override
-    public PageModel<SoftwareDetailModel> page(HashSet<Long> ids, String mode, Long groupId, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isPublished, HashSet<Long> tags, Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<SoftwareDetailModel> page(Collection<Long> ids, String mode, Long groupId, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isPublished, Collection<Long> tags, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
-        List<SoftwareDetailModel> data = search(ids,mode,groupId,userId,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit);
-        Integer total = count(ids,mode,groupId,userId,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
+        List<SoftwareDetailModel> data = search(ids,mode,groupId,userId,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip,order,offset,limit);
+        Integer total = count(ids,mode,groupId,userId,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,ip);
         return new PageModel<>(offset,limit,total,data);
     }
 
     @Override
-    public PageModel<SoftwareDetailModel> page(Long groupId,Long searchUserId,Boolean hasContent,Boolean isDisabled, Boolean isDeleted, Boolean isPublished, HashSet<Long> tags,Integer minComments, Integer maxComments, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order,Integer offset, Integer limit) {
-        return page(null,null,groupId,null,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComments,maxComments,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
+    public PageModel<SoftwareDetailModel> page(Long groupId,Long searchUserId,Boolean hasContent,Boolean isDisabled, Boolean isDeleted, Boolean isPublished, Collection<Long> tags,Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Long beginTime, Long endTime, Map<String, String> order,Integer offset, Integer limit) {
+        return page(null,null,groupId,null,searchUserId,hasContent,isDisabled,isDeleted,isPublished,tags,minComment,maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,beginTime,endTime,null,order,offset,limit);
     }
 
     @Override
@@ -317,5 +319,34 @@ public class SoftwareSearchServiceImpl implements SoftwareSearchService {
     @Override
     public SoftwareDetailModel getDetail(Long id, Long userId) {
         return getDetail(id,(String) null,userId);
+    }
+
+    @Override
+    public List<SoftwareDetailModel> search(Map<String, Object> args) {
+        Params params = new Params(args);
+        return search(params.get("ids",Collection.class),
+                params.get("mode",String.class),
+                params.get("groupId",Long.class),
+                params.get("userId",Long.class),
+                params.get("searchUserId",Long.class),
+                params.get("hasContent",Boolean.class),
+                params.get("isDisabled",Boolean.class),
+                params.get("isDeleted",Boolean.class),
+                params.get("isPublished",Boolean.class),
+                params.get("tags",Collection.class),
+                params.get("minComment",Integer.class),
+                params.get("maxComment",Integer.class),
+                params.get("minView",Integer.class),
+                params.get("maxView",Integer.class),
+                params.get("minSupport",Integer.class),
+                params.get("maxSupport",Integer.class),
+                params.get("minOppose",Integer.class),
+                params.get("maxOppose",Integer.class),
+                params.get("beginTime",Long.class),
+                params.get("endTime",Long.class),
+                params.get("ip",Long.class),
+                params.get("order",Map.class),
+                params.get("offset",Integer.class),
+                params.get("limit",Integer.class));
     }
 }

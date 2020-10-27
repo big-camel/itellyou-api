@@ -3,7 +3,9 @@ package com.itellyou.api.controller.user;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserRankModel;
+import com.itellyou.service.user.rank.UserRankSearchService;
 import com.itellyou.service.user.rank.UserRankService;
+import com.itellyou.service.user.rank.UserRankSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.Params;
@@ -25,33 +27,38 @@ import java.util.Map;
 public class RankController {
 
     private final UserRankService rankService;
+    private final UserRankSearchService rankSearchService;
+    private final UserRankSingleService rankSingleService;
 
-    public RankController(UserRankService rankService) {
+    public RankController(UserRankService rankService, UserRankSearchService rankSearchService, UserRankSingleService rankSingleService) {
         this.rankService = rankService;
+        this.rankSearchService = rankSearchService;
+        this.rankSingleService = rankSingleService;
     }
 
     @GetMapping("")
-    public ResultModel list(@RequestParam Map params){
-        Integer offset = Params.getOrDefault(params,"offset",Integer.class,0);
-        Integer limit = Params.getOrDefault(params,"limit",Integer.class,0);
-        Integer minScore = Params.getOrDefault(params,"min_score",Integer.class,null);
-        Integer maxScore = Params.getOrDefault(params,"max_score",Integer.class,null);
-        String name = Params.getOrDefault(params,"name",String.class,null);
-        String beginTime = Params.getOrDefault(params,"begin",String.class,null);
+    public ResultModel list(@RequestParam Map args){
+        Params params = new Params(args);
+        Integer offset = params.getOrDefault("offset",Integer.class,0);
+        Integer limit = params.getOrDefault("limit",Integer.class,20);
+        Integer minScore = params.getOrDefault("min_score",Integer.class,null);
+        Integer maxScore = params.getOrDefault("max_score",Integer.class,null);
+        String name = params.get("name");
+        String beginTime = params.get("begin");
         Long begin = DateUtils.getTimestamp(beginTime);
-        String endTime = Params.getOrDefault(params,"end",String.class,null);
+        String endTime = params.get("end");
         Long end = DateUtils.getTimestamp(endTime);
-        String ip = Params.getOrDefault(params,"ip",String.class,null);
+        String ip = params.get("ip");
         Long ipLong = IPUtils.toLong(ip,null);
 
         Map<String,String> order = new HashMap<>();
         order.put("min_score","asc");
-        return new ResultModel(rankService.page(null,name,minScore,maxScore,null,begin,end,ipLong,order,offset,limit),new Labels.LabelModel(UserRankModel.class,"*"));
+        return new ResultModel(rankSearchService.page(null,name,minScore,maxScore,null,begin,end,ipLong,order,offset,limit),new Labels.LabelModel(UserRankModel.class,"*"));
     }
 
     @GetMapping("/query/name")
     public ResultModel queryName(@RequestParam @NotBlank String name){
-        UserRankModel model = rankService.findByName(name);
+        UserRankModel model = rankSingleService.findByName(name);
         if(model != null){
             return new ResultModel(500,"名称不可用",name);
         }
@@ -63,7 +70,7 @@ public class RankController {
                            @MultiRequestBody("min_score") @NotNull Integer minScore,
                            @MultiRequestBody("max_score") @NotNull Integer maxScore){
 
-        UserRankModel model = rankService.findByName(name);
+        UserRankModel model = rankSingleService.findByName(name);
         if(model != null){
             return new ResultModel(500,"名称不可用",name);
         }
@@ -72,7 +79,7 @@ public class RankController {
         rankModel.setMinScore(minScore);
         rankModel.setMaxScore(maxScore);
         rankModel.setCreatedUserId(userModel.getId());
-        rankModel.setCreatedTime(DateUtils.getTimestamp());
+        rankModel.setCreatedTime(DateUtils.toLocalDateTime());
         rankModel.setCreatedIp(IPUtils.toLong(request));
         int result = rankService.insert(rankModel);
         if(result != 1) return new ResultModel(0,"新增失败");
@@ -94,7 +101,7 @@ public class RankController {
             return new ResultModel(500,"参数错误");
         }
         if(StringUtils.isNotEmpty(name)){
-            UserRankModel model = rankService.findByName(name);
+            UserRankModel model = rankSingleService.findByName(name);
             if(model != null){
                 return new ResultModel(500,"名称不可用",name);
             }

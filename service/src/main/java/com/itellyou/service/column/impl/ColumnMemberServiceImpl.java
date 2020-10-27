@@ -12,7 +12,7 @@ import com.itellyou.service.user.UserSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +44,8 @@ public class ColumnMemberServiceImpl implements ColumnMemberService {
     @Override
     public List<ColumnMemberDetailModel> search(Long columnId, Long userId,Long searchId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<ColumnMemberDetailModel> detailModels = memberDao.search(columnId,userId,beginTime,endTime,ip,order,offset,limit);
-        HashSet<Long> userHash = new LinkedHashSet<>();
-        HashSet<Long> columnHash = new LinkedHashSet<>();
+        Collection<Long> userHash = new LinkedHashSet<>();
+        Collection<Long> columnHash = new LinkedHashSet<>();
         for (ColumnMemberDetailModel detailModel : detailModels){
             if(!userHash.contains(detailModel.getUserId())){
                 userHash.add(detailModel.getUserId());

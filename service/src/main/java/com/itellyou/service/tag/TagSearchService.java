@@ -4,13 +4,13 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface TagSearchService {
 
-    List<TagDetailModel> search(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId,
+    List<TagDetailModel> search(Collection<Long> ids, String name, String mode, Collection<Long> groupIds, Long userId,
                                 Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isPublished, Long ip,
                                 Integer minStar, Integer maxStar,
                                 Integer minQuestion, Integer maxQuestion,
@@ -20,7 +20,7 @@ public interface TagSearchService {
                                 Integer offset,
                                 Integer limit);
 
-    int count(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId, Boolean isDisabled, Boolean isPublished, Long ip,
+    int count(Collection<Long> ids, String name, String mode, Collection<Long> groupIds, Long userId, Boolean isDisabled, Boolean isPublished, Long ip,
               Integer minStar, Integer maxStar,
               Integer minQuestion, Integer maxQuestion,
               Integer minArticle, Integer maxArticle,
@@ -44,10 +44,10 @@ public interface TagSearchService {
                                    Integer offset,
                                    Integer limit);
 
-    List<TagInfoModel> searchChild(HashSet<Long> ids,
+    List<TagInfoModel> searchChild(Collection<Long> ids,
                                    String name,
                                    String mode,
-                                   HashSet<Long> groupIds,
+                                   Collection<Long> groupIds,
                                    Integer childCount,
                                    Long userId,
                                    Boolean isDisabled,

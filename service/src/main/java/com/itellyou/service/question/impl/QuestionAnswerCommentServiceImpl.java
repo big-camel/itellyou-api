@@ -1,18 +1,20 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerCommentDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.AnswerCommentEvent;
 import com.itellyou.model.event.AnswerEvent;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.question.QuestionAnswerCommentModel;
 import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerCommentService;
-import com.itellyou.service.question.QuestionAnswerService;
 import com.itellyou.service.question.QuestionAnswerSingleService;
+import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,23 +25,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "question_answer_comment")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_ANSWER_COMMENT_KEY)
 @Service
 public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionAnswerCommentDao commentDao;
-    private final QuestionAnswerService answerService;
     private final QuestionAnswerSingleService answerSingleService;
     private final OperationalPublisher operationalPublisher;
+    private final QuestionSingleService questionSingleService;
 
     @Autowired
-    public QuestionAnswerCommentServiceImpl(QuestionAnswerCommentDao commentDao, QuestionAnswerService answerService,  QuestionAnswerSingleService answerSingleService, OperationalPublisher operationalPublisher){
+    public QuestionAnswerCommentServiceImpl(QuestionAnswerCommentDao commentDao, QuestionAnswerSingleService answerSingleService, OperationalPublisher operationalPublisher, QuestionSingleService questionSingleService){
         this.commentDao = commentDao;
-        this.answerService = answerService;
         this.answerSingleService = answerSingleService;
         this.operationalPublisher = operationalPublisher;
+        this.questionSingleService = questionSingleService;
     }
 
     @Override
@@ -54,7 +56,10 @@ public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentSe
                 replyCommentModel = commentDao.findById(replyId);
                 if(replyCommentModel == null) throw new Exception("错误的回复ID");
             }
-            QuestionAnswerCommentModel commentModel = new QuestionAnswerCommentModel(null,answerId,parentId,replyId,false,content,html,0,0,0, DateUtils.getTimestamp(),userId, ip,null,null,null);
+            QuestionInfoModel questionInfoModel = questionSingleService.findById(answerModel.getQuestionId());
+            if(questionInfoModel == null) throw new Exception("问题不存在");
+
+            QuestionAnswerCommentModel commentModel = new QuestionAnswerCommentModel(null,answerId,parentId,replyId,false,content,html,0,0,0, DateUtils.toLocalDateTime(),userId, ip,null,null,null);
             int result = commentDao.insert(commentModel);
 
             if(result != 1) throw new Exception("写入评论失败");
@@ -62,8 +67,6 @@ public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentSe
                 result = updateComments(parentId,1);
                 if(result != 1) throw new Exception("更新父级子评论数失败");
             }
-            result = answerService.updateComments(answerId,1);
-            if(result != 1) throw new Exception("更新回答评论数失败");
 
             EntityType notificationType = EntityType.ANSWER;
             Long targetUserId = answerModel.getCreatedUserId();
@@ -74,10 +77,10 @@ public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentSe
             if(sendEvent == true) {
                 OperationalEvent event = notificationType.equals(EntityType.ANSWER) ?
 
-                        new AnswerEvent(this, EntityAction.COMMENT,
-                                commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip) :
+                        new AnswerEvent(this, EntityAction.COMMENT,answerModel.getQuestionId(),questionInfoModel.getCreatedUserId(),
+                                commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip) :
 
-                        new AnswerCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.getTimestamp(), ip);
+                        new AnswerCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip);
                 operationalPublisher.publish(event);
             }
             return commentModel;
@@ -97,7 +100,7 @@ public class QuestionAnswerCommentServiceImpl implements QuestionAnswerCommentSe
         int result = commentDao.updateDeleted(id,isDeleted);
         if(result != 1) return 0;
         operationalPublisher.publish(new AnswerCommentEvent(this, isDeleted ? EntityAction.DELETE : EntityAction.REVERT,
-                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.getTimestamp(),ip));
+                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.toLocalDateTime(),ip));
         return 1;
     }
 

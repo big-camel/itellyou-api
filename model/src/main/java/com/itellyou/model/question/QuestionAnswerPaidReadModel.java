@@ -18,7 +18,7 @@ public class QuestionAnswerPaidReadModel implements CacheEntity {
     private Double freeReadScale;
 
     @Override
-    public String cacheKey() {
-        return answerId.toString();
+    public Long cacheKey() {
+        return answerId;
     }
 }

@@ -3,6 +3,7 @@ package com.itellyou.service.column.impl;
 import com.itellyou.dao.column.ColumnInfoDao;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.column.ColumnMemberModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.event.ColumnEvent;
 import com.itellyou.model.sys.SysPath;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "column")
+@CacheConfig(cacheNames = CacheKeys.COLUMN_KEY)
 @Service
 public class ColumnInfoServiceImpl implements ColumnInfoService {
 
@@ -71,7 +72,7 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
                 if(result != 1) throw new Exception("更新用户专栏数量失败");
 
                 operationalPublisher.publish(new ColumnEvent(this, EntityAction.PUBLISH,
-                        infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getCreatedUserId(), DateUtils.getTimestamp(),infoModel.getCreatedIp()));
+                        infoModel.getId(),infoModel.getCreatedUserId(),infoModel.getCreatedUserId(), DateUtils.toLocalDateTime(),infoModel.getCreatedIp()));
             }
             return result;
         }catch (Exception e){
@@ -129,7 +130,7 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
             if(result != 1) throw new Exception("更新专栏失败");
 
             operationalPublisher.publish(new ColumnEvent(this, EntityAction.UPDATE,
-                    model.getId(),model.getCreatedUserId(),model.getUpdatedUserId(), DateUtils.getTimestamp(),model.getUpdatedIp()));
+                    model.getId(),model.getCreatedUserId(),model.getUpdatedUserId(), DateUtils.toLocalDateTime(),model.getUpdatedIp()));
 
             return result;
         }catch (Exception e){
@@ -154,7 +155,7 @@ public class ColumnInfoServiceImpl implements ColumnInfoService {
             if(result != 1)throw new Exception("更新用户专栏数量失败");
 
             operationalPublisher.publish(new ColumnEvent(this,deleted ? EntityAction.DELETE : EntityAction.REVERT,
-                    id,columnInfoModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                    id,columnInfoModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
 
             return result;
         }catch (Exception e){

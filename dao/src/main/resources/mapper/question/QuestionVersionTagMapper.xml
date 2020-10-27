@@ -22,7 +22,4 @@
             #{versionId}
         </foreach>
     </select>
-    <select id="searchTagId" resultType="Long">
-        select tag from question_version_tag where version=#{versionId}
-    </select>
 </mapper>

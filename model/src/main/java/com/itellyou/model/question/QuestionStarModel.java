@@ -5,6 +5,8 @@ import com.itellyou.util.CacheEntity;
 import com.itellyou.util.annotation.JSONDefault;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -13,7 +15,7 @@ import lombok.*;
 public class QuestionStarModel extends StarModel implements CacheEntity {
     private Long questionId;
 
-    public QuestionStarModel(Long id, Long createdTime, Long userId, Long ip) {
+    public QuestionStarModel(Long id, LocalDateTime createdTime, Long userId, Long ip) {
         super();
         this.questionId = id;
         this.setCreatedUserId(userId);

@@ -10,9 +10,8 @@ import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.service.user.UserDraftService;
-import com.itellyou.util.BrowserUtils;
 import com.itellyou.util.IPUtils;
-import com.itellyou.util.OsUtils;
+import com.itellyou.util.UserAgentUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -51,15 +50,14 @@ public class QuestionController {
         }
         String ip = IPUtils.getClientIp(request);
         Long longIp = IPUtils.toLong(ip);
-        String os = OsUtils.getClientOs(request);
-        String browser = BrowserUtils.getClientBrowser(request);
+        String os = UserAgentUtils.getOs(request);
+        String browser = UserAgentUtils.getBrowser(request);
         if(browser == "Robot/Spider"){
             return new ResultModel(0,"Robot/Spider Error");
         }
         Long userId = userInfo == null ? 0 : userInfo.getId();
-        int result = questionService.updateView(userId,id,longIp,os,browser);
-        if(result == 1) return new ResultModel();
-        return new ResultModel(0,"更新失败");
+        int count = questionService.updateView(userId,id,longIp,os,browser);
+        return new ResultModel(count);
     }
 
     @PostMapping("/{id:\\d+}/adopt")
@@ -67,9 +65,8 @@ public class QuestionController {
         if(userModel == null) return new ResultModel(401,"未登陆");
 
         try{
-            QuestionDetailModel detailModel = answerService.adopt(answerId,userModel.getId(),IPUtils.getClientIp(request));
-            if(detailModel == null ) return new ResultModel(0,"采纳失败");
-            return new ResultModel(detailModel);
+            answerService.adopt(answerId,userModel.getId(),IPUtils.getClientIp(request));
+            return new ResultModel(questionSearchService.getDetail(id));
         }catch (Exception e){
             return new ResultModel(0,e.getMessage());
         }

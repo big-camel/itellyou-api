@@ -22,14 +22,8 @@
             #{column}
         </foreach>
     </select>
-    <select id="searchTagId" resultType="Long">
-        select tag_id from column_tag  where column_id in
-        <foreach collection="columnIds" item="column" separator="," open="(" close=")" >
-            #{column}
-        </foreach>
-    </select>
-    <select id="searchColumnId" resultType="Long">
-        select column_id from column_tag where tag_id in
+    <select id="searchColumns" resultType="ColumnTagModel">
+        select column_id,tag_id from column_tag where tag_id in
         <foreach collection="tagIds" item="tag" separator="," open="(" close=")" >
             #{tag}
         </foreach>

@@ -27,18 +27,19 @@ public class SysSettingController {
     }
 
     @PostMapping("")
-    public ResultModel edit(@RequestBody Map<String,Object> params){
+    public ResultModel edit(@RequestBody Map<String,Object> args){
         try {
+            Params params = new Params(args);
             SysSettingModel settingModel = new SysSettingModel();
-            String key = Params.getOrDefault(params, "key", null);
+            String key = params.get( "key");
             if (StringUtils.isEmpty(key)) return new ResultModel(500, "错误的key");
-            String name = Params.getOrDefault(params, "name", null);
-            String logo = Params.getOrDefault(params, "logo", null);
-            String icpText = Params.getOrDefault(params, "icp_text", null);
-            String copyright = Params.getOrDefault(params, "copyright", null);
-            String companyName = Params.getOrDefault(params, "company_name", null);
-            String userAgreementLink = Params.getOrDefault(params, "user_agreement_link", null);
-            String footerScripts = Params.getOrDefault(params, "footer_scripts", null);
+            String name = params.get( "name");
+            String logo = params.get( "logo");
+            String icpText = params.get( "icp_text");
+            String copyright = params.get( "copyright");
+            String companyName = params.get( "company_name");
+            String userAgreementLink = params.get( "user_agreement_link");
+            String footerScripts = params.get( "footer_scripts");
             settingModel.setKey(key);
             settingModel.setName(name);
             settingModel.setLogo(logo);

@@ -9,7 +9,7 @@ import org.apache.lucene.document.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 @Service
 public class UserIndexServiceImpl extends IndexServiceImpl<UserDetailModel> {
@@ -47,12 +47,7 @@ public class UserIndexServiceImpl extends IndexServiceImpl<UserDetailModel> {
 
     @Override
     public UserIndexModel getModel(Document document) {
-        UserIndexModel model = new UserIndexModel();
-        String id = document.get("id");
-        model.setId(StringUtils.isNotEmpty(id) ? Long.parseLong(id) : 0);
-        model.setName(document.get("name"));
-        model.setDescription(document.get("description"));
-        return model;
+        return new UserIndexModel(document);
     }
 
     @Override
@@ -70,7 +65,7 @@ public class UserIndexServiceImpl extends IndexServiceImpl<UserDetailModel> {
 
     @Override
     @Async
-    public void updateIndex(HashSet<Long> ids) {
+    public void updateIndex(Collection<Long> ids) {
         update(searchService.search(ids,null,null,null,null
                 ,null,null,null,null,null,null,null));
     }

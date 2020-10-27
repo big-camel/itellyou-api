@@ -89,12 +89,12 @@ public class ExceptionHandle {
     /**
      * 处理未定义的其他异常信息
      *
-     * @param request
      * @param exception
      * @return
      */
     @ExceptionHandler(value = Exception.class)
-    public ResultModel exceptionHandler(HttpServletRequest request, Exception exception) {
+    public ResultModel exceptionHandler(Exception exception) {
+        exception.printStackTrace();
         String message = exception.getMessage();
         if(message == null)
             message = "系统错误";

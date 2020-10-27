@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +17,9 @@ public interface SoftwareCommentDao {
 
     SoftwareCommentModel findById(Long id);
 
-    List<SoftwareCommentModel> search(@Param("ids") HashSet<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
+    List<SoftwareCommentModel> search(@Param("ids") Collection<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") Collection<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                                      @Param("isDeleted") Boolean isDeleted,
-                                     @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+                                     @Param("minComment") Integer minComment, @Param("maxComment") Integer maxComment,
                                      @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                                      @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
                                      @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -28,17 +28,17 @@ public interface SoftwareCommentDao {
                                      @Param("offset") Integer offset,
                                      @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
+    int count(@Param("ids") Collection<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") Collection<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
               @Param("isDeleted") Boolean isDeleted,
-              @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+              @Param("minComment") Integer minComment, @Param("maxComment") Integer maxComment,
               @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
               @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
               @Param("ip") Long ip);
 
-    List<SoftwareCommentModel> searchChild(@Param("ids") HashSet<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") HashSet<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
+    List<SoftwareCommentModel> searchChild(@Param("ids") Collection<Long> ids, @Param("softwareId") Long softwareId, @Param("parentIds") Collection<Long> parentIds, @Param("replyId") Long replyId, @Param("userId") Long userId,
                                           @Param("isDeleted") Boolean isDeleted, @Param("childCount") Integer childCount,
-                                          @Param("minComments") Integer minComments, @Param("maxComments") Integer maxComments,
+                                          @Param("minComment") Integer minComment, @Param("maxComment") Integer maxComment,
                                           @Param("minSupport") Integer minSupport, @Param("maxSupport") Integer maxSupport,
                                           @Param("minOppose") Integer minOppose, @Param("maxOppose") Integer maxOppose,
                                           @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

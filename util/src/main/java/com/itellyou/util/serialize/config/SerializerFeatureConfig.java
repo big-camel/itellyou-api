@@ -12,7 +12,8 @@ public class SerializerFeatureConfig {
                 SerializerFeature.WriteDateUseDateFormat,
                 //禁止循环引用
                 SerializerFeature.DisableCircularReferenceDetect,
-                SerializerFeature.WriteEnumUsingToString
+                SerializerFeature.WriteEnumUsingToString,
+                SerializerFeature.UseISO8601DateFormat
         };
     }
 }

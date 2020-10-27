@@ -1,47 +1,26 @@
 package com.itellyou.model.question;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.user.UserInfoModel;
+import com.itellyou.model.common.VersionModel;
 import com.itellyou.util.CacheEntity;
-import com.itellyou.util.serialize.IpDeserializer;
-import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionAnswerVersionModel implements CacheEntity {
-    private Long id;
+public class QuestionAnswerVersionModel extends VersionModel implements CacheEntity {
     private Long answerId = 0l;
-    private String content = "";
-    private String html = "";
-    private String description = "";
-    private Integer version = 0;
-    private boolean isReviewed = false;
-    private boolean isDisabled = false;
-    private boolean isPublished = false;
-    private String remark;
-    private String saveType;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long createdTime;
-    @JSONField(serialize = false)
-    private Long createdUserId;
-    private UserInfoModel author;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long createdIp;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class)
-    private Long updatedTime;
-    @JSONField(serialize = false)
-    private Long updatedUserId;
-    @JSONField(serialize = false,serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
-    private Long updatedIp;
+
+    public QuestionAnswerVersionModel(Long id, Long answerId, String content, String html, String description, Integer version, Boolean isReviewed, Boolean isDisabled, Boolean isPublished, String remark, String saveType, LocalDateTime createdTime, Long createdUserId, Long createdIp, LocalDateTime updatedTime, Long updatedUserId, Long updatedIp){
+        super(id,content,html,description,version,isReviewed,isDisabled,isPublished,remark,saveType,createdTime,createdUserId,createdIp,updatedTime,updatedUserId,updatedIp);
+        this.answerId = answerId;
+    }
 
     @Override
     public String cacheKey() {
-        return id.toString();
+        return answerId + "-" + super.getVersion();
     }
 }

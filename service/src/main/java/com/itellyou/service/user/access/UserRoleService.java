@@ -30,4 +30,6 @@ public interface UserRoleService {
               Long userId,
               Long beginTime, Long endTime,
               Long ip);
+
+    boolean isRoot(Long userId);
 }

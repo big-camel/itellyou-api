@@ -56,7 +56,7 @@ public class IndexFactory {
         return instance;
     }
 
-    public static IndexService create(EntityType type){
+    public IndexService create(EntityType type){
         IndexFactory indexFactory = IndexFactory.getInstance();
         if(type.equals(EntityType.ARTICLE))
             return indexFactory.articleIndexService;

@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -15,7 +17,7 @@ import lombok.ToString;
 @JSONDefault(includes = "base")
 public class TagStarModel extends StarModel implements CacheEntity {
     private Long tagId;
-    public TagStarModel(Long id, Long createdTime, Long userId, Long ip) {
+    public TagStarModel(Long id, LocalDateTime createdTime, Long userId, Long ip) {
         super();
         this.tagId = id;
         this.setCreatedUserId(userId);

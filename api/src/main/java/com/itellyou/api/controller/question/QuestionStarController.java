@@ -51,7 +51,7 @@ public class QuestionStarController {
         if(userModel.isDisabled()) return new ResultModel(0,"错误的用户状态");
         String clientIp = IPUtils.getClientIp(request);
         Long ip = IPUtils.toLong(clientIp);
-        QuestionStarModel starModel = new QuestionStarModel(id, DateUtils.getTimestamp(),userModel.getId(),ip);
+        QuestionStarModel starModel = new QuestionStarModel(id, DateUtils.toLocalDateTime(),userModel.getId(),ip);
         try{
             int result = starService.insert(starModel);
             if(result != 1) throw new Exception("关注失败");

@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerPaidReadDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.QuestionAnswerPaidReadModel;
 import com.itellyou.model.question.QuestionInfoModel;
 import com.itellyou.model.sys.EntityAction;
@@ -9,29 +10,29 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserStarDetailModel;
 import com.itellyou.service.question.QuestionAnswerPaidReadSearchService;
 import com.itellyou.service.question.QuestionSingleService;
-import com.itellyou.service.user.bank.UserBankLogService;
+import com.itellyou.service.user.bank.UserBankLogSingleService;
 import com.itellyou.service.user.star.UserStarSearchService;
 import com.itellyou.util.RedisUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
-@CacheConfig(cacheNames = "question_answer_paid_read")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_ANSWER_PAID_READ)
 @Service
 public class QuestionAnswerPaidReadSearchServiceImpl implements QuestionAnswerPaidReadSearchService {
 
     private final QuestionAnswerPaidReadDao articlePaidReadDao;
     private final UserStarSearchService userStarService;
-    private final UserBankLogService bankLogService;
+    private final UserBankLogSingleService bankLogSingleService;
     private final QuestionSingleService questionSingleService;
 
-    public QuestionAnswerPaidReadSearchServiceImpl(QuestionAnswerPaidReadDao articlePaidReadDao, UserStarSearchService userStarService, UserBankLogService bankLogService, QuestionSingleService questionSingleService) {
+    public QuestionAnswerPaidReadSearchServiceImpl(QuestionAnswerPaidReadDao articlePaidReadDao, UserStarSearchService userStarService, UserBankLogSingleService bankLogSingleService, QuestionSingleService questionSingleService) {
         this.articlePaidReadDao = articlePaidReadDao;
         this.userStarService = userStarService;
-        this.bankLogService = bankLogService;
+        this.bankLogSingleService = bankLogSingleService;
         this.questionSingleService = questionSingleService;
     }
 
@@ -56,7 +57,7 @@ public class QuestionAnswerPaidReadSearchServiceImpl implements QuestionAnswerPa
             }
             // 如果设置了需要付费，则查询是否有付费记录
             if(paidReadModel.getPaidToRead()){
-                List<UserBankLogModel> logModels = bankLogService.search(null,paidReadModel.getPaidType(), EntityAction.PAYMENT, EntityType.ANSWER,paidReadModel.getAnswerId().toString(),userId,null,null,null,null,null,null);
+                List<UserBankLogModel> logModels = bankLogSingleService.search(null,paidReadModel.getPaidType(), EntityAction.PAYMENT, EntityType.ANSWER,paidReadModel.getAnswerId().toString(),userId,null,null,null,null,null,null);
                 return logModels != null && logModels.size() > 0 && logModels.get(0).getAmount() < 0;
             }else return false;
         }
@@ -64,8 +65,8 @@ public class QuestionAnswerPaidReadSearchServiceImpl implements QuestionAnswerPa
     }
 
     @Override
-    public List<QuestionAnswerPaidReadModel> search(HashSet<Long> answerIds) {
-        return RedisUtils.fetchByCache("question_answer_paid_read", QuestionAnswerPaidReadModel.class,answerIds,(HashSet<Long> fetchIds) ->
+    public List<QuestionAnswerPaidReadModel> search(Collection<Long> answerIds) {
+        return RedisUtils.fetch(CacheKeys.QUESTION_ANSWER_PAID_READ, QuestionAnswerPaidReadModel.class,answerIds,(Collection<Long> fetchIds) ->
                 articlePaidReadDao.search(fetchIds)
         );
     }

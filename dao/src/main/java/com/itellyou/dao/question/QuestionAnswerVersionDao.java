@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +16,7 @@ public interface QuestionAnswerVersionDao {
 
     Integer findVersionById(Long id);
 
-    QuestionAnswerVersionModel findByAnswerIdAndVersion(@Param("answerId") Long answerId,@Param("version") Integer version);
-
-    List<QuestionAnswerVersionModel> search(@Param("ids") HashSet<Long> ids, @Param("answerMap") Map<Long,Integer> answerMap,
+    List<QuestionAnswerVersionModel> search(@Param("ids") Collection<Long> ids, @Param("answerMap") Map<Long,Integer> answerMap,
                                       @Param("userId") Long userId,
                                       @Param("hasContent") Boolean hasContent,
                                       @Param("isReviewed") Boolean isReview,
@@ -31,7 +29,7 @@ public interface QuestionAnswerVersionDao {
                                       @Param("offset") Integer offset,
                                       @Param("limit") Integer limit);
 
-    Integer count(@Param("ids") HashSet<Long> ids,
+    Integer count(@Param("ids") Collection<Long> ids,
                   @Param("answerMap") Map<Long,Integer> answerMap,
                      @Param("userId") Long userId,
                      @Param("isReviewed") Boolean isReview,

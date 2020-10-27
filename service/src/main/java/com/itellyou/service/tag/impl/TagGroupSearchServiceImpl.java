@@ -31,12 +31,12 @@ public class TagGroupSearchServiceImpl implements TagGroupSearchService {
     }
 
     @Override
-    public List<TagGroupDetailModel> search(HashSet<Long> ids, Long userId, Integer childCount, Long ip, Boolean isDisabled, Boolean isPublished, Integer minTagCount, Integer maxTagCount, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+    public List<TagGroupDetailModel> search(Collection<Long> ids, Long userId, Integer childCount, Long ip, Boolean isDisabled, Boolean isPublished, Integer minTagCount, Integer maxTagCount, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
         List<TagGroupModel> groupModels = singleService.search(ids,userId,ip,isDisabled,isPublished,minTagCount,maxTagCount,beginTime,endTime,order,offset,limit);
         List<TagGroupDetailModel> detailModels = new LinkedList<>();
-
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
+        if(groupModels.size() == 0) return detailModels;
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
         for (TagGroupModel infoModel : groupModels){
             TagGroupDetailModel detailModel = new TagGroupDetailModel(infoModel);
 
@@ -52,11 +52,11 @@ public class TagGroupSearchServiceImpl implements TagGroupSearchService {
         List<TagDetailModel> tagDetailModels = new LinkedList<>();
         if(childCount > 0){
             List<TagInfoModel> tagInfoModels = tagSearchService.searchChild(null,null,null,fetchIds,childCount,null,isDisabled,isPublished,null,null,null,null,null,null,null,null,null,null);
-            HashSet<Long> tagIds = new LinkedHashSet<>();
+            Collection<Long> tagIds = new LinkedHashSet<>();
             for (TagInfoModel tagInfoModel : tagInfoModels){
                 tagIds.add(tagInfoModel.getId());
             }
-            tagDetailModels = tagSearchService.search(tagIds,null,null,null,null,null,null,null,null,null,null,null,null,null
+            tagDetailModels = tagSearchService.search(tagIds,null,null,null,null,null,false,null,null,null,null,null,null,null
             ,null,null,null,null,null,null,null);
         }
         for(TagGroupDetailModel detailModel : detailModels){
@@ -80,7 +80,7 @@ public class TagGroupSearchServiceImpl implements TagGroupSearchService {
     }
 
     @Override
-    public PageModel<TagGroupDetailModel> page(HashSet<Long> ids,
+    public PageModel<TagGroupDetailModel> page(Collection<Long> ids,
                                                Long userId,
                                                Integer childCount,
                                                Long ip,
@@ -98,7 +98,7 @@ public class TagGroupSearchServiceImpl implements TagGroupSearchService {
     }
 
     @Override
-    public int count(HashSet<Long> ids, Long userId, Long ip,Boolean isDisabled,Boolean isPublished, Integer minTagCount, Integer maxTagCount, Long beginTime, Long endTime) {
+    public int count(Collection<Long> ids, Long userId, Long ip,Boolean isDisabled,Boolean isPublished, Integer minTagCount, Integer maxTagCount, Long beginTime, Long endTime) {
         return groupDao.count(ids,userId,ip,isDisabled,isPublished,minTagCount,maxTagCount,beginTime,endTime);
     }
 }

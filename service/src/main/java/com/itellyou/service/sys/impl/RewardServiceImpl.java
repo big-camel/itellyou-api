@@ -1,8 +1,14 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.event.AnswerEvent;
+import com.itellyou.model.event.ArticleEvent;
 import com.itellyou.model.event.OperationalEvent;
+import com.itellyou.model.event.SoftwareEvent;
+import com.itellyou.model.question.QuestionAnswerDetailModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.EntityAction;
+import com.itellyou.model.sys.EntityDataModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.RewardLogModel;
 import com.itellyou.model.user.UserBankLogModel;
@@ -23,7 +29,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 @Service
 public class RewardServiceImpl implements RewardService {
@@ -50,11 +55,12 @@ public class RewardServiceImpl implements RewardService {
     @Transactional
     public RewardLogModel doReward(UserBankType bankType, Double amount, EntityType dataType, Long dataKey, Long userId, Long ip) throws Exception {
         try{
-            Map<EntityType, HashSet<Long>> entityMap = new HashMap<>();
-            entityMap.put(dataType,new HashSet<Long>(){{ add(dataKey);}});
-            Map<EntityType,Map<Long ,Object>> dataMap = entityService.find(entityMap,null,0);
-            if(dataMap == null || !dataMap.containsKey(dataType) || dataMap.get(dataType) == null || !dataMap.get(dataType).containsKey(dataKey) || dataMap.get(dataType).get(dataKey) == null) throw new Exception("错误的打赏的目标 ");
-            Object targetData = dataMap.get(dataType).get(dataKey);
+            EntityDataModel dataModel = entityService.search(dataType,new HashMap<String,Object>(){{
+                put("hasContent",false);
+                put("ids",new HashSet<Long>(){{ add(dataKey);}});
+            }});
+            Object targetData = dataModel.get(dataType,dataKey);
+            if(targetData == null) throw new Exception("错误的打赏的目标 ");
             Class clazz = targetData.getClass();
             Field field = null;
             while (clazz != null) {
@@ -75,7 +81,7 @@ public class RewardServiceImpl implements RewardService {
             UserBankLogModel targetBankLogModel = bankService.update(Math.abs(amount),bankType,EntityAction.REWARD,dataType,dataKey.toString(),targetUserId,"收到打赏",ip);
             if(targetBankLogModel == null) throw new Exception("收款失败");
 
-            RewardLogModel logModel = new RewardLogModel(null,bankType,dataType,dataKey,amount,targetUserId,userId, DateUtils.getTimestamp(),ip);
+            RewardLogModel logModel = new RewardLogModel(null,bankType,dataType,dataKey,amount,targetUserId,userId, DateUtils.toLocalDateTime(),ip);
             int result = logService.insert(logModel);
             if(result != 1) throw new Exception("记录日志失败");
 
@@ -90,20 +96,29 @@ public class RewardServiceImpl implements RewardService {
                 typePrefix = " ";
             }
 
+            OperationalModel operationalModel = new OperationalModel(EntityAction.REWARD, dataType, dataKey, targetUserId, userId, DateUtils.toLocalDateTime(), ip);
+            OperationalEvent event = new OperationalEvent(this, operationalModel,"amount",amount);
             if(dataType.equals(EntityType.ARTICLE)){
                 String html = new StringBuilder("<p>我刚刚打赏了这篇文章").append(typePrefix).append(amount).append(typeSuffix).append("，也推荐给你。</p>").toString();
                 articleCommentService.insert(dataKey,0l,0l,html,html,userId,ip,false);
+                event = new ArticleEvent(this,EntityAction.REWARD,dataKey,targetUserId, userId, DateUtils.toLocalDateTime(), ip);
             }
             else if(dataType.equals(EntityType.ANSWER)){
                 String html = new StringBuilder("<p>我刚刚打赏了这个回答").append(typePrefix).append(amount).append(typeSuffix).append("，也推荐给你。</p>").toString();
                 answerCommentService.insert(dataKey,0l,0l,html,html,userId,ip,false);
+                QuestionAnswerDetailModel answerDetailModel = (QuestionAnswerDetailModel)targetData;
+                QuestionDetailModel questionDetailModel = answerDetailModel.getQuestion();
+                event = new AnswerEvent(this,EntityAction.REWARD,answerDetailModel.getQuestionId(),questionDetailModel != null ? questionDetailModel.getCreatedUserId() : 0l,dataKey,targetUserId, userId, DateUtils.toLocalDateTime(), ip);
             }else if(dataType.equals(EntityType.SOFTWARE)){
                 String html = new StringBuilder("<p>我刚刚打赏了").append(typePrefix).append(amount).append(typeSuffix).append("，也推荐给你。</p>").toString();
                 softwareCommentService.insert(dataKey,0l,0l,html,html,userId,ip,false);
+                event = new SoftwareEvent(this,EntityAction.REWARD,dataKey,targetUserId, userId, DateUtils.toLocalDateTime(), ip);
             }
             if(bankType.equals(UserBankType.CASH)) {
-                OperationalModel operationalModel = new OperationalModel(EntityAction.REWARD, dataType, dataKey, targetUserId, userId, DateUtils.getTimestamp(), ip);
-                operationalPublisher.publish(new OperationalEvent(this, operationalModel));
+                event.setArgs(new HashMap<String, Object>(){{
+                    put("amount",amount);
+                }});
+                operationalPublisher.publish(event);
             }
             return logModel;
         }catch (Exception e){

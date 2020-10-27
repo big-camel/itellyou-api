@@ -1,6 +1,5 @@
 package com.itellyou.api.config;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import com.itellyou.model.user.UserInfoModel;
@@ -46,7 +45,7 @@ public class WebConfig implements WebMvcConfigurer {
         converter.setDefaultCharset(StandardCharsets.UTF_8);
 
         FastJsonConfig config = new FastJsonConfig();
-        JSON.DEFFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+        config.setDateFormat("yyyy-MM-dd HH:mm:ss");
         config.setSerializeFilters(new UnderScoreNameFilter());
         config.setSerializerFeatures(SerializerFeatureConfig.getDefault());
 

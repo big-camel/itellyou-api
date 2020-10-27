@@ -1,12 +1,13 @@
 package com.itellyou.service.software;
 
-import com.itellyou.model.article.ArticleInfoModel;
-import com.itellyou.model.article.ArticleSourceType;
+import com.itellyou.model.common.DataUpdateStepModel;
 import com.itellyou.model.software.SoftwareInfoModel;
 import com.itellyou.model.sys.VoteType;
 
 public interface SoftwareInfoService {
     int insert(SoftwareInfoModel softwareInfoModel);
+
+    int addStep(DataUpdateStepModel... models);
 
     int updateView(Long userId, Long id, Long ip, String os, String browser);
 

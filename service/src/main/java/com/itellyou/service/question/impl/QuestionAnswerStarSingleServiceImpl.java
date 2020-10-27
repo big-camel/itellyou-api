@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionAnswerStarDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.question.QuestionAnswerStarModel;
 import com.itellyou.service.question.QuestionAnswerStarSingleService;
 import com.itellyou.util.RedisUtils;
@@ -8,10 +9,11 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@CacheConfig(cacheNames = "question_answer_star")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_ANSWER_STAR_KEY)
 @Service
 public class QuestionAnswerStarSingleServiceImpl implements QuestionAnswerStarSingleService {
 
@@ -29,9 +31,10 @@ public class QuestionAnswerStarSingleServiceImpl implements QuestionAnswerStarSi
     }
 
     @Override
-    public List<QuestionAnswerStarModel> search(HashSet<Long> answerIds, Long userId) {
-        return RedisUtils.fetchByCache("question_answer_star_" + userId,QuestionAnswerStarModel.class,answerIds,(HashSet<Long> fetchIds) ->
-                starDao.search(fetchIds,userId,null,null,null,null,null,null)
-                ,(QuestionAnswerStarModel voteModel, Long id) -> id != null && voteModel.cacheKey().equals(id.toString() + "-" + userId));
+    public List<QuestionAnswerStarModel> search(Collection<Long> answerIds, Long userId) {
+        return RedisUtils.fetch(CacheKeys.QUESTION_ANSWER_STAR_KEY,QuestionAnswerStarModel.class,answerIds,(Collection<Long> fetchIds) ->
+                starDao.search(fetchIds,userId,null,null,null,null,null,null),
+                id -> id + "-" + userId,
+                model -> model.cacheKey());
     }
 }

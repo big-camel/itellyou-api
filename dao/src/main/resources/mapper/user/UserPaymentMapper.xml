@@ -46,8 +46,11 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="id != null">
-                and ${alias}id = #{id}
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
             <if test="status != null">
                 and ${alias}status = #{status}
@@ -65,15 +68,8 @@
         <include refid="columns">
             <property name="alias" value="up."/>
             <property name="prefix" value=""/>
-        </include>,
-        <include refid="com.itellyou.dao.user.UserInfoDao.columns">
-            <property name="alias" value="u."/>
-            <property name="prefix" value="u_"/>
-        </include>,
-        p.path u_path
+        </include>
         from user_payment up
-        left join user_info u on up.created_user_id = u.id
-        left join sys_path p on p.id = u.id and p.type = 1
         <include refid="where">
             <property name="alias" value="up."/>
         </include>

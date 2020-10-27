@@ -5,6 +5,7 @@ import com.alipay.api.response.AlipaySystemOauthTokenResponse;
 import com.alipay.api.response.AlipayUserInfoShareResponse;
 import com.itellyou.dao.thirdparty.ThirdAccountDao;
 import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
@@ -28,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "user_third_account")
+@CacheConfig(cacheNames = CacheKeys.USER_THIRD_ACCOUNT_KEY)
 @Service
 public class ThirdAccountServiceImpl implements ThirdAccountService {
 
@@ -68,7 +69,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
                 entityType = EntityType.ALIPAY;
             else return result;
 
-            OperationalModel operationalModel = new OperationalModel(EntityAction.UNBIND, entityType,userId,userId,userId,DateUtils.getTimestamp(), ip);
+            OperationalModel operationalModel = new OperationalModel(EntityAction.UNBIND, entityType,userId,userId,userId,DateUtils.toLocalDateTime(), ip);
             operationalPublisher.publish(new OperationalEvent(this,operationalModel));
         }
         return result;
@@ -122,7 +123,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
         logModel.setType(ThirdAccountType.ALIPAY);
         logModel.setCreatedUserId(userId);
         logModel.setCreatedIp(ip);
-        logModel.setCreatedTime(DateUtils.getTimestamp());
+        logModel.setCreatedTime(DateUtils.toLocalDateTime());
         logModel.setRedirectUri(redirectUri);
         int result = logService.insert(logModel);
         if(result != 1) throw new Exception("生成链接失败");
@@ -143,7 +144,7 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
         logModel.setType(ThirdAccountType.GITHUB);
         logModel.setCreatedUserId(userId);
         logModel.setCreatedIp(ip);
-        logModel.setCreatedTime(DateUtils.getTimestamp());
+        logModel.setCreatedTime(DateUtils.toLocalDateTime());
         logModel.setRedirectUri(redirectUri);
         int result = logService.insert(logModel);
         if(result != 1) throw new Exception("生成链接失败");
@@ -173,10 +174,10 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
         accountModel.setKey(shareResponse.getUserId());
         accountModel.setAvatar(shareResponse.getAvatar());
         accountModel.setCreatedIp(ip);
-        accountModel.setCreatedTime(DateUtils.getTimestamp());
+        accountModel.setCreatedTime(DateUtils.toLocalDateTime());
         int result = this.insert(accountModel);
         if(result == 1){
-            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.ALIPAY,userId,userId,userId,DateUtils.getTimestamp(), ip);
+            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.ALIPAY,userId,userId,userId,DateUtils.toLocalDateTime(), ip);
             operationalPublisher.publish(new OperationalEvent(this,operationalModel));
         }
         return result;
@@ -205,10 +206,10 @@ public class ThirdAccountServiceImpl implements ThirdAccountService {
         accountModel.setHome(jsonObject.getString("html_url"));
         accountModel.setStar(jsonObject.getLong("followers"));
         accountModel.setCreatedIp(ip);
-        accountModel.setCreatedTime(DateUtils.getTimestamp());
+        accountModel.setCreatedTime(DateUtils.toLocalDateTime());
         int result = this.insert(accountModel);
         if(result == 1){
-            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.GITHUB,userId,userId,userId,DateUtils.getTimestamp(), ip);
+            OperationalModel operationalModel = new OperationalModel(EntityAction.BIND, EntityType.GITHUB,userId,userId,userId,DateUtils.toLocalDateTime(), ip);
             operationalPublisher.publish(new OperationalEvent(this,operationalModel));
         }
         return result;

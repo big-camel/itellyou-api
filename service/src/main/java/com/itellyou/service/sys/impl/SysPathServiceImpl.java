@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.SysPathDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.service.sys.SysPathService;
@@ -11,10 +12,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
-@CacheConfig(cacheNames = "sys_path")
+@CacheConfig(cacheNames = CacheKeys.SYS_PATH_KEY)
 @Service
 public class SysPathServiceImpl implements SysPathService {
 
@@ -50,8 +51,9 @@ public class SysPathServiceImpl implements SysPathService {
     }
 
     @Override
-    public List<SysPathModel> search(SysPath type, HashSet<Long> ids) {
-        return RedisUtils.fetchByCache("sys_path",SysPathModel.class,ids,(HashSet<Long> fetchIds) -> pathDao.search(type,fetchIds),
-                (SysPathModel model, Long id) -> id != null && model.cacheKey().equals(id.toString() + "-" + type.getName()));
+    public List<SysPathModel> search(SysPath type, Collection<Long> ids) {
+        return RedisUtils.fetch(CacheKeys.SYS_PATH_KEY,SysPathModel.class,ids,(Collection<Long> fetchIds) -> pathDao.search(type,fetchIds),
+                id -> id + "-" + type.getName(),
+                SysPathModel::cacheKey);
     }
 }

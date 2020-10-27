@@ -2,16 +2,19 @@ package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleVersionTagDao;
 import com.itellyou.model.article.ArticleVersionTagModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.service.article.ArticleVersionTagService;
+import com.itellyou.util.RedisUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service
-@CacheConfig(cacheNames = "article_version_tag")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_VERSION_TAG_KEY)
 public class ArticleVersionTagServiceImpl implements ArticleVersionTagService {
 
     private final ArticleVersionTagDao versionTagDao;
@@ -28,7 +31,7 @@ public class ArticleVersionTagServiceImpl implements ArticleVersionTagService {
 
     @Override
     @CacheEvict(key = "#versionId")
-    public int addAll(Long versionId, HashSet<Long> tagIds) {
+    public int addAll(Long versionId, Collection<Long> tagIds) {
         return versionTagDao.addAll(versionId,tagIds);
     }
 
@@ -45,21 +48,9 @@ public class ArticleVersionTagServiceImpl implements ArticleVersionTagService {
     }
 
     @Override
-    public Map<Long, List<ArticleVersionTagModel>> searchTags(HashSet<Long> versionIds) {
-        List<ArticleVersionTagModel> models = versionTagDao.searchTags(versionIds);
-        Map<Long, List<ArticleVersionTagModel>> map = new LinkedHashMap<>();
-        for (ArticleVersionTagModel model : models){
-            if(!map.containsKey(model.getVersion())){
-                map.put(model.getVersion(),new LinkedList<>());
-            }
-            map.get(model.getVersion()).add(model);
-        }
-        return map;
-    }
-
-    @Override
-    @Cacheable(unless = "#result == null")
-    public HashSet<Long> searchTagId(Long versionId) {
-        return versionTagDao.searchTagId(versionId);
+    public Map<Long, List<ArticleVersionTagModel>> searchTags(Collection<Long> versionIds) {
+        return RedisUtils.fetch(CacheKeys.ARTICLE_VERSION_TAG_KEY,versionIds,
+                (Collection<Long> fetchIds) -> versionTagDao.searchTags(fetchIds),
+                ArticleVersionTagModel::getVersion);
     }
 }

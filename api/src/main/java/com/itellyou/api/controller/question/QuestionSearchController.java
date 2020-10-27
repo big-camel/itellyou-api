@@ -1,18 +1,22 @@
 package com.itellyou.api.controller.question;
 
+import com.itellyou.model.common.IndexModel;
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.question.QuestionAnswerModel;
+import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.question.QuestionIndexModel;
 import com.itellyou.model.tag.TagStarDetailModel;
 import com.itellyou.model.tag.TagStarModel;
 import com.itellyou.model.user.UserInfoModel;
-import com.itellyou.service.common.impl.IndexFactory;
 import com.itellyou.service.common.IndexService;
 import com.itellyou.service.common.StarService;
+import com.itellyou.service.common.impl.IndexFactory;
+import com.itellyou.service.question.QuestionAnswerSingleService;
 import com.itellyou.service.question.QuestionSearchService;
 import com.itellyou.service.tag.impl.TagStarServiceImpl;
+import com.itellyou.service.user.UserDraftService;
+import com.itellyou.util.Params;
 import com.itellyou.util.ansj.AnsjAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -33,13 +37,17 @@ import java.util.*;
 @RequestMapping("/question")
 public class QuestionSearchController {
 
-    private final IndexService<QuestionDetailModel> questionIndexService;
     private final QuestionSearchService questionSearchService;
     private final StarService<TagStarModel> tagStarService;
+    private final QuestionAnswerSingleService answerSingleService;
+    private final UserDraftService draftService;
+    private final IndexFactory indexFactory;
 
     @Autowired
-    public QuestionSearchController(QuestionSearchService questionSearchService, TagStarServiceImpl tagStarService){
-        this.questionIndexService = IndexFactory.create(EntityType.QUESTION);
+    public QuestionSearchController(QuestionSearchService questionSearchService, TagStarServiceImpl tagStarService, QuestionAnswerSingleService answerSingleService, UserDraftService draftService, IndexFactory indexFactory){
+        this.answerSingleService = answerSingleService;
+        this.draftService = draftService;
+        this.indexFactory = indexFactory;
         this.questionSearchService = questionSearchService;
         this.tagStarService = tagStarService;
     }
@@ -60,10 +68,10 @@ public class QuestionSearchController {
             case "hot":
                 order = new HashMap<>();
 
-                order.put("support","desc");
-                order.put("answers","desc");
-                order.put("comments","desc");
-                order.put("view","desc");
+                order.put("support_count","desc");
+                order.put("answer_count","desc");
+                order.put("comment_count","desc");
+                order.put("view_count","desc");
                 order.put("star_count","desc");
                 data = questionSearchService.page(searchUserId,userId,true,false,false,null,true,child, null,null,null,null,null,null,1,null,10,null,null,null,null,null,null,null,null,null,order,offset,limit);
                 break;
@@ -88,11 +96,26 @@ public class QuestionSearchController {
     }
 
     @GetMapping("/{id:\\d+}")
-    public ResultModel detail(UserInfoModel userModel, @PathVariable Long id){
+    public ResultModel detail(UserInfoModel userModel, @PathVariable Long id,@RequestParam Map args){
+        Params params = new Params(args);
         Long searchUserId = userModel == null ? null : userModel.getId();
         QuestionDetailModel detailModel = questionSearchService.getDetail(id,(Long)null,searchUserId);
         if(detailModel == null|| detailModel.isDeleted() || detailModel.isDisabled()) return  new ResultModel(404,"错误的编号");
-        return new ResultModel(detailModel);
+        //获取用户的回答
+        Map<String,Object> userAnswerMap = null;
+        if(userModel != null && params.getInclude().contains("user_answer")){
+            QuestionAnswerModel answerModel = answerSingleService.findByQuestionIdAndUserId(id,userModel.getId(),"draft");
+            if(answerModel != null && !answerModel.isDisabled()){
+                userAnswerMap = new HashMap<>();
+                boolean result = draftService.exists(userModel.getId(), EntityType.ANSWER,answerModel.getId());
+                userAnswerMap.put("published",answerModel.isPublished());
+                userAnswerMap.put("deleted",answerModel.isDeleted());
+                userAnswerMap.put("adopted",answerModel.isAdopted());
+                userAnswerMap.put("id",answerModel.getId());
+                userAnswerMap.put("draft",result);
+            }
+        }
+        return new ResultModel(detailModel).extend("user_answer",userAnswerMap);
     }
 
     @GetMapping("/related")
@@ -104,7 +127,8 @@ public class QuestionSearchController {
         if(detailModel == null) return new ResultModel(404,"未知的提问");
         try {
             String[] fields = {"title", "content"};
-            IndexSearcher searcher = new IndexSearcher(questionIndexService.getIndexReader());
+            IndexService indexService = indexFactory.create(EntityType.QUESTION);
+            IndexSearcher searcher = new IndexSearcher(indexService.getIndexReader());
             Analyzer analyzer = new AnsjAnalyzer(AnsjAnalyzer.TYPE.query_ansj);
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, analyzer);
 
@@ -125,7 +149,7 @@ public class QuestionSearchController {
                 if (index >= topDocs.scoreDocs.length) break;
                 ScoreDoc doc = topDocs.scoreDocs[index];
                 Document document = searcher.doc(doc.doc);
-                QuestionIndexModel docData = (QuestionIndexModel)questionIndexService.getModel(document);
+                IndexModel docData = indexService.getModel(document);
                 ids.add(docData.getId());
             }
             Integer total = topDocs.scoreDocs.length;

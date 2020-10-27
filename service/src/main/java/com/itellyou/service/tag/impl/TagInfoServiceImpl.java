@@ -1,6 +1,7 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.service.tag.TagInfoService;
 import com.itellyou.service.tag.TagVersionService;
@@ -9,9 +10,10 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 
-@CacheConfig(cacheNames = "tag")
+@CacheConfig(cacheNames = CacheKeys.TAG_KEY)
 @Service
 public class TagInfoServiceImpl implements TagInfoService {
 
@@ -34,7 +36,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
-    public int updateStarCountById(HashSet<Long> ids, Integer step) {
+    public int updateStarCountById(Collection<Long> ids, Integer step) {
         if(ids == null || ids.size() < 1) return 0;
         return tagInfoDao.updateStarCountById(ids,step);
     }
@@ -46,7 +48,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
-    public int updateArticleCountById(HashSet<Long> ids, Integer step) {
+    public int updateArticleCountById(Collection<Long> ids, Integer step) {
         if(ids == null || ids.size() < 1) return 0;
         return tagInfoDao.updateArticleCountById(ids,step);
     }
@@ -58,7 +60,7 @@ public class TagInfoServiceImpl implements TagInfoService {
     }
 
     @Override
-    public int updateQuestionCountById(HashSet<Long> ids, Integer step) {
+    public int updateQuestionCountById(Collection<Long> ids, Integer step) {
         if(ids == null || ids.size() < 1) return 0;
         return tagInfoDao.updateQuestionCountById(ids,step);
     }

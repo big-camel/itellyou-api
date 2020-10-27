@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +19,7 @@ public interface ArticleVersionDao {
 
     Integer findVersionById(Long id);
 
-    ArticleVersionModel findByArticleIdAndVersion(@Param("articleId") Long articleId,@Param("version") Integer version,@Param("hasContent") Boolean hasContent);
-
-    List<ArticleVersionModel> search(@Param("ids") HashSet<Long> ids,
+    List<ArticleVersionModel> search(@Param("ids") Collection<Long> ids,
                                      @Param("articleMap") Map<Long,Integer> articleMap,
                                      @Param("userId") Long userId,
                                      @Param("sourceType") ArticleSourceType sourceType,
@@ -36,7 +34,7 @@ public interface ArticleVersionDao {
                                      @Param("offset") Integer offset,
                                      @Param("limit") Integer limit);
 
-    Integer count (@Param("ids") HashSet<Long> ids,
+    Integer count (@Param("ids") Collection<Long> ids,
                     @Param("articleMap") Map<Long,Integer> articleMap,
                      @Param("userId") Long userId,
                      @Param("sourceType") ArticleSourceType sourceType,

@@ -6,7 +6,7 @@ import com.itellyou.model.sys.RewardLogDetailModel;
 import com.itellyou.model.sys.RewardLogModel;
 import com.itellyou.model.user.UserBankType;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +17,7 @@ public interface RewardLogService {
     List<RewardLogDetailModel> search(Long id,
                                       UserBankType bankType,
                                       EntityType dataType,
-                                      HashSet<Long> dataKeys,
+                                      Collection<Long> dataKeys,
                                       Long searchUserId,
                                       Long userId,
                                       Long createdUserId,
@@ -29,7 +29,7 @@ public interface RewardLogService {
     int count( Long id,
               UserBankType bankType,
                EntityType dataType,
-               HashSet<Long> dataKeys,
+               Collection<Long> dataKeys,
                Long userId,
                Long createdUserId,
                Long beginTime,  Long endTime,
@@ -37,7 +37,7 @@ public interface RewardLogService {
 
     PageModel<RewardLogDetailModel> page(Long id,
                                     UserBankType bankType,
-                                    EntityType dataType, HashSet<Long> dataKeys, Long searchUserId,
+                                    EntityType dataType, Collection<Long> dataKeys, Long searchUserId,
                                     Long userId,
                                     Long createdUserId,
                                     Long beginTime,  Long endTime,

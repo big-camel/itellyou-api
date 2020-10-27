@@ -35,6 +35,6 @@ public class QuestionDetailModel extends QuestionInfoModel {
     private CollabInfoModel collab;
 
     public QuestionDetailModel(QuestionInfoModel model){
-        super(model.getId(),model.getTitle(),model.getDescription(),model.getRewardType(),model.getRewardValue(),model.getRewardAdd(),model.getVersion(),model.isPublished(),model.isAdopted(),model.isDisabled(),model.isDeleted(),model.getDraft(),model.getCover(),model.getAdoptionId(),model.getAnswers(),model.getComments(),model.getView(),model.getSupport(),model.getOppose(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+        super(model.getId(),model.getTitle(),model.getDescription(),model.getRewardType(),model.getRewardValue(),model.getRewardAdd(),model.getVersion(),model.isPublished(),model.isAdopted(),model.isDisabled(),model.isDeleted(),model.getDraft(),model.getCover(),model.getAdoptionId(),model.getAnswerCount(),model.getCommentCount(),model.getViewCount(),model.getSupportCount(),model.getOpposeCount(),model.getStarCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 }

@@ -44,7 +44,7 @@ public class AnswerSearchController {
         if(day == null || day > 30) day = 30;
         Long beginTime = DateUtils.getTimestamp() - day * 86400;
         Map<String,String > order = new HashMap<>();
-        order.put("count","desc");
-        return new ResultModel(searchService.groupByUserId(null,searchId,null,null,null,null,beginTime,null,order,offset,limit));
+        order.put("total_count","desc");
+        return new ResultModel(searchService.totalByUser(null,searchId,null,null,false,true,false,beginTime,null,order,offset,limit));
     }
 }

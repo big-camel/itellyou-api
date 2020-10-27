@@ -6,12 +6,13 @@ import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.common.impl.IndexServiceImpl;
+import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
 import org.apache.lucene.document.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,12 +43,12 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
             doc.add(new LongPoint("tags",model.getId()));
         }
         doc.add(new IntPoint("comment_count",detailModel.getCommentCount()));
-        doc.add(new IntPoint("view",detailModel.getView()));
-        doc.add(new IntPoint("support",detailModel.getSupport()));
-        doc.add(new IntPoint("oppose",detailModel.getOppose()));
+        doc.add(new IntPoint("view_count",detailModel.getViewCount()));
+        doc.add(new IntPoint("support_count",detailModel.getSupportCount()));
+        doc.add(new IntPoint("oppose_count",detailModel.getOpposeCount()));
         doc.add(new IntPoint("star_count",detailModel.getStarCount()));
-        doc.add(new LongPoint("created_time",detailModel.getCreatedTime()));
-        doc.add(new LongPoint("updated_time",detailModel.getUpdatedTime()));
+        doc.add(new LongPoint("created_time",DateUtils.getTimestamp(detailModel.getCreatedTime(),0l)));
+        doc.add(new LongPoint("updated_time", DateUtils.getTimestamp(detailModel.getUpdatedTime(),0l)));
         doc.add(new LongPoint("created_user_id",detailModel.getAuthor().getId()));
         ColumnInfoModel columnModel = detailModel.getColumn();
         Long columnId = columnModel != null ? columnModel.getId() : 0l;
@@ -55,9 +56,9 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
         doc.add(new StoredField("column_id",columnId));
         double score = 1.0;
         score += detailModel.getCommentCount() / 50.0;
-        score += detailModel.getView() / 1000.0;
-        score += detailModel.getSupport() / 500.0;
-        score -= detailModel.getOppose() / 500.0;
+        score += detailModel.getViewCount() / 1000.0;
+        score += detailModel.getSupportCount() / 500.0;
+        score -= detailModel.getOpposeCount() / 500.0;
         score += detailModel.getStarCount() / 100.0;
         if(columnModel != null){
             score += 0.05;
@@ -69,15 +70,7 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
 
     @Override
     public ArticleIndexModel getModel(Document document) {
-        ArticleIndexModel model =  new ArticleIndexModel();
-        model.setId(super.getModel(document).getId());
-        model.setTitle(document.get("title"));
-        model.setContent(document.get("content"));
-        String userId = document.get("created_user_id");
-        model.setCreatedUserId(StringUtils.isNotEmpty(userId) ? Long.parseLong(userId) : 0);
-        String columnId = document.get("column_id");
-        model.setColumnId(StringUtils.isNotEmpty(columnId) ? Long.parseLong(columnId) : 0);
-        return model;
+        return new ArticleIndexModel(document);
     }
 
     @Override
@@ -104,7 +97,7 @@ public class ArticleIndexServiceImpl extends IndexServiceImpl<ArticleDetailModel
 
     @Override
     @Async
-    public void updateIndex(HashSet<Long> ids) {
+    public void updateIndex(Collection<Long> ids) {
         List<ArticleDetailModel> list = searchService.search(ids,null,null,null,null
                 ,null,true,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null
                 ,null,null,null,null);

@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public interface ColumnInfoDao {
 
     int deleteTag(Long columnId);
 
-    List<ColumnInfoModel> search(@Param("ids") HashSet<Long> ids, @Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId, @Param("searchUserId") Long searchUserId,
+    List<ColumnInfoModel> search(@Param("ids") Collection<Long> ids, @Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId, @Param("searchUserId") Long searchUserId,
                                    @Param("isDisabled") Boolean isDisabled, @Param("isReviewed") Boolean isReviewed, @Param("isDeleted") Boolean isDeleted,
                                    @Param("minArticles") Integer minArticles, @Param("maxArticles") Integer maxArticles,
                                    @Param("minStars") Integer minStars, @Param("maxStars") Integer maxStars,
@@ -28,7 +28,7 @@ public interface ColumnInfoDao {
                                    @Param("offset") Integer offset,
                                    @Param("limit") Integer limit);
 
-    int count(@Param("ids") HashSet<Long> ids,@Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId,
+    int count(@Param("ids") Collection<Long> ids,@Param("name") String name, @Param("userId") Long userId,@Param("memberId") Long memberId,
                     @Param("isDisabled") Boolean isDisabled, @Param("isReviewed") Boolean isReviewed, @Param("isDeleted") Boolean isDeleted,
                     @Param("minArticles") Integer minArticles, @Param("maxArticles") Integer maxArticles,
                     @Param("minStars") Integer minStars, @Param("maxStars") Integer maxStars,

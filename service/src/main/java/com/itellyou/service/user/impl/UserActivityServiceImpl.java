@@ -33,7 +33,7 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
     @Override
-    public List<UserActivityDetailModel> search(Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public List<UserActivityDetailModel> search(Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         List<UserActivityModel> list = activityDao.search(actionsMap,targetUserId,userId,beginTime,endTime,ip,order,offset,limit);
         List<UserActivityDetailModel> activityDetailModels = new LinkedList<>();
         List<OperationalModel> operationModes = new LinkedList<>();
@@ -55,12 +55,12 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
     @Override
-    public int count(Map<EntityAction, HashSet<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Map<EntityAction, Collection<EntityType>> actionsMap, Long targetUserId, Long userId, Long beginTime, Long endTime, Long ip) {
         return activityDao.count(actionsMap,targetUserId,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<UserActivityDetailModel> page(Map<EntityAction, HashSet<EntityType>> actionsMap,Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<UserActivityDetailModel> page(Map<EntityAction, Collection<EntityType>> actionsMap,Long targetUserId, Long userId,Long searchUserId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<UserActivityDetailModel> data = search(actionsMap,targetUserId,userId,searchUserId,beginTime,endTime,ip,order,offset,limit);

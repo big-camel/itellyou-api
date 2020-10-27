@@ -69,7 +69,7 @@ public class VerifyController {
 
         String key = StringUtils.createToken(userModel.getId().toString() + userModel.getMobile());
         String ip = IPUtils.getClientIp(request);
-        UserVerifyModel verifyModel = new UserVerifyModel(key,false, DateUtils.getTimestamp(),userModel.getId(),IPUtils.toLong(ip));
+        UserVerifyModel verifyModel = new UserVerifyModel(key,false, DateUtils.toLocalDateTime(),userModel.getId(),IPUtils.toLong(ip));
         int result = verifyService.insert(verifyModel);
         if(result != 1) return new ResultModel(500,"写入验证信息错误");
 
@@ -101,7 +101,7 @@ public class VerifyController {
 
         String key = StringUtils.createToken(userModel.getId().toString() + userModel.getEmail());
         String ip = IPUtils.getClientIp(request);
-        UserVerifyModel verifyModel = new UserVerifyModel(key,false, DateUtils.getTimestamp(),userModel.getId(),IPUtils.toLong(ip));
+        UserVerifyModel verifyModel = new UserVerifyModel(key,false, DateUtils.toLocalDateTime(),userModel.getId(),IPUtils.toLong(ip));
         int result = verifyService.insert(verifyModel);
         if(result != 1) return new ResultModel(500,"写入验证信息错误");
 

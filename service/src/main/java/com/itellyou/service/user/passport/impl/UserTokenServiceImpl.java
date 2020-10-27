@@ -22,7 +22,7 @@ public class UserTokenServiceImpl implements UserTokenService {
     @Override
     public UserInfoModel find(String token, Long time) {
         UserLoginLogModel loginLogModel = logService.find(token);
-        if(loginLogModel == null || loginLogModel.isDisabled() || loginLogModel.getCreatedTime() < time) return null;
+        if(loginLogModel == null || loginLogModel.isDisabled() || DateUtils.getTimestamp(loginLogModel.getCreatedTime()) < time) return null;
         return searchService.findById(loginLogModel.getCreatedUserId());
     }
 

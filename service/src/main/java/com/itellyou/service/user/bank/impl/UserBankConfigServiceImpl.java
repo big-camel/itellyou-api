@@ -1,6 +1,7 @@
 package com.itellyou.service.user.bank.impl;
 
 import com.itellyou.dao.user.UserBankConfigDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserBankConfigModel;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@CacheConfig(cacheNames = "credit_config")
+@CacheConfig(cacheNames = CacheKeys.CREDIT_CONFIG_KEY)
 @Service
 public class UserBankConfigServiceImpl implements UserBankConfigService {
 

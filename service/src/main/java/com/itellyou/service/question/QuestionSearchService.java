@@ -4,40 +4,40 @@ import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.RewardType;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface QuestionSearchService {
 
-    List<QuestionDetailModel> search(HashSet<Long> ids, String mode, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
+    List<QuestionDetailModel> search(Collection<Long> ids, String mode, Long userId, Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
                                      Integer childCount,
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     HashSet<Long> tags,
-                                     Integer minComments, Integer maxComments,
-                                     Integer minAnswers, Integer maxAnswers,
+                                     Collection<Long> tags,
+                                     Integer minComment, Integer maxComment,
+                                     Integer minAnswer, Integer maxAnswer,
                                      Integer minView, Integer maxView,
                                      Integer minSupport, Integer maxSupport,
                                      Integer minOppose, Integer maxOppose,
                                      Integer minStar, Integer maxStar,
                                      Long beginTime, Long endTime,
                                      Map<String, String> order, Integer offset, Integer limit);
-    int count(HashSet<Long> ids, String mode, Long userId, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
+    int count(Collection<Long> ids, String mode, Long userId, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
               RewardType rewardType,
               Double minRewardValue,
               Double maxRewardValue,
-              HashSet<Long> tags,
-              Integer minComments, Integer maxComments,
-              Integer minAnswers, Integer maxAnswers,
+              Collection<Long> tags,
+              Integer minComment, Integer maxComment,
+              Integer minAnswer, Integer maxAnswer,
               Integer minView, Integer maxView,
               Integer minSupport, Integer maxSupport,
               Integer minOppose, Integer maxOppose,
               Integer minStar, Integer maxStar,
               Long beginTime, Long endTime);
 
-    List<QuestionDetailModel> search(HashSet<Long> ids, String mode, Long userId, Long searchUserId, Boolean hasContent,Integer childCount,
+    List<QuestionDetailModel> search(Collection<Long> ids, String mode, Long userId, Long searchUserId, Boolean hasContent,Integer childCount,
                                      Long beginTime, Long endTime,
                                      Map<String, String> order, Integer offset, Integer limit);
 
@@ -46,9 +46,9 @@ public interface QuestionSearchService {
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     HashSet<Long> tags,
-                                     Integer minComments, Integer maxComments,
-                                     Integer minAnswers, Integer maxAnswers,
+                                     Collection<Long> tags,
+                                     Integer minComment, Integer maxComment,
+                                     Integer minAnswer, Integer maxAnswer,
                                      Integer minView, Integer maxView,
                                      Integer minSupport, Integer maxSupport,
                                      Integer minOppose, Integer maxOppose,
@@ -61,9 +61,9 @@ public interface QuestionSearchService {
                                      RewardType rewardType,
                                      Double minRewardValue,
                                      Double maxRewardValue,
-                                     HashSet<Long> tags,
-                                     Integer minComments, Integer maxComments,
-                                     Integer minAnswers, Integer maxAnswers,
+                                     Collection<Long> tags,
+                                     Integer minComment, Integer maxComment,
+                                     Integer minAnswer, Integer maxAnswer,
                                      Integer minView, Integer maxView,
                                      Integer minSupport, Integer maxSupport,
                                      Integer minOppose, Integer maxOppose,
@@ -74,9 +74,9 @@ public interface QuestionSearchService {
               RewardType rewardType,
               Double minRewardValue,
               Double maxRewardValue,
-              HashSet<Long> tags,
-              Integer minComments, Integer maxComments,
-              Integer minAnswers, Integer maxAnswers,
+              Collection<Long> tags,
+              Integer minComment, Integer maxComment,
+              Integer minAnswer, Integer maxAnswer,
               Integer minView, Integer maxView,
               Integer minSupport, Integer maxSupport,
               Integer minOppose, Integer maxOppose,
@@ -97,9 +97,9 @@ public interface QuestionSearchService {
                                         RewardType rewardType,
                                         Double minRewardValue,
                                         Double maxRewardValue,
-                                        HashSet<Long> tags,
-                                        Integer minComments, Integer maxComments,
-                                        Integer minAnswers, Integer maxAnswers,
+                                        Collection<Long> tags,
+                                        Integer minComment, Integer maxComment,
+                                        Integer minAnswer, Integer maxAnswer,
                                         Integer minView, Integer maxView,
                                         Integer minSupport, Integer maxSupport,
                                         Integer minOppose, Integer maxOppose,

@@ -16,6 +16,10 @@ public interface SysPermissionService {
 
     List<SysPermissionModel> search(Long userId,SysPermissionPlatform platform, SysPermissionType type, SysPermissionMethod method, String name, Map<String,String> order, Integer offset, Integer limit);
 
+    List<SysPermissionModel> search(SysPermissionType type, SysPermissionMethod method);
+
+    List<SysPermissionModel> search(Long userId,SysPermissionPlatform platform);
+
     int count(Long userId,SysPermissionPlatform platform, SysPermissionType type, SysPermissionMethod method, String name);
 
     PageModel<SysPermissionModel> page(Long userId,SysPermissionPlatform platform, SysPermissionType type, SysPermissionMethod method, String name, Map<String,String> order, Integer offset, Integer limit);

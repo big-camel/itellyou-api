@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionCommentDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.OperationalEvent;
 import com.itellyou.model.event.QuestionCommentEvent;
 import com.itellyou.model.event.QuestionEvent;
@@ -11,7 +12,6 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.VoteType;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionCommentService;
-import com.itellyou.service.question.QuestionInfoService;
 import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
@@ -23,21 +23,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "question_comment")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_COMMENT_KEY)
 @Service
 public class QuestionCommentServiceImpl implements QuestionCommentService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final QuestionCommentDao commentDao;
-    private final QuestionInfoService questionInfoService;
     private final QuestionSingleService questionSingleService;
     private final OperationalPublisher operationalPublisher;
 
     @Autowired
-    public QuestionCommentServiceImpl(QuestionCommentDao commentDao, QuestionInfoService questionInfoService, QuestionSingleService questionSingleService, OperationalPublisher operationalPublisher){
+    public QuestionCommentServiceImpl(QuestionCommentDao commentDao, QuestionSingleService questionSingleService, OperationalPublisher operationalPublisher){
         this.commentDao = commentDao;
-        this.questionInfoService = questionInfoService;
         this.questionSingleService = questionSingleService;
         this.operationalPublisher = operationalPublisher;
     }
@@ -53,7 +51,7 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
                 replyCommentModel = commentDao.findById(replyId);
                 if(replyCommentModel == null) throw new Exception("错误的回复ID");
             }
-            QuestionCommentModel commentModel = new QuestionCommentModel(null,questionId,parentId,replyId,false,content,html,0,0,0, DateUtils.getTimestamp(),userId, IPUtils.toLong(ip),null,null,null);
+            QuestionCommentModel commentModel = new QuestionCommentModel(null,questionId,parentId,replyId,false,content,html,0,0,0, DateUtils.toLocalDateTime(),userId, IPUtils.toLong(ip),null,null,null);
             int result = commentDao.insert(commentModel);
 
             if(result != 1) throw new Exception("写入评论失败");
@@ -61,8 +59,6 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
                 result = updateComments(parentId,1);
                 if(result != 1) throw new Exception("更新父级子评论数失败");
             }
-            result = questionInfoService.updateComments(questionId,1);
-            if(result != 1) throw new Exception("更新回答评论数失败");
 
             EntityType notificationType = EntityType.QUESTION;
             Long targetUserId = questionModel.getCreatedUserId();
@@ -73,9 +69,9 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
 
             OperationalEvent event = notificationType.equals(EntityType.QUESTION) ?
                     new QuestionEvent(this, EntityAction.COMMENT,
-                            commentModel.getId(),targetUserId,userId, DateUtils.getTimestamp(),IPUtils.toLong(ip)) :
+                            commentModel.getId(),targetUserId,userId, DateUtils.toLocalDateTime(),IPUtils.toLong(ip)) :
 
-                    new QuestionCommentEvent(this, EntityAction.COMMENT,commentModel.getId(),targetUserId,userId,DateUtils.getTimestamp(),IPUtils.toLong(ip));
+                    new QuestionCommentEvent(this, EntityAction.COMMENT,commentModel.getId(),targetUserId,userId,DateUtils.toLocalDateTime(),IPUtils.toLong(ip));
             operationalPublisher.publish(event);
 
             return commentModel;
@@ -94,7 +90,7 @@ public class QuestionCommentServiceImpl implements QuestionCommentService {
         int result = commentDao.updateDeleted(id,isDeleted);
         if(result != 1) return 0;
         operationalPublisher.publish(new QuestionCommentEvent(this, isDeleted ? EntityAction.DELETE : EntityAction.REVERT,
-                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.getTimestamp(),ip));
+                commentModel.getId(),commentModel.getCreatedUserId(),userId,DateUtils.toLocalDateTime(),ip));
         return 1;
     }
 

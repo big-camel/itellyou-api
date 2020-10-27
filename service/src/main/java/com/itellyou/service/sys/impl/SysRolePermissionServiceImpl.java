@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.SysRolePermissionDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.SysRoleModel;
 import com.itellyou.model.sys.SysRolePermissionModel;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "sys_role_permission")
+@CacheConfig(cacheNames = CacheKeys.SYS_ROLE_PERMISSION_KEY)
 @Service
 public class SysRolePermissionServiceImpl implements SysRolePermissionService {
 
@@ -54,19 +55,16 @@ public class SysRolePermissionServiceImpl implements SysRolePermissionService {
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public List<SysRolePermissionModel> search(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         return rolePermissionDao.search(roleId,permissionName,userId,beginTime,endTime,ip,order,offset,limit);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public int count(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip) {
         return rolePermissionDao.count(roleId,permissionName,userId,beginTime,endTime,ip);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
     public PageModel<SysRolePermissionModel> page(Long roleId, String permissionName, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;

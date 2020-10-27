@@ -36,6 +36,7 @@ mybatis:
   configuration:
     default-enum-type-handler: com.itellyou.dao.handler.EnumTypeHandler
     map-underscore-to-camel-case: true
+  type-handlers-package: com.itellyou.dao.handler
 logging:
   file:
     name: ../itellyou-logs/api.log

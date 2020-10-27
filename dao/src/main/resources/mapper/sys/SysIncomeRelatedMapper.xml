@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysIncomeRelatedDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}income_id ${prefix}income_id,
+        ${alias}config_id ${prefix}config_id,
+        ${alias}amount ${prefix}amount,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id
+    </sql>
+    <insert id="insertModels" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_income_related(income_id,config_id,amount,created_time,created_user_id,created_ip) values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.incomeId},#{item.configId},#{item.amount},#{item.createdTime},#{item.createdUserId},#{item.createdIp})
+        </foreach>
+        on duplicate key update amount=amount + values(amount)
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="incomeId != null">
+                and ${alias}income_id = #{incomeId}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="configId != null">
+                and ${alias}config_id = #{configId}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysIncomeRelatedModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from sys_income_related
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_income_related
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+</mapper>

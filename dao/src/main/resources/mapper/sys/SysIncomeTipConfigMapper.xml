@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.sys.SysIncomeTipConfigDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}`name` ${prefix}`name`,
+        ${alias}data_type ${prefix}data_type,
+        ${alias}min_view ${prefix}min_view,
+        ${alias}min_comment ${prefix}min_comment,
+        ${alias}min_support ${prefix}min_support,
+        ${alias}min_oppose ${prefix}min_oppose,
+        ${alias}min_star ${prefix}min_star,
+        ${alias}view_weight ${prefix}view_weight,
+        ${alias}comment_weight ${prefix}comment_weight,
+        ${alias}support_weight ${prefix}support_weight,
+        ${alias}oppose_weight ${prefix}oppose_weight,
+        ${alias}star_weight ${prefix}star_weight,
+        ${alias}min_amount ${prefix}min_amount,
+        ${alias}max_amount ${prefix}max_amount,
+        ${alias}max_user_count ${prefix}max_user_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_income_tip_config(`name`,data_type,min_view,min_comment,min_support,min_oppose,min_star,view_weight,comment_weight,support_weight,oppose_weight,star_weight,
+            min_amount,max_amount,max_user_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip) values
+        (#{name},#{dataType},#{minView},#{minComment},#{minSupport},#{minOppose},#{minStar},#{viewWeight},#{commentWeight},#{supportWeight},#{opposeWeight},#{starWeight},
+         #{minAmount},#{maxAmount},#{maxUserCount},#{createdTime},#{createdUserId},#{createdIp},#{updatedTime},#{updatedUserId},#{updatedIp})
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="name != null">
+                <bind name="bindName" value="name + '%'"/>
+                and ${alias}`name` like #{bindName}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="dataType != null">
+                and ${alias}data_type = #{dataType}
+            </if>
+            <if test="ip != null">
+                and ${alias}created_ip = #{ip}
+            </if>
+            <if test="userId != null">
+                and ${alias}created_user_id = #{userId}
+            </if>
+            <if test="ids != null &amp;&amp; ids.size() > 0">
+                and
+                ${alias}id <foreach collection="ids" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="SysIncomeTipConfigModel">
+        select <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from sys_income_tip_config
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="limit != null and offset != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(id) from sys_income_tip_config
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <update id="updateById">
+        update sys_income_tip_config
+        <set>
+            <if test="name != null">
+                `name`=#{name},
+            </if>
+            <if test="dataType != null">
+                data_type=#{dataType},
+            </if>
+            <if test="minView != null">
+                min_view=#{minView},
+            </if>
+            <if test="minComment != null">
+                min_comment=#{minComment},
+            </if>
+            <if test="minSupport != null">
+                min_support=#{minSupport},
+            </if>
+            <if test="minOppose != null">
+                min_oppose=#{minOppose},
+            </if>
+            <if test="minStar != null">
+                min_star=#{minStar},
+            </if>
+            <if test="viewWeight != null">
+                view_weight=#{viewWeight},
+            </if>
+            <if test="commentWeight != null">
+                comment_weight=#{commentWeight},
+            </if>
+            <if test="supportWeight != null">
+                support_weight=#{supportWeight},
+            </if>
+            <if test="opposeWeight != null">
+                oppose_weight=#{opposeWeight},
+            </if>
+            <if test="starWeight != null">
+                star_weight=#{starWeight},
+            </if>
+            <if test="minAmount != null">
+                min_amount=#{minAmount},
+            </if>
+            <if test="maxAmount != null">
+                max_amount=#{maxAmount},
+            </if>
+            <if test="maxUserCount != null">
+                max_user_count=#{maxUserCount},
+            </if>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from sys_income_tip_config where id=#{id}
+    </delete>
+</mapper>

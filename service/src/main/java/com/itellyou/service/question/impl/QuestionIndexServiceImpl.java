@@ -1,18 +1,18 @@
 package com.itellyou.service.question.impl;
 
-import com.itellyou.model.question.QuestionAnswerDetailModel;
 import com.itellyou.model.question.QuestionDetailModel;
 import com.itellyou.model.question.QuestionIndexModel;
 import com.itellyou.model.sys.RewardType;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.service.common.impl.IndexServiceImpl;
 import com.itellyou.service.question.QuestionSearchService;
+import com.itellyou.util.DateUtils;
 import com.itellyou.util.StringUtils;
 import org.apache.lucene.document.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,14 +41,14 @@ public class QuestionIndexServiceImpl extends IndexServiceImpl<QuestionDetailMod
         for (TagDetailModel model : tagList){
             doc.add(new LongPoint("tags",model.getId()));
         }
-        doc.add(new IntPoint("answers",detailModel.getAnswers()));
-        doc.add(new IntPoint("comments",detailModel.getComments()));
-        doc.add(new IntPoint("view",detailModel.getView()));
-        doc.add(new IntPoint("support",detailModel.getSupport()));
-        doc.add(new IntPoint("oppose",detailModel.getOppose()));
+        doc.add(new IntPoint("answer_count",detailModel.getAnswerCount()));
+        doc.add(new IntPoint("comment_count",detailModel.getCommentCount()));
+        doc.add(new IntPoint("view_count",detailModel.getViewCount()));
+        doc.add(new IntPoint("support_count",detailModel.getSupportCount()));
+        doc.add(new IntPoint("oppose_count",detailModel.getOpposeCount()));
         doc.add(new IntPoint("star_count",detailModel.getStarCount()));
-        doc.add(new LongPoint("created_time",detailModel.getCreatedTime()));
-        doc.add(new LongPoint("updated_time",detailModel.getUpdatedTime()));
+        doc.add(new LongPoint("created_time", DateUtils.getTimestamp(detailModel.getCreatedTime(),0l)));
+        doc.add(new LongPoint("updated_time",DateUtils.getTimestamp(detailModel.getUpdatedTime(),0l)));
         doc.add(new LongPoint("created_user_id",detailModel.getAuthor().getId()));
         double score = 1.0;
         if(detailModel.isAdopted()) score += 0.1;
@@ -58,11 +58,11 @@ public class QuestionIndexServiceImpl extends IndexServiceImpl<QuestionDetailMod
         if(detailModel.getRewardType() == RewardType.CASH){
             score += detailModel.getRewardValue() / 10.0;
         }
-        score += detailModel.getAnswers() / 10.0;
-        score += detailModel.getComments() / 20.0;
-        score += detailModel.getView() / 1000.0;
-        score += detailModel.getSupport() / 500.0;
-        score -= detailModel.getOppose() / 500.0;
+        score += detailModel.getAnswerCount() / 10.0;
+        score += detailModel.getCommentCount() / 20.0;
+        score += detailModel.getViewCount() / 1000.0;
+        score += detailModel.getSupportCount() / 500.0;
+        score -= detailModel.getOpposeCount() / 500.0;
         score += detailModel.getStarCount() / 1000.0;
         doc.add(new DoubleDocValuesField("score",score));
         return doc;
@@ -70,13 +70,7 @@ public class QuestionIndexServiceImpl extends IndexServiceImpl<QuestionDetailMod
 
     @Override
     public QuestionIndexModel getModel(Document document) {
-        QuestionIndexModel model = new QuestionIndexModel();
-        model.setId(super.getModel(document).getId());
-        model.setTitle(document.get("title"));
-        model.setContent(document.get("content"));
-        String userId = document.get("created_user_id");
-        model.setCreatedUserId(StringUtils.isNotEmpty(userId) ? Long.parseLong(userId) : 0);
-        return model;
+        return new QuestionIndexModel(document);
     }
 
     @Override
@@ -103,7 +97,7 @@ public class QuestionIndexServiceImpl extends IndexServiceImpl<QuestionDetailMod
 
     @Override
     @Async
-    public void updateIndex(HashSet<Long> ids) {
+    public void updateIndex(Collection<Long> ids) {
         List<QuestionDetailModel> list = searchService.search(ids,null,null,null,true,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
         List<QuestionDetailModel> updateModels = new LinkedList<>();
         for (QuestionDetailModel model : list) {

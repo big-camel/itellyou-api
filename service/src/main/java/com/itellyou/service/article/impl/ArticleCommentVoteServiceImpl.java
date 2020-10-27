@@ -3,6 +3,7 @@ package com.itellyou.service.article.impl;
 import com.itellyou.dao.article.ArticleCommentVoteDao;
 import com.itellyou.model.article.ArticleCommentModel;
 import com.itellyou.model.article.ArticleCommentVoteModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.ArticleCommentEvent;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.VoteType;
@@ -12,7 +13,6 @@ import com.itellyou.service.common.VoteSearchService;
 import com.itellyou.service.common.VoteService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.HashMap;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "article_comment_vote")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_COMMENT_VOTE_KEY)
 @Service
 public class ArticleCommentVoteServiceImpl implements VoteService<ArticleCommentVoteModel> {
 
@@ -48,14 +48,12 @@ public class ArticleCommentVoteServiceImpl implements VoteService<ArticleComment
 
     @Override
     public int insert(ArticleCommentVoteModel voteModel) {
-        RedisUtils.clear("article_comment_vote_" + voteModel.getCreatedUserId());
         return voteDao.insert(voteModel);
     }
 
     @Override
     @CacheEvict(key = "T(String).valueOf(#commentId).concat('-').concat(#userId)")
     public int deleteByTargetIdAndUserId(Long commentId, Long userId) {
-        RedisUtils.clear("article_comment_vote_" + userId);
         return voteDao.deleteByCommentIdAndUserId(commentId,userId);
     }
 
@@ -73,7 +71,7 @@ public class ArticleCommentVoteServiceImpl implements VoteService<ArticleComment
                 if(result != 1) throw new Exception("更新Vote失败");
             }
             if(voteModel == null || !voteModel.getType().equals(type)){
-                voteModel = new ArticleCommentVoteModel(id,type, DateUtils.getTimestamp(),userId, ip);
+                voteModel = new ArticleCommentVoteModel(id,type, DateUtils.toLocalDateTime(),userId, ip);
                 int result = insert(voteModel);
                 if(result != 1) throw new Exception("写入Vote失败");
                 result = commentService.updateVote(type,1,id);
@@ -86,10 +84,9 @@ public class ArticleCommentVoteServiceImpl implements VoteService<ArticleComment
             Map<String,Object> data = new HashMap<>();
             data.put("id",commentModel.getId());
             data.put("parentId",commentModel.getParentId());
-            data.put("support",commentModel.getSupport());
-            data.put("oppose",commentModel.getOppose());
-            operationalPublisher.publish(new ArticleCommentEvent(this,type.equals(VoteType.SUPPORT) ? EntityAction.LIKE : EntityAction.UNLIKE,commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
-            RedisUtils.clear("article_comment_vote_" + userId);
+            data.put("supportCount",commentModel.getSupportCount());
+            data.put("opposeCount",commentModel.getOpposeCount());
+            operationalPublisher.publish(new ArticleCommentEvent(this,type.equals(VoteType.SUPPORT) ? EntityAction.LIKE : EntityAction.UNLIKE,commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
             return data;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

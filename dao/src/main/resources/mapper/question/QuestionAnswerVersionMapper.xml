@@ -20,12 +20,6 @@
         ${alias}updated_ip
     </sql>
     <sql id="primary">id</sql>
-    <select id="findByAnswerIdAndVersion" resultType="QuestionAnswerVersionModel">
-        select <include refid="columns">
-        <property name="alias" value=""/>
-        <property name="prefix" value=""/>
-    </include> from question_answer_version where answer_id=#{answerId} and version = #{version}
-    </select>
     <select id="findVersionById" resultType="java.lang.Integer">
         select version from question_answer_version where id = #{id}
     </select>

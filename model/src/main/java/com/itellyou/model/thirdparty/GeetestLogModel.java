@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -16,5 +17,5 @@ public class GeetestLogModel implements Serializable {
     private Integer status;
     private String mode;
     private Long createdUserId;
-    private Long createdTime;
+    private LocalDateTime createdTime;
 }

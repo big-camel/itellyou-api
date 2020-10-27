@@ -3,13 +3,13 @@ package com.itellyou.service.tag;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.tag.TagGroupDetailModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface TagGroupSearchService {
 
-    List<TagGroupDetailModel> search(HashSet<Long> ids,
+    List<TagGroupDetailModel> search(Collection<Long> ids,
                                Long userId,
                                      Integer childCount,
                                Long ip,
@@ -20,7 +20,7 @@ public interface TagGroupSearchService {
                                Integer offset,
                                Integer limit);
 
-    PageModel<TagGroupDetailModel> page(HashSet<Long> ids,
+    PageModel<TagGroupDetailModel> page(Collection<Long> ids,
                                         Long userId,
                                         Integer childCount,
                                         Long ip, Boolean isDisabled, Boolean isPublished,
@@ -30,7 +30,7 @@ public interface TagGroupSearchService {
                                         Integer offset,
                                         Integer limit);
 
-    int count(HashSet<Long> ids,
+    int count(Collection<Long> ids,
               Long userId,
               Long ip,Boolean isDisabled,Boolean isPublished,
               Integer minTagCount, Integer maxTagCount,

@@ -10,6 +10,7 @@ import com.itellyou.service.common.NotificationManagerService;
 import com.itellyou.service.common.NotificationQueueService;
 import com.itellyou.service.common.NotificationService;
 import com.itellyou.service.event.NotificationPublisher;
+import com.itellyou.util.DateUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,8 +98,9 @@ public class NotificationManagerServiceImpl implements NotificationManagerServic
                             if(queueModelList.size() > 0){
                                 NotificationQueueModel updateQueueModel = queueModelList.get(0);
                                 // 在30分钟内撤销后重复点击视为无效，不加入消息队列，不更新消息队列时间
-                                if(model.getCreatedTime() - updateQueueModel.getCreatedTime() > 30 * 60){
-                                    queueService.update(updateQueueModel.getId(),model.getCreatedTime(),model.getCreatedIp());
+                                Long createdTime = DateUtils.getTimestamp(model.getCreatedTime());
+                                if(createdTime - DateUtils.getTimestamp(updateQueueModel.getCreatedTime()) > 30 * 60){
+                                    queueService.update(updateQueueModel.getId(),createdTime,model.getCreatedIp());
                                 }else{
                                     logger.warn("Abandoned notification action : {},type:{}",model.getAction(),model.getType());
                                 }

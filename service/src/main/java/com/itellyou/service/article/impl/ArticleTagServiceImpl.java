@@ -2,19 +2,19 @@ package com.itellyou.service.article.impl;
 
 import com.itellyou.dao.article.ArticleTagDao;
 import com.itellyou.model.article.ArticleTagModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.service.article.ArticleTagService;
 import com.itellyou.util.RedisUtils;
-import com.itellyou.util.StringUtils;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@CacheConfig(cacheNames = "article_tag")
+@CacheConfig(cacheNames = CacheKeys.ARTICLE_TAG_KEY)
 public class ArticleTagServiceImpl implements ArticleTagService {
 
     private final ArticleTagDao articleTagDao;
@@ -24,66 +24,54 @@ public class ArticleTagServiceImpl implements ArticleTagService {
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#model.articleId") , @CacheEvict(value = "tag_article" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#model.articleId") , @CacheEvict(value = CacheKeys.TAG_ARTICLE_KEY, key = "#model.tagId")})
     public int add(ArticleTagModel model) {
         return articleTagDao.add(model);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#articleId") , @CacheEvict(value = "tag_article" , allEntries = true)})
-    public int addAll(Long articleId, HashSet<Long> tagIds) {
+    @Caching( evict = { @CacheEvict(key = "#articleId") })
+    public int addAll(Long articleId, Collection<Long> tagIds) {
+        tagIds.forEach((Long id) -> RedisUtils.remove(CacheKeys.TAG_ARTICLE_KEY,id));
         return articleTagDao.addAll(articleId,tagIds);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#articleId") , @CacheEvict(value = "tag_article" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#articleId") })
     public int clear(Long articleId) {
+        Map<Long, List<ArticleTagModel>> tags = searchTags(new HashSet<Long>(){{add(articleId);}});
+        tags.values().forEach((List<ArticleTagModel> models) ->
+                models.forEach((ArticleTagModel model) -> RedisUtils.remove(CacheKeys.TAG_ARTICLE_KEY,model.getTagId()))
+        );
         return articleTagDao.clear(articleId);
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#articleId") , @CacheEvict(value = "tag_article" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#articleId") , @CacheEvict(value = CacheKeys.TAG_ARTICLE_KEY , key = "#tagId" )})
     public int remove(Long articleId, Long tagId) {
         return articleTagDao.remove(articleId,tagId);
     }
 
     @Override
-    public Map<Long, List<ArticleTagModel>> searchTags(HashSet<Long> articleIds) {
-        List<ArticleTagModel> models = articleTagDao.searchTags(articleIds);
-        Map<Long, List<ArticleTagModel>> map = new LinkedHashMap<>();
-        for (ArticleTagModel model : models){
-            if(!map.containsKey(model.getArticleId())){
-                map.put(model.getArticleId(),new LinkedList<>());
-            }
-            map.get(model.getArticleId()).add(model);
-        }
-        return map;
+    public Map<Long, List<ArticleTagModel>> searchTags(Collection<Long> articleIds) {
+        return RedisUtils.fetch(CacheKeys.ARTICLE_TAG_KEY,articleIds,
+                (Collection<Long> fetchIds) -> articleTagDao.searchTags((Collection<Long>) fetchIds),
+                ArticleTagModel::getArticleId);
     }
 
     @Override
-    @Cacheable(unless = "#result == null")
-    public HashSet<Long> searchTagId(Long articleId) {
-        return articleTagDao.searchTagId(articleId);
+    public Map<Long, List<ArticleTagModel>> searchArticles(Collection<Long> tagIds) {
+        return RedisUtils.fetch(CacheKeys.TAG_ARTICLE_KEY,tagIds,
+                (Collection<Long> fetchIds) -> articleTagDao.searchArticles((Collection<Long>)fetchIds),
+                ArticleTagModel::getTagId);
     }
 
     @Override
-    @Cacheable(value = "tag_article",key = "#tagId",unless = "#result == null")
-    public HashSet<Long> searchArticleId(Long tagId) {
-        return searchArticleId(tagId != null ? new HashSet<Long>(){{ add(tagId);}} : null);
-    }
-
-    @Override
-    public HashSet<Long> searchArticleId(HashSet<Long> tagId) {
-        StringBuilder keySb = new StringBuilder();
-        for (Long id : tagId){
-            keySb.append(id);
-        }
-        String key = StringUtils.md5(keySb.toString());
-        HashSet<Long> ids = RedisUtils.getCache("tag_article",key,HashSet.class);
-        if(ids == null || ids.size() == 0)
-        {
-            ids = articleTagDao.searchArticleId(tagId);
-            RedisUtils.setCache("tag_article",key,ids);
+    public Collection<Long> searchArticleIds(Collection<Long> tagIds) {
+        Map<Long, List<ArticleTagModel>> list = searchArticles(tagIds);
+        Collection<Long> ids = new LinkedHashSet<>();
+        for (Long id : list.keySet()){
+            ids.addAll(list.get(id).stream().map(ArticleTagModel::getArticleId).collect(Collectors.toSet()));
         }
         return ids;
     }

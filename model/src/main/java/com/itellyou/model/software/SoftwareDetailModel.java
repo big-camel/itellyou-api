@@ -1,10 +1,7 @@
 package com.itellyou.model.software;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.itellyou.model.article.ArticleInfoModel;
-import com.itellyou.model.article.ArticlePaidReadModel;
 import com.itellyou.model.collab.CollabInfoModel;
-import com.itellyou.model.column.ColumnDetailModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.util.CacheEntity;
@@ -49,11 +46,11 @@ public class SoftwareDetailModel extends SoftwareInfoModel implements CacheEntit
     private boolean useOppose;
 
     public SoftwareDetailModel(SoftwareInfoModel model){
-        super(model.getId(),model.getGroupId(),model.getName(),model.getLogo(),model.getDescription(),model.getDraft(),model.isPublished(),model.isDisabled(),model.isDeleted(),model.getCustomDescription(),model.getDraft(),model.getCommentCount(),model.getView(),model.getSupport(),model.getOppose(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
+        super(model.getId(),model.getGroupId(),model.getName(),model.getLogo(),model.getDescription(),model.getDraft(),model.isPublished(),model.isDisabled(),model.isDeleted(),model.getCustomDescription(),model.getDraft(),model.getCommentCount(),model.getViewCount(),model.getSupportCount(),model.getOpposeCount(),model.getCreatedTime(),model.getCreatedUserId(),model.getCreatedIp(),model.getUpdatedTime(),model.getUpdatedUserId(),model.getUpdatedIp());
     }
 
     @Override
-    public String cacheKey() {
-        return String.valueOf(this.getId());
+    public Long cacheKey() {
+        return this.getId();
     }
 }

@@ -1,11 +1,9 @@
 package com.itellyou.model.sys;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,6 +34,6 @@ public class PageModel<T> {
     }
 
     public PageModel(Integer offset,Integer limit,Integer total,List<T> data){
-        this(offset == 0,offset + limit >= total,offset,limit,total,data);
+        this(offset == null || offset == 0,offset == null || limit == null || offset + limit >= total,offset,limit,total,data);
     }
 }

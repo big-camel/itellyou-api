@@ -1,108 +1,60 @@
 package com.itellyou.service.sys.impl;
 
-import com.itellyou.model.article.ArticleDetailModel;
-import com.itellyou.model.column.ColumnDetailModel;
-import com.itellyou.model.question.QuestionAnswerDetailModel;
-import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.software.SoftwareDetailModel;
+import com.itellyou.model.sys.EntityDataModel;
+import com.itellyou.model.sys.EntitySearchModel;
 import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.tag.TagDetailModel;
-import com.itellyou.model.user.UserDetailModel;
-import com.itellyou.service.article.ArticleSearchService;
-import com.itellyou.service.column.ColumnSearchService;
-import com.itellyou.service.question.QuestionAnswerSearchService;
-import com.itellyou.service.question.QuestionSearchService;
-import com.itellyou.service.software.SoftwareSearchService;
+import com.itellyou.service.sys.EntitySearchService;
 import com.itellyou.service.sys.EntityService;
-import com.itellyou.service.tag.TagSearchService;
-import com.itellyou.service.user.UserSearchService;
+import com.itellyou.util.CacheEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @Service
 public class EntityServiceImpl implements EntityService {
 
-    private final QuestionSearchService questionSearchService;
-    private final QuestionAnswerSearchService answerSearchService;
-    private final ArticleSearchService articleSearchService;
-    private final SoftwareSearchService softwareSearchService;
-    private final ColumnSearchService columnSearchService;
-    private final TagSearchService tagSearchService;
-    private final UserSearchService userSearchService;
-
-    public EntityServiceImpl(QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSearchService articleSearchService, SoftwareSearchService softwareSearchService, ColumnSearchService columnSearchService, TagSearchService tagSearchService, UserSearchService userSearchService) {
-        this.questionSearchService = questionSearchService;
-        this.answerSearchService = answerSearchService;
-        this.articleSearchService = articleSearchService;
-        this.softwareSearchService = softwareSearchService;
-        this.columnSearchService = columnSearchService;
-        this.tagSearchService = tagSearchService;
-        this.userSearchService = userSearchService;
+    @Override
+    public <T extends CacheEntity> EntityDataModel<T> search(EntitySearchModel... searchModels) {
+        Map<EntityType, Collection<T>> data = new HashMap<>();
+        for (EntitySearchModel searchModel : searchModels){
+            EntitySearchService searchService = EntitySearchFactory.getInstance().create(searchModel.getType());
+            if(searchService != null){
+                Collection<T> list = searchService.search(searchModel.getArgs());
+                data.put(searchModel.getType(),list);
+            }
+        }
+        return new EntityDataModel<>(data);
     }
 
     @Override
-    public Map<EntityType, Map<Long, Object>> find(Map<EntityType, HashSet<Long>> ids,Long searchId,Integer childCount) {
-        Map<EntityType, Map<Long, Object>> mapData = new LinkedHashMap<>();
-        if(ids.containsKey(EntityType.QUESTION)){
-            List<QuestionDetailModel> list = questionSearchService.search(ids.get(EntityType.QUESTION),null,null,searchId,false,childCount,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (QuestionDetailModel model : list){
-                map.put(model.getId(),model);
+    public <T extends CacheEntity> EntityDataModel<T> search(EntityType type, Map<String, Object> args) {
+        return search(new EntitySearchModel(type,args));
+    }
+
+    @Override
+    public <T extends CacheEntity> EntityDataModel<T> search(EntityType type, String key, Object value) {
+        return search(new EntitySearchModel(type,key,value));
+    }
+
+    @Override
+    public <T extends CacheEntity> EntityDataModel<T> search(EntityType type) {
+        return search(new EntitySearchModel(type));
+    }
+
+    @Override
+    public <T extends CacheEntity,E extends T> EntityDataModel<T> search(Collection<E> data, BiFunction<E, Function<EntityType, Map<String, Object>>, EntitySearchModel>... searchModelFunctions) {
+        Map<EntityType,EntitySearchModel> searchModelMap = new HashMap<>();
+        Function<EntityType,Map<String,Object>> getArgs = type -> searchModelMap.computeIfAbsent(type,key -> new EntitySearchModel(key)).getArgs();
+        data.forEach(model -> {
+            for (BiFunction<E, Function<EntityType, Map<String, Object>>, EntitySearchModel> function : searchModelFunctions) {
+                EntitySearchModel searchModel = function.apply(model,getArgs);
+                searchModelMap.put(searchModel.getType(),searchModel);
             }
-            mapData.put(EntityType.QUESTION,map);
-        }
-        if(ids.containsKey(EntityType.ANSWER)){
-            List<QuestionAnswerDetailModel> list = answerSearchService.search(ids.get(EntityType.ANSWER),null,null,searchId,null,false,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (QuestionAnswerDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.ANSWER,map);
-        }
-        if(ids.containsKey(EntityType.ARTICLE)){
-            List<ArticleDetailModel> list = articleSearchService.search(ids.get(EntityType.ARTICLE),null,null,null,searchId,null,false,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (ArticleDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.ARTICLE,map);
-        }
-        if(ids.containsKey(EntityType.SOFTWARE)){
-            List<SoftwareDetailModel> list = softwareSearchService.search(ids.get(EntityType.SOFTWARE),null,null,null,searchId,false,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (SoftwareDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.SOFTWARE,map);
-        }
-        if(ids.containsKey(EntityType.COLUMN)){
-            List<ColumnDetailModel> list = columnSearchService.search(ids.get(EntityType.COLUMN),null,null,null,searchId,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (ColumnDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.COLUMN,map);
-        }
-        if(ids.containsKey(EntityType.TAG)){
-            List<TagDetailModel> list = tagSearchService.search(ids.get(EntityType.TAG),null,null,null,null,searchId,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (TagDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.TAG,map);
-        }
-        if(ids.containsKey(EntityType.USER)){
-            List<UserDetailModel> list = userSearchService.search(ids.get(EntityType.USER),searchId,null,null,null,null,null,null,null,null,null,null);
-            Map<Long, Object> map = new LinkedHashMap<>();
-            for (UserDetailModel model : list){
-                map.put(model.getId(),model);
-            }
-            mapData.put(EntityType.USER,map);
-        }
-        return mapData;
+        });
+        return search(searchModelMap.values().toArray(new EntitySearchModel[searchModelMap.size()]));
     }
 }

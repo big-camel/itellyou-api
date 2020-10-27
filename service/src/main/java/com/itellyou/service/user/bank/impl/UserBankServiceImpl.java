@@ -2,6 +2,7 @@ package com.itellyou.service.user.bank.impl;
 
 import com.itellyou.dao.user.UserBankDao;
 import com.itellyou.model.common.OperationalModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.user.UserBankConfigModel;
@@ -9,6 +10,7 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserBankType;
 import com.itellyou.service.user.bank.UserBankConfigService;
+import com.itellyou.service.user.bank.UserBankLogSearchService;
 import com.itellyou.service.user.bank.UserBankLogService;
 import com.itellyou.service.user.bank.UserBankService;
 import com.itellyou.util.DateUtils;
@@ -24,10 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
-@CacheConfig(cacheNames = "bank_info")
+@CacheConfig(cacheNames = CacheKeys.BANK_KEY)
 @Service
 public class UserBankServiceImpl implements UserBankService {
 
@@ -39,11 +41,14 @@ public class UserBankServiceImpl implements UserBankService {
 
     private final UserBankConfigService configService;
 
+    private final UserBankLogSearchService logSearchService;
+
     @Autowired
-    public UserBankServiceImpl(UserBankDao userBankDao, UserBankLogService bankLogService, UserBankConfigService configService){
+    public UserBankServiceImpl(UserBankDao userBankDao, UserBankLogService bankLogService, UserBankConfigService configService, UserBankLogSearchService logSearchService){
         this.bankDao = userBankDao;
         this.bankLogService = bankLogService;
         this.configService = configService;
+        this.logSearchService = logSearchService;
     }
 
     @Override
@@ -72,9 +77,11 @@ public class UserBankServiceImpl implements UserBankService {
                 } else if (type == UserBankType.CASH) {
                     balance = userBankModel.getCash();
                 } else if (type == UserBankType.SCORE) {
+                    // 清除用户等级缓存
+                    RedisUtils.remove(CacheKeys.USER_RANK_KEY,userId + "-user");
                     balance = userBankModel.getScore().doubleValue();
                 }
-                UserBankLogModel bankLogModel = new UserBankLogModel(amount, balance, type, action, dataType, dataKey, remark, DateUtils.getTimestamp(), clientIp, userId);
+                UserBankLogModel bankLogModel = new UserBankLogModel(amount, balance, type, action, dataType, dataKey, remark, DateUtils.toLocalDateTime(), clientIp, userId);
                 result = bankLogService.insert(bankLogModel);
                 if (result != 1) {
                     throw new Exception("写入日志失败");
@@ -109,7 +116,7 @@ public class UserBankServiceImpl implements UserBankService {
     private boolean checkCount(int countLimit,long timeLimit,UserBankType bankType,EntityAction action,EntityType type,Long userId){
         Long now = DateUtils.getTimestamp();
         if(countLimit > 0){
-            int count = bankLogService.count(null,bankType,action,type,null,userId,
+            int count = logSearchService.count(null,bankType,action,type,null,userId,
                     now - timeLimit ,now,null);
             if(count > countLimit) {
                 logger.warn("count of day {}, limit:",timeLimit / 86400 , countLimit);
@@ -150,7 +157,7 @@ public class UserBankServiceImpl implements UserBankService {
         limitCheck = checkCount(countDay,86400,bankType,model.getAction(),model.getType(),userId);
         if(limitCheck) return true;
         if(configModel.isOnlyOnce()){
-            int count = bankLogService.count(null,bankType,model.getAction(), model.getType(),model.getTargetId().toString(),userId,null,null,null);
+            int count = logSearchService.count(null,bankType,model.getAction(), model.getType(),model.getTargetId().toString(),userId,null,null,null);
             if(count > 0) {
                 logger.warn("only once limit:{}",count);
                 return true;
@@ -180,7 +187,7 @@ public class UserBankServiceImpl implements UserBankService {
                     update(Double.valueOf(configModel.getTargeterStep()), bankType, model.getAction(), model.getType(), model.getTargetId().toString(),
                             model.getTargetUserId(), configModel.getTargeterRemark(), model.getCreatedIp());
                 }
-                RedisUtils.removeCache("bank_info",model.getTargetUserId());
+                RedisUtils.remove(CacheKeys.BANK_KEY,model.getTargetUserId());
             }catch (Exception e){
                 logger.error(e.getLocalizedMessage());
             }
@@ -194,7 +201,7 @@ public class UserBankServiceImpl implements UserBankService {
                     update(Double.valueOf(configModel.getCreaterStep()), bankType, model.getAction(), model.getType(), model.getTargetId().toString(),
                             model.getCreatedUserId(), configModel.getCreaterRemark(), model.getCreatedIp());
                 }
-                RedisUtils.removeCache("bank_info",model.getCreatedUserId());
+                RedisUtils.remove(CacheKeys.BANK_KEY,model.getCreatedUserId());
             }catch (Exception e){
                 logger.error(e.getLocalizedMessage());
             }
@@ -202,7 +209,7 @@ public class UserBankServiceImpl implements UserBankService {
     }
 
     @Override
-    public List<UserBankModel> search(HashSet<Long> ids) {
-        return RedisUtils.fetchByCache("bank_info",UserBankModel.class,ids,(HashSet<Long> fetchIds) -> bankDao.search(fetchIds));
+    public List<UserBankModel> search(Collection<Long> ids) {
+        return RedisUtils.fetch(CacheKeys.BANK_KEY,UserBankModel.class,ids,(Collection<Long> fetchIds) -> bankDao.search(fetchIds));
     }
 }

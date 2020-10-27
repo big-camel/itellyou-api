@@ -1,14 +1,12 @@
 package com.itellyou.api.controller.software;
 
-import com.itellyou.model.software.SoftwareGroupModel;
-import com.itellyou.model.software.SoftwareVersionModel;
-import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.common.ResultModel;
+import com.itellyou.model.software.SoftwareGroupModel;
+import com.itellyou.model.software.SoftwareVersionDetailModel;
 import com.itellyou.model.tag.TagDetailModel;
 import com.itellyou.model.tag.TagInfoModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.software.SoftwareGroupService;
-import com.itellyou.service.software.SoftwareSingleService;
 import com.itellyou.service.software.SoftwareVersionSearchService;
 import com.itellyou.util.serialize.filter.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,7 @@ public class SoftwareVersionController {
 
     @GetMapping("")
     public ResultModel list(@PathVariable @NotNull Long softwareId){
-        List<SoftwareVersionModel> listVersion = versionService.searchBySoftwareId(softwareId);
+        List<SoftwareVersionDetailModel> listVersion = versionService.searchBySoftwareId(softwareId);
         return new ResultModel(listVersion,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
@@ -46,8 +44,8 @@ public class SoftwareVersionController {
 
     @GetMapping("/{versionId:\\d+}")
     public ResultModel find(@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long softwareId){
-        SoftwareVersionModel versionModel = versionService.findBySoftwareIdAndId(versionId,softwareId);
-        if(versionModel == null){
+        SoftwareVersionDetailModel versionModel = versionService.getDetail(versionId);
+        if(versionModel == null || !versionModel.getSoftwareId().equals(softwareId)){
             return new ResultModel(0,"错误的编号");
         }
         return new ResultModel(versionModel,
@@ -55,7 +53,7 @@ public class SoftwareVersionController {
                 new Labels.LabelModel(TagInfoModel.class,"base"));
     }
 
-    private String getVersionHtml(SoftwareVersionModel versionModel){
+    private String getVersionHtml(SoftwareVersionDetailModel versionModel){
         StringBuilder currentString = new StringBuilder("<div>");
         currentString.append("<h2>" + versionModel.getName() + "</h2>");
         List<TagDetailModel> currentTagList = versionModel.getTags();
@@ -84,13 +82,13 @@ public class SoftwareVersionController {
 
     @GetMapping("/{current:\\d+}...{target:\\d+}")
     public ResultModel compare(UserInfoModel userModel,@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long softwareId){
-        SoftwareVersionModel currentVersion = versionService.findBySoftwareIdAndId(current,softwareId);
-        if(currentVersion == null){
+        SoftwareVersionDetailModel currentVersion = versionService.getDetail(current);
+        if(currentVersion == null|| !currentVersion.getSoftwareId().equals(softwareId)){
             return new ResultModel(0,"错误的当前编号");
         }
 
-        SoftwareVersionModel targetVersion = versionService.findBySoftwareIdAndId(target,softwareId);
-        if(targetVersion == null){
+        SoftwareVersionDetailModel targetVersion = versionService.getDetail(target);
+        if(targetVersion == null|| !targetVersion.getSoftwareId().equals(softwareId)){
             return new ResultModel(0,"错误的目标编号");
         }
 

@@ -2,18 +2,18 @@ package com.itellyou.service.tag;
 
 import com.itellyou.model.tag.TagInfoModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 public interface TagInfoService {
 
     int insert(TagInfoModel tagInfoModel);
 
     int updateStarCountById(Long id,Integer step);
-    int updateStarCountById(HashSet<Long> ids,Integer step);
+    int updateStarCountById(Collection<Long> ids,Integer step);
     int updateArticleCountById(Long id,Integer step);
-    int updateArticleCountById(HashSet<Long> ids, Integer step);
+    int updateArticleCountById(Collection<Long> ids, Integer step);
     int updateQuestionCountById(Long id,Integer step);
-    int updateQuestionCountById(HashSet<Long> ids,Integer step);
+    int updateQuestionCountById(Collection<Long> ids,Integer step);
 
     int updateGroupByGroupId(Long nextGroupId,Long prevGroupId);
 

@@ -6,7 +6,7 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserActivityDetailModel;
 import com.itellyou.model.user.UserActivityModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +14,7 @@ public interface UserActivityService {
 
     int insert(UserActivityModel model);
 
-    List<UserActivityDetailModel> search(Map<EntityAction, HashSet<EntityType>> actionsMap,
+    List<UserActivityDetailModel> search(Map<EntityAction, Collection<EntityType>> actionsMap,
                                          Long targetUserId,
                                         Long userId,
                                          Long searchUserId,
@@ -23,13 +23,13 @@ public interface UserActivityService {
                                         Map<String, String> order,
                                         Integer offset,
                                         Integer limit);
-    int count(Map<EntityAction, HashSet<EntityType>> actionsMap,
+    int count(Map<EntityAction, Collection<EntityType>> actionsMap,
               Long targetUserId,
               Long userId,
               Long beginTime,Long endTime,
               Long ip);
 
-    PageModel<UserActivityDetailModel> page(Map<EntityAction, HashSet<EntityType>> actionsMap,
+    PageModel<UserActivityDetailModel> page(Map<EntityAction, Collection<EntityType>> actionsMap,
                                             Long targetUserId,
                                            Long userId,
                                            Long searchUserId,

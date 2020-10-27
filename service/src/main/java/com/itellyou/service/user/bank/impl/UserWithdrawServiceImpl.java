@@ -96,7 +96,7 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
                 if(logModel == null) throw new Exception("更新余额失败");
             }else if (result == 1 && status.equals(UserPaymentStatus.SUCCEED)){
                 OperationalModel operationalModel = new OperationalModel(EntityAction.WITHDRAW, EntityType.WITHDRAW,
-                        updatedUserId,updatedUserId,updatedUserId,DateUtils.getTimestamp(), updatedIp);
+                        updatedUserId,updatedUserId,updatedUserId,DateUtils.toLocalDateTime(), updatedIp);
                 operationalPublisher.publish(new OperationalEvent(this,operationalModel));
             }
             return result;
@@ -129,12 +129,12 @@ public class UserWithdrawServiceImpl implements UserWithdrawService {
             withdrawModel.setAmount(bigAmount.doubleValue());
             withdrawModel.setCommissionCharge(commissionCharge.doubleValue());
             withdrawModel.setCreatedIp(ip);
-            withdrawModel.setCreatedTime(DateUtils.getTimestamp());
+            withdrawModel.setCreatedTime(DateUtils.toLocalDateTime());
             withdrawModel.setCreatedUserId(userId);
             withdrawModel.setStatus(UserPaymentStatus.DEFAULT);
             withdrawModel.setSubject("提现");
             withdrawModel.setUpdatedIp(ip);
-            withdrawModel.setUpdatedTime(DateUtils.getTimestamp());
+            withdrawModel.setUpdatedTime(DateUtils.toLocalDateTime());
             withdrawModel.setUpdatedUserId(userId);
             int result = this.insert(withdrawModel);
             if(result != 1) throw new Exception("提现失败");

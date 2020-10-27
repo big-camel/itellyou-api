@@ -16,6 +16,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class NotificationJobServiceImpl extends QuartzJobBean {
@@ -45,10 +46,10 @@ public class NotificationJobServiceImpl extends QuartzJobBean {
             synchronized (userId) {
                 // 获取用户上一次读取消息的时间标记，如果没有标记就获取全部的一对多和一对一消息队列
                 NotificationMarkModel markModel = markService.findByUserId(userId);
-                Long currentTime = DateUtils.getTimestamp();
-                Long beginTime = markModel == null ? null : markModel.getUpdatedTime();
+                LocalDateTime currentTime = DateUtils.toLocalDateTime();
+                Long beginTime = markModel == null ? null : DateUtils.getTimestamp(markModel.getUpdatedTime());
                 // 用户设置需要接收消息的操作Map
-                Map<EntityAction, HashSet<EntityType>> actionsMap = new LinkedHashMap<>();
+                Map<EntityAction, Collection<EntityType>> actionsMap = new LinkedHashMap<>();
                 // 是否接收 关注的提问有新回答
                 boolean displayPublishAnswer = false;
                 // 是否接收 关注的专栏是否有新文章

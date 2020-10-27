@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,7 @@ import java.util.Map;
 public interface UserActivityDao {
     int insert(UserActivityModel model);
 
-    List<UserActivityModel> search(@Param("actionsMap") Map<EntityAction, HashSet<EntityType>> actionsMap,
+    List<UserActivityModel> search(@Param("actionsMap") Map<EntityAction, Collection<EntityType>> actionsMap,
                                          @Param("targetUserId") Long targetUserId,
                                          @Param("userId") Long userId,
                                          @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
@@ -24,7 +24,7 @@ public interface UserActivityDao {
                                          @Param("order") Map<String, String> order,
                                          @Param("offset") Integer offset,
                                          @Param("limit") Integer limit);
-    int count(@Param("actionsMap") Map<EntityAction, HashSet<EntityType>> actionsMap,
+    int count(@Param("actionsMap") Map<EntityAction, Collection<EntityType>> actionsMap,
               @Param("targetUserId") Long targetUserId,
               @Param("userId") Long userId,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,

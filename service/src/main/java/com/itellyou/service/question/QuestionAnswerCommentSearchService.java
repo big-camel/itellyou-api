@@ -4,17 +4,17 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.question.QuestionAnswerCommentDetailModel;
 import com.itellyou.model.question.QuestionAnswerCommentModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface QuestionAnswerCommentSearchService {
     QuestionAnswerCommentModel findById(Long id);
 
-    List<QuestionAnswerCommentDetailModel> search(HashSet<Long> ids, Long answerId, HashSet<Long> parentIds, Long replyId, Long searchUserId, Long userId,
+    List<QuestionAnswerCommentDetailModel> search(Collection<Long> ids, Long answerId, Collection<Long> parentIds, Long replyId, Long searchUserId, Long userId,
                                                   Boolean isDeleted,
                                                   Integer childCount,Boolean hasReply,
-                                                  Integer minComments, Integer maxComments,
+                                                  Integer minComment, Integer maxComment,
                                                   Integer minSupport, Integer maxSupport,
                                                   Integer minOppose, Integer maxOppose,
                                                   Long beginTime, Long endTime,
@@ -23,10 +23,10 @@ public interface QuestionAnswerCommentSearchService {
                                                   Integer offset,
                                                   Integer limit);
 
-    List<QuestionAnswerCommentDetailModel> search(Long answerId, HashSet<Long> parentIds, Long searchUserId,
+    List<QuestionAnswerCommentDetailModel> search(Long answerId, Collection<Long> parentIds, Long searchUserId,
                                                   Boolean isDeleted,
                                                   Integer childCount,Boolean hasReply,
-                                                  Integer minComments, Integer maxComments,
+                                                  Integer minComment, Integer maxComment,
                                                   Integer minSupport, Integer maxSupport,
                                                   Integer minOppose, Integer maxOppose,
                                                   Long beginTime, Long endTime,
@@ -34,25 +34,25 @@ public interface QuestionAnswerCommentSearchService {
                                                   Integer offset,
                                                   Integer limit);
 
-    int count(HashSet<Long> ids, Long answerId, HashSet<Long> parentIds, Long replyId, Long userId,
+    int count(Collection<Long> ids, Long answerId, Collection<Long> parentIds, Long replyId, Long userId,
               Boolean isDeleted,
-              Integer minComments, Integer maxComments,
+              Integer minComment, Integer maxComment,
               Integer minSupport, Integer maxSupport,
               Integer minOppose, Integer maxOppose,
               Long beginTime, Long endTime,
               Long ip);
 
-    int count(Long answerId, HashSet<Long> parentIds,
+    int count(Long answerId, Collection<Long> parentIds,
                     Boolean isDeleted,
-                    Integer minComments, Integer maxComments,
+                    Integer minComment, Integer maxComment,
                     Integer minSupport, Integer maxSupport,
                     Integer minOppose, Integer maxOppose,
                     Long beginTime, Long endTime);
 
-    PageModel<QuestionAnswerCommentDetailModel> page(Long answerId, HashSet<Long> parentIds, Long searchUserId,
+    PageModel<QuestionAnswerCommentDetailModel> page(Long answerId, Collection<Long> parentIds, Long searchUserId,
                                                            Boolean isDeleted,
                                                            Integer childCount,Boolean hasReply,
-                                                           Integer minComments, Integer maxComments,
+                                                           Integer minComment, Integer maxComment,
                                                            Integer minSupport, Integer maxSupport,
                                                            Integer minOppose, Integer maxOppose,
                                                            Long beginTime, Long endTime,

@@ -1,11 +1,14 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.tag.*;
 import com.itellyou.model.user.UserDetailModel;
+import com.itellyou.service.sys.EntitySearchService;
 import com.itellyou.service.tag.*;
 import com.itellyou.service.user.UserSearchService;
+import com.itellyou.util.Params;
 import com.itellyou.util.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -13,27 +16,29 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "tag")
+@CacheConfig(cacheNames = CacheKeys.TAG_KEY)
 @Service
-public class TagSearchServiceImpl implements TagSearchService {
+public class TagSearchServiceImpl implements TagSearchService , EntitySearchService<TagDetailModel> {
 
     private final TagInfoDao tagInfoDao;
-    private final TagVersionSearchService versionSearchService;
     private final UserSearchService userSearchService;
     private final TagStarSingleService starSingleService;
     private final TagGroupSingleService groupSingleService;
+    private final TagSingleService tagSingleService;
+    private final TagVersionSingleService versionSingleService;
 
     @Autowired
-    public TagSearchServiceImpl(TagInfoDao tagInfoDao, TagVersionSearchService versionSearchService, UserSearchService userSearchService, TagStarSingleService starSingleService, TagGroupSingleService groupSingleService){
+    public TagSearchServiceImpl(TagInfoDao tagInfoDao,UserSearchService userSearchService, TagStarSingleService starSingleService, TagGroupSingleService groupSingleService, TagSingleService tagSingleService, TagVersionSingleService versionSingleService){
         this.tagInfoDao = tagInfoDao;
-        this.versionSearchService = versionSearchService;
         this.userSearchService = userSearchService;
         this.groupSingleService = groupSingleService;
         this.starSingleService = starSingleService;
+        this.tagSingleService = tagSingleService;
+        this.versionSingleService = versionSingleService;
     }
 
     @Override
-    public List<TagDetailModel> search(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId,
+    public List<TagDetailModel> search(Collection<Long> ids, String name, String mode, Collection<Long> groupIds, Long userId,
                                        Long searchUserId, Boolean hasContent, Boolean isDisabled, Boolean isPublished, Long ip,
                                        Integer minStar, Integer maxStar,
                                        Integer minQuestion, Integer maxQuestion,
@@ -42,16 +47,16 @@ public class TagSearchServiceImpl implements TagSearchService {
                                        Map<String,String> order,
                                        Integer offset,
                                        Integer limit) {
-         List<TagInfoModel> infoModels = RedisUtils.fetchByCache("tag", TagInfoModel.class,ids,(HashSet<Long> fetchIds) ->
-                tagInfoDao.search(ids,name,mode,groupIds,userId,hasContent,
-                        isDisabled,isPublished,ip,minStar,maxStar,minQuestion,maxQuestion,minArticle,maxArticle,beginTime,endTime,order,offset,limit)
-        );
+         List<TagInfoModel> infoModels = tagSingleService.search(ids,name,mode,groupIds,userId,
+                 isDisabled,isPublished,ip,minStar,maxStar,minQuestion,maxQuestion,minArticle,maxArticle,beginTime,endTime,order,offset,limit);
+
         List<TagDetailModel> detailModels = new LinkedList<>();
-        HashSet<Long> authorIds = new LinkedHashSet<>();
-        HashSet<Long> fetchGroupIds = new LinkedHashSet<>();
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> authorIds = new LinkedHashSet<>();
+        Collection<Long> fetchGroupIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
         HashMap<Long,Integer> versionMap = new LinkedHashMap<>();
         List<TagVersionModel> versionModels = new LinkedList<>();
+        if(infoModels.size() == 0) return detailModels;
         for (TagInfoModel infoModel : infoModels){
             TagDetailModel detailModel = new TagDetailModel(infoModel);
 
@@ -67,7 +72,7 @@ public class TagSearchServiceImpl implements TagSearchService {
             detailModels.add(detailModel);
         }
         // 一次查出需要的版本信息
-        versionModels = versionMap.size() > 0 ? versionSearchService.searchByTagMap(versionMap,hasContent) : new ArrayList<>();
+        versionModels = versionMap.size() > 0 ? versionSingleService.searchByTagMap(versionMap,hasContent) : new ArrayList<>();
         // 一次查出需要的作者
         List<UserDetailModel> userDetailModels = userSearchService.search(authorIds,searchUserId,null,null,null,null,null,null,null,null,null,null);
         // 一次查出需要的分组
@@ -122,7 +127,7 @@ public class TagSearchServiceImpl implements TagSearchService {
     }
 
     @Override
-    public int count(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Long userId, Boolean isDisabled, Boolean isPublished, Long ip, Integer minStar, Integer maxStar, Integer minQuestion, Integer maxQuestion, Integer minArticle, Integer maxArticle, Long beginTime, Long endTime) {
+    public int count(Collection<Long> ids, String name, String mode, Collection<Long> groupIds, Long userId, Boolean isDisabled, Boolean isPublished, Long ip, Integer minStar, Integer maxStar, Integer minQuestion, Integer maxQuestion, Integer minArticle, Integer maxArticle, Long beginTime, Long endTime) {
         return tagInfoDao.count(ids,name,mode,groupIds,userId,
                 isDisabled,isPublished,ip,minStar,maxStar,minQuestion,maxQuestion,minArticle,maxArticle,beginTime,endTime);
     }
@@ -157,8 +162,8 @@ public class TagSearchServiceImpl implements TagSearchService {
     }
 
     @Override
-    public List<TagInfoModel> searchChild(HashSet<Long> ids, String name, String mode, HashSet<Long> groupIds, Integer childCount, Long userId, Boolean isDisabled, Boolean isPublished, Long ip, Integer minStar, Integer maxStar, Integer minQuestion, Integer maxQuestion, Integer minArticle, Integer maxArticle, Long beginTime, Long endTime, Map<String, String> order) {
-        return RedisUtils.fetchByCache("tag", TagInfoModel.class,ids,(HashSet<Long> fetchIds) ->
+    public List<TagInfoModel> searchChild(Collection<Long> ids, String name, String mode, Collection<Long> groupIds, Integer childCount, Long userId, Boolean isDisabled, Boolean isPublished, Long ip, Integer minStar, Integer maxStar, Integer minQuestion, Integer maxQuestion, Integer minArticle, Integer maxArticle, Long beginTime, Long endTime, Map<String, String> order) {
+        return RedisUtils.fetch(CacheKeys.TAG_KEY, TagInfoModel.class,ids,(Collection<Long> fetchIds) ->
                 tagInfoDao.searchChild(fetchIds,name,mode,groupIds,childCount,userId,isDisabled,isPublished,ip,minStar,maxStar,minQuestion,maxQuestion,minArticle,maxArticle,beginTime,endTime,order)
         );
     }
@@ -177,5 +182,31 @@ public class TagSearchServiceImpl implements TagSearchService {
     @Override
     public TagDetailModel getDetail(Long id) {
         return getDetail(id,null,null);
+    }
+
+    @Override
+    public List<TagDetailModel> search(Map<String, Object> args) {
+        Params params = new Params(args);
+        return search(params.get("ids",Collection.class),
+                params.get("name",String.class),
+                params.get("mode",String.class),
+                params.get("groupIds",Collection.class),
+                params.get("userId",Long.class),
+                params.get("searchUserId",Long.class),
+                params.get("hasContent",Boolean.class),
+                params.get("isDisabled",Boolean.class),
+                params.get("isPublished",Boolean.class),
+                params.get("ip",Long.class),
+                params.get("minStar",Integer.class),
+                params.get("maxStar",Integer.class),
+                params.get("minQuestion",Integer.class),
+                params.get("maxQuestion",Integer.class),
+                params.get("minArticle",Integer.class),
+                params.get("maxArticle",Integer.class),
+                params.get("beginTime",Long.class),
+                params.get("endTime",Long.class),
+                params.get("order",Map.class),
+                params.get("offset",Integer.class),
+                params.get("limit",Integer.class));
     }
 }

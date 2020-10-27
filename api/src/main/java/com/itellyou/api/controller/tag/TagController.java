@@ -112,16 +112,17 @@ public class TagController {
     }
 
     @PostMapping("/{id:\\d+}")
-    public ResultModel update(@PathVariable Long id, @RequestBody Map<String,Object> params){
-        String name = Params.getOrDefault(params,"name",String.class,null);
+    public ResultModel update(@PathVariable Long id, @RequestBody Map args){
+        Params params = new Params(args);
+        String name = params.get("name");
         if(StringUtils.isNotEmpty(name)){
             TagInfoModel tagModel = tagSingleService.findByName(name);
             if(tagModel != null) {
                 return new ResultModel(500,"名称已存在");
             }
         }
-        Long groupId = Params.getOrDefault(params,"group_id",Long.class,null);
-        Boolean isDisabled = Params.getOrDefault(params,"disabled",Boolean.class,null);
+        Long groupId = params.get("group_id",Long.class);
+        Boolean isDisabled = params.get("disabled",Boolean.class);
         int result = tagService.updateById(id,name,groupId,isDisabled);
         if(result != 1) return new ResultModel(500,"更新失败");
         return new ResultModel();

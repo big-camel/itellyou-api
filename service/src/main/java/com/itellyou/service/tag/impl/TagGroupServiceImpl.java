@@ -1,6 +1,7 @@
 package com.itellyou.service.tag.impl;
 
 import com.itellyou.dao.tag.TagGroupDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.tag.TagGroupModel;
 import com.itellyou.service.tag.TagGroupService;
 import com.itellyou.service.tag.TagInfoService;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-@CacheConfig(cacheNames = "tag_group")
+@CacheConfig(cacheNames = CacheKeys.TAG_GROUP_KEY)
 @Service
 public class TagGroupServiceImpl implements TagGroupService {
 

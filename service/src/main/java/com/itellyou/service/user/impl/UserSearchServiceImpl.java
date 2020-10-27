@@ -1,6 +1,7 @@
 package com.itellyou.service.user.impl;
 
 import com.itellyou.dao.user.UserInfoDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
@@ -8,11 +9,13 @@ import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.model.user.UserStarModel;
+import com.itellyou.service.sys.EntitySearchService;
 import com.itellyou.service.sys.SysPathService;
 import com.itellyou.service.user.UserSearchService;
 import com.itellyou.service.user.bank.UserBankService;
-import com.itellyou.service.user.rank.UserRankService;
+import com.itellyou.service.user.rank.UserRankSingleService;
 import com.itellyou.service.user.star.UserStarSingleService;
+import com.itellyou.util.Params;
 import com.itellyou.util.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -20,27 +23,27 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@CacheConfig(cacheNames = "user_info")
+@CacheConfig(cacheNames = CacheKeys.USER_INFO_KEY)
 @Service
-public class UserSearchServiceImpl implements UserSearchService {
+public class UserSearchServiceImpl implements UserSearchService , EntitySearchService<UserDetailModel> {
     private final UserInfoDao infoDao;
 
-    private final UserRankService rankService;
     private final UserBankService bankService;
     private final SysPathService pathService;
     private final UserStarSingleService starSingleService;
+    private final UserRankSingleService rankSingleService;
 
     @Autowired
-    public UserSearchServiceImpl(UserInfoDao infoDao, UserRankService rankService, UserBankService bankService, SysPathService pathService, UserStarSingleService starSingleService){
+    public UserSearchServiceImpl(UserInfoDao infoDao, UserBankService bankService, SysPathService pathService, UserStarSingleService starSingleService, UserRankSingleService rankSingleService){
         this.infoDao = infoDao;
-        this.rankService = rankService;
         this.bankService = bankService;
         this.pathService = pathService;
         this.starSingleService = starSingleService;
+        this.rankSingleService = rankSingleService;
     }
 
     @Override
-    public List<UserDetailModel> search(HashSet<Long> ids,
+    public List<UserDetailModel> search(Collection<Long> ids,
                                         Long searchUserId,
                                         String loginName, String name,
                                         String mobile, String email,
@@ -52,10 +55,10 @@ public class UserSearchServiceImpl implements UserSearchService {
 
         List<UserDetailModel> detailModels = new ArrayList<>();
 
-        List<UserInfoModel> infoModels = RedisUtils.fetchByCache("user_info",UserInfoModel.class,ids,(HashSet<Long> fetchIds) ->
+        List<UserInfoModel> infoModels = RedisUtils.fetch(CacheKeys.USER_INFO_KEY,UserInfoModel.class,ids,(Collection<Long> fetchIds) ->
                 infoDao.search(fetchIds,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit));
         if(infoModels.size() == 0) return detailModels;
-        HashSet<Long> fetchIds = new LinkedHashSet<>();
+        Collection<Long> fetchIds = new LinkedHashSet<>();
         for (UserInfoModel infoModel : infoModels){
             UserDetailModel detailModel = new UserDetailModel(infoModel);
             fetchIds.add(infoModel.getId());
@@ -76,7 +79,7 @@ public class UserSearchServiceImpl implements UserSearchService {
             for (UserBankModel bankModel : bankModels){
                 if(bankModel.getUserId().equals(detailModel.getId())){
                     detailModel.setBank(bankModel);
-                    detailModel.setRank(rankService.find(bankModel.getScore()));
+                    detailModel.setRank(rankSingleService.find(bankModel.getScore()));
                     break;
                 }
             }
@@ -99,12 +102,12 @@ public class UserSearchServiceImpl implements UserSearchService {
     }
 
     @Override
-    public int count(HashSet<Long> ids, String loginName, String name, String mobile, String email, Long beginTime, Long endTime, Long ip) {
+    public int count(Collection<Long> ids, String loginName, String name, String mobile, String email, Long beginTime, Long endTime, Long ip) {
         return infoDao.count(ids,loginName,name,mobile,email,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<UserDetailModel> page(HashSet<Long> ids, Long searchUserId, String loginName, String name, String mobile, String email, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<UserDetailModel> page(Collection<Long> ids, Long searchUserId, String loginName, String name, String mobile, String email, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<UserDetailModel> data = search(ids,searchUserId,loginName,name,mobile,email,beginTime,endTime,ip,order,offset,limit);
@@ -117,5 +120,22 @@ public class UserSearchServiceImpl implements UserSearchService {
         List<UserDetailModel> detailModels = search(id != null ? new LinkedHashSet<Long>(){{add(id);}} : null,searchId,null,null,null,null,null,null,null,null,0,1);
         if(detailModels != null && detailModels.size() > 0) return detailModels.get(0);
         return null;
+    }
+
+    @Override
+    public List<UserDetailModel> search(Map<String, Object> args) {
+        Params params = new Params(args);
+        return search(params.get("ids",Collection.class),
+                params.get("searchUserId",Long.class),
+                params.get("loginName", String.class),
+                params.get("name",String.class),
+                params.get("mobile",String.class),
+                params.get("email",String.class),
+                params.get("beginTime",Long.class),
+                params.get("endTime",Long.class),
+                params.get("ip",Long.class),
+                params.get("order",Map.class),
+                params.get("offset",Integer.class),
+                params.get("limit",Integer.class));
     }
 }

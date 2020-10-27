@@ -1,6 +1,7 @@
 package com.itellyou.service.sys.impl;
 
 import com.itellyou.dao.sys.SysSettingDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.SysSettingModel;
 import com.itellyou.service.sys.SysSettingService;
 import org.springframework.cache.annotation.CacheConfig;
@@ -9,7 +10,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-@CacheConfig(cacheNames = "sys_setting")
+@CacheConfig(cacheNames = CacheKeys.SYS_SETTING_KEY)
 public class SysSettingServiceImpl implements SysSettingService {
 
     private final SysSettingDao settingDao;

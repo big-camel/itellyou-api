@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itellyou.dao.statistics.StatisticsInfoDao">
+    <sql id="columns">
+        ${alias}id ${prefix}id,
+        ${alias}user_id ${prefix}user_id,
+        ${alias}`date` ${prefix}`date`,
+        ${alias}data_type ${prefix}data_type,
+        ${alias}data_key ${prefix}data_key,
+        ${alias}view_count ${prefix}view_count,
+        ${alias}comment_count ${prefix}comment_count,
+        ${alias}support_count ${prefix}support_count,
+        ${alias}star_count ${prefix}star_count,
+        ${alias}created_time ${prefix}created_time,
+        ${alias}created_ip ${prefix}created_ip,
+        ${alias}created_user_id ${prefix}created_user_id,
+        ${alias}updated_time ${prefix}updated_time,
+        ${alias}updated_ip ${prefix}updated_ip,
+        ${alias}updated_user_id ${prefix}updated_user_id
+    </sql>
+    <insert id="insertOrUpdate">
+        insert into statistics_info(user_id,`date`,data_type,data_key,view_count,comment_count,support_count,oppose_count,star_count,created_time,created_user_id,created_ip,updated_time,updated_user_id,updated_ip)
+        values
+        <foreach collection="models" index="key" item="item" open="" separator=",">
+            (#{item.userId},#{item.date},#{item.dataType},#{item.dataKey},#{item.viewCount},#{item.commentCount},#{item.supportCount},#{item.opposeCount},#{item.starCount},#{item.createdTime},#{item.createdUserId},#{item.createdIp},#{item.updatedTime},#{item.updatedUserId},#{item.updatedIp})
+        </foreach>
+        on duplicate key update view_count=view_count + values(view_count),
+                                comment_count=comment_count + values(comment_count),
+                                support_count=support_count + values(support_count),
+                                oppose_count=oppose_count + values(oppose_count),
+                                star_count=star_count + values(star_count),
+                                updated_time=values(updated_time),
+                                updated_user_id=values(updated_user_id),
+                                updated_ip=values(updated_ip)
+    </insert>
+    <sql id="searchWhere">
+        <where>
+            <if test="dataType != null">
+                and ${alias}data_type = #{dataType}
+            </if>
+            <if test="beginTime != null">
+                and ${alias}created_time <![CDATA[>=]]> #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ${alias}created_time <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="beginDate != null">
+                and ${alias}`date` <![CDATA[>=]]> #{beginDate}
+            </if>
+            <if test="endDate != null">
+                and ${alias}`date` <![CDATA[<=]]> #{endDate}
+            </if>
+            <if test="userId != null">
+                and ${alias}user_id = #{userId}
+            </if>
+            <if test="dataKeys != null &amp;&amp; dataKeys.size() > 0">
+                and
+                ${alias}data_key <foreach collection="dataKeys" item="id" open=" in (" separator="," close=")">
+                #{id}
+            </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="search" resultType="StatisticsInfoModel">
+        select
+        <include refid="columns"><property name="alias" value=""/><property name="prefix" value=""/></include>
+        from statistics_info
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="count" resultType="Integer">
+        select count(*)
+        from statistics_info
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="searchGroupByDate" resultType="StatisticsInfoModel">
+        select
+        `date`,
+        sum(view_count) view_count,
+        sum(comment_count) comment_count,
+        sum(support_count) support_count,
+        sum(oppose_count) oppose_count,
+        sum(star_count) star_count
+        from statistics_info
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by `date`
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="countGroupByDate" resultType="Integer">
+        select count(DISTINCT `date`)
+        from statistics_info
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+    </select>
+    <select id="searchGroupByUserAndType" resultType="StatisticsInfoModel">
+        select
+        user_id,
+        data_type,
+        sum(view_count) view_count,
+        sum(comment_count) comment_count,
+        sum(support_count) support_count,
+        sum(oppose_count) oppose_count,
+        sum(star_count) star_count
+        from statistics_info
+        <include refid="searchWhere">
+            <property name="alias" value=""/>
+        </include>
+        group by data_type, user_id
+        <if test="order != null">
+            <foreach collection="order" index="key" item="value" open="order by " separator=",">
+                ${key} ${value}
+            </foreach>
+        </if>
+        <if test="offset != null and limit != null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <update id="addCountById">
+        update statistics_info
+        <set>
+            <foreach collection="fieldValues" index="key" item="value" separator=",">
+                ${key}=${key} + #{value}
+            </foreach>
+            <if test="updatedTime != null">
+                updated_time=#{updatedTime},
+            </if>
+            <if test="updatedIp != null">
+                updated_ip=#{updatedIp},
+            </if>
+            <if test="updatedUserId != null">
+                updated_user_id=#{updatedUserId},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

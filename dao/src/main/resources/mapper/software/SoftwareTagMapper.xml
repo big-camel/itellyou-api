@@ -22,11 +22,8 @@
             #{softwareId}
         </foreach>
     </select>
-    <select id="searchTagId" resultType="Long">
-        select tag_id from software_tag where software_id=#{softwareId}
-    </select>
-    <select id="searchSoftwareId" resultType="Long">
-        select software_id from software_tag where tag_id in
+    <select id="searchSoftwares" resultType="SoftwareTagModel">
+        select software_id,tag_id from software_tag where tag_id in
         <foreach collection="tagIds" item="tag" separator="," open="(" close=")" >
             #{tag}
         </foreach>

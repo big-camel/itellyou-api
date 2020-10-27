@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +17,7 @@ public interface ReportDao {
     int insert(ReportModel model);
 
     List<ReportModel> search(@Param("id") Long id,
-                                      @Param("actionsMap") Map<ReportAction, HashSet<EntityType>> actionsMap,
+                                      @Param("actionsMap") Map<ReportAction, Collection<EntityType>> actionsMap,
                                         @Param("state") Integer state,
                                       @Param("targetUserId") Long targetUserId,
                                       @Param("userId") Long userId,
@@ -27,7 +27,7 @@ public interface ReportDao {
                                       @Param("offset") Integer offset,
                                       @Param("limit") Integer limit);
     int count(@Param("id") Long id,
-              @Param("actionsMap") Map<ReportAction, HashSet<EntityType>> actionsMap,
+              @Param("actionsMap") Map<ReportAction, Collection<EntityType>> actionsMap,
               @Param("state") Integer state,
               @Param("targetUserId") Long targetUserId,
               @Param("userId") Long userId,

@@ -1,47 +1,31 @@
 package com.itellyou.service.question;
 
-import com.itellyou.model.question.QuestionAnswerVersionModel;
+import com.itellyou.model.question.QuestionAnswerVersionDetailModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface QuestionAnswerVersionSearchService {
 
-    Integer findVersionById(Long id);
+    List<QuestionAnswerVersionDetailModel> searchByAnswerId(Long answerId, Boolean hasContent);
 
-    QuestionAnswerVersionModel find(Long answerId, Integer version);
+    List<QuestionAnswerVersionDetailModel> searchByAnswerId(Long answerId);
 
-    List<QuestionAnswerVersionModel> searchByAnswerId(Long answerId, Boolean hasContent);
+    QuestionAnswerVersionDetailModel getDetail(Long id);
 
-    List<QuestionAnswerVersionModel> searchByAnswerId(Long answerId);
+    QuestionAnswerVersionDetailModel getDetail(Long answerId, Integer version);
 
-    List<QuestionAnswerVersionModel> searchByAnswerMap(Map<Long,Integer> articleMap, Boolean hasContent);
-
-    QuestionAnswerVersionModel findById(Long id);
-
-    QuestionAnswerVersionModel findByAnswerIdAndId(Long id, Long answerId);
-
-    List<QuestionAnswerVersionModel> search( HashSet<Long> ids,  Map<Long,Integer> answerMap,
-                                             Long userId,
-                                             Boolean hasContent,
-                                             Boolean isReview,
-                                             Boolean isDisable,
-                                             Boolean isPublish,
-                                             Long beginTime,
-                                             Long endTime,
-                                             Long ip,
-                                             Map<String, String> order,
-                                             Integer offset,
-                                             Integer limit);
-
-    Integer count ( HashSet<Long> ids,
-                    Map<Long,Integer> answerMap,
-                    Long userId,
-                    Boolean isReview,
-                    Boolean isDisable,
-                    Boolean isPublish,
-                    Long beginTime,
-                    Long endTime,
-                    Long ip);
+    List<QuestionAnswerVersionDetailModel> search(Collection<Long> ids, Map<Long,Integer> answerMap,
+                                                  Long userId,
+                                                  Boolean hasContent,
+                                                  Boolean isReview,
+                                                  Boolean isDisable,
+                                                  Boolean isPublish,
+                                                  Long beginTime,
+                                                  Long endTime,
+                                                  Long ip,
+                                                  Map<String, String> order,
+                                                  Integer offset,
+                                                  Integer limit);
 }

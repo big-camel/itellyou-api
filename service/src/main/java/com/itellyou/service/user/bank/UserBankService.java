@@ -7,7 +7,7 @@ import com.itellyou.model.user.UserBankLogModel;
 import com.itellyou.model.user.UserBankModel;
 import com.itellyou.model.user.UserBankType;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 
 public interface UserBankService {
@@ -19,5 +19,5 @@ public interface UserBankService {
 
     void updateByOperational(UserBankType bankType,OperationalModel model);
 
-    List<UserBankModel> search(HashSet<Long> ids);
+    List<UserBankModel> search(Collection<Long> ids);
 }

@@ -18,7 +18,7 @@ public class ArticlePaidReadModel implements CacheEntity {
     private Double freeReadScale;
 
     @Override
-    public String cacheKey() {
-        return articleId.toString();
+    public Long cacheKey() {
+        return articleId;
     }
 }

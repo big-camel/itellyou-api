@@ -1,6 +1,7 @@
 package com.itellyou.service.question.impl;
 
 import com.itellyou.dao.question.QuestionCommentVoteDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.event.QuestionCommentEvent;
 import com.itellyou.model.question.QuestionCommentModel;
 import com.itellyou.model.question.QuestionCommentVoteModel;
@@ -12,7 +13,6 @@ import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionCommentSearchService;
 import com.itellyou.service.question.QuestionCommentService;
 import com.itellyou.util.DateUtils;
-import com.itellyou.util.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.HashMap;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "question_comment_vote")
+@CacheConfig(cacheNames = CacheKeys.QUESTION_COMMENT_VOTE_KEY)
 @Service
 public class QuestionCommentVoteServiceImpl implements VoteService<QuestionCommentVoteModel> {
 
@@ -48,14 +48,12 @@ public class QuestionCommentVoteServiceImpl implements VoteService<QuestionComme
 
     @Override
     public int insert(QuestionCommentVoteModel voteModel) {
-        RedisUtils.clear("question_comment_vote_" + voteModel.getCreatedUserId());
         return voteDao.insert(voteModel);
     }
 
     @Override
     @CacheEvict(key = "T(String).valueOf(#commentId).concat('-').concat(#userId)")
     public int deleteByTargetIdAndUserId(Long commentId, Long userId) {
-        RedisUtils.clear("question_comment_vote_" + userId);
         return voteDao.deleteByCommentIdAndUserId(commentId,userId);
     }
 
@@ -73,7 +71,7 @@ public class QuestionCommentVoteServiceImpl implements VoteService<QuestionComme
                 if(result != 1) throw new Exception("更新Vote失败");
             }
             if(voteModel == null || !voteModel.getType().equals(type)){
-                int result = insert(new QuestionCommentVoteModel(id,type, DateUtils.getTimestamp(),userId, ip));
+                int result = insert(new QuestionCommentVoteModel(id,type, DateUtils.toLocalDateTime(),userId, ip));
                 if(result != 1) throw new Exception("写入Vote失败");
                 result = commentService.updateVote(type,1,id);
                 if(result != 1) throw new Exception("更新Vote失败");
@@ -85,19 +83,18 @@ public class QuestionCommentVoteServiceImpl implements VoteService<QuestionComme
             Map<String,Object> data = new HashMap<>();
             data.put("id",commentModel.getId());
             data.put("parentId",commentModel.getParentId());
-            data.put("support",commentModel.getSupport());
-            data.put("oppose",commentModel.getOppose());
+            data.put("support",commentModel.getSupportCount());
+            data.put("oppose",commentModel.getOpposeCount());
             if(voteModel != null){
                 operationalPublisher.publish(new QuestionCommentEvent(this,
                         voteModel.getType().equals(VoteType.SUPPORT) ? EntityAction.UNLIKE : EntityAction.UNDISLIKE,
-                        commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                        commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
             }
             if(voteModel == null || !voteModel.getType().equals(type)){
                 operationalPublisher.publish(new QuestionCommentEvent(this,
                         type.equals(VoteType.SUPPORT) ? EntityAction.LIKE : EntityAction.DISLIKE,
-                        commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.getTimestamp(),ip));
+                        commentModel.getId(),commentModel.getCreatedUserId(),userId, DateUtils.toLocalDateTime(),ip));
             }
-            RedisUtils.clear("question_comment_vote_" + userId);
             return data;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());

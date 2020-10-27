@@ -95,7 +95,7 @@ public class LoginController {
                     platform = SysPermissionPlatform.valueOf(p.toUpperCase());
                 }
             }catch (Exception e){}
-            List<SysPermissionModel> permissionModels = permissionService.search(userInfoModel.getId(), platform,null,null,null,null,null,null);
+            List<SysPermissionModel> permissionModels = permissionService.search(userInfoModel.getId(), platform);
             return new ResultModel(userInfoModel,"base").
                     extend("access",permissionModels);
         }
@@ -136,7 +136,7 @@ public class LoginController {
                 platform = SysPermissionPlatform.valueOf(p.toUpperCase());
             }
         }catch (Exception e){}
-        List<SysPermissionModel> permissionModels = permissionService.search(userInfoModel.getId(), platform,null,null,null,null,null,null);
+        List<SysPermissionModel> permissionModels = permissionService.search(userInfoModel.getId(), platform);
         return new ResultModel(userInfoModel,"base").
                 extend("access",permissionModels);
     }

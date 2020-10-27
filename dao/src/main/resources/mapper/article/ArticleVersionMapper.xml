@@ -43,13 +43,6 @@
             from article_version where article_id=#{articleId}
         </if>
     </insert>
-    <select id="findByArticleIdAndVersion" resultType="ArticleVersionModel">
-        select id,article_id,column_id,source_type,source_data,version,is_reviewed,is_disabled,is_published,save_type,remark,created_time,created_ip,created_user_id,title,description
-        <if test="hasContent != false">
-            ,content,
-            html
-        </if> from article_version where article_id=#{articleId} and version = #{version}
-    </select>
     <sql id="where">
         <where>
             <if test="isReviewed != null">

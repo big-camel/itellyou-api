@@ -1,51 +1,34 @@
 package com.itellyou.service.article;
 
 import com.itellyou.model.article.ArticleSourceType;
-import com.itellyou.model.article.ArticleVersionModel;
+import com.itellyou.model.article.ArticleVersionDetailModel;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface ArticleVersionSearchService {
 
-    Integer findVersionById(Long id);
+    List<ArticleVersionDetailModel> searchByArticleId(Long articleId, Boolean hasContent);
 
-    List<ArticleVersionModel> searchByArticleId(Long articleId, Boolean hasContent);
+    List<ArticleVersionDetailModel> searchByArticleId(Long articleId);
 
-    List<ArticleVersionModel> searchByArticleId(Long articleId);
+    ArticleVersionDetailModel getDetail(Long id);
 
-    List<ArticleVersionModel> searchByArticleMap(Map<Long,Integer> articleMap,Boolean hasContent);
+    ArticleVersionDetailModel getDetail(Long articleId,Integer version);
 
-    ArticleVersionModel findById(Long id);
-
-    ArticleVersionModel findByArticleIdAndId(Long id, Long articleId);
-
-    ArticleVersionModel find(Long articleId,Integer version);
-
-    List<ArticleVersionModel> search( HashSet<Long> ids,
-                                      Map<Long,Integer> articleMap,
-                                      Long userId,
-                                      ArticleSourceType sourceType,
-                                      Boolean hasContent,
-                                      Boolean isReview,
-                                      Boolean isDisable,
-                                      Boolean isPublish,
-                                      Long beginTime,
-                                      Long endTime,
-                                      Long ip,
-                                      Map<String, String> order,
-                                      Integer offset,
-                                      Integer limit);
-
-    Integer count ( HashSet<Long> ids,
-                    Map<Long,Integer> articleMap,
-                    Long userId,
-                    ArticleSourceType sourceType,
-                    Boolean isReview,
-                    Boolean isDisable,
-                    Boolean isPublish,
-                    Long beginTime,
-                    Long endTime,
-                    Long ip);
+    List<ArticleVersionDetailModel> search(Collection<Long> ids,
+                                           Map<Long,Integer> articleMap,
+                                           Long userId,
+                                           ArticleSourceType sourceType,
+                                           Boolean hasContent,
+                                           Boolean isReview,
+                                           Boolean isDisable,
+                                           Boolean isPublish,
+                                           Long beginTime,
+                                           Long endTime,
+                                           Long ip,
+                                           Map<String, String> order,
+                                           Integer offset,
+                                           Integer limit);
 }

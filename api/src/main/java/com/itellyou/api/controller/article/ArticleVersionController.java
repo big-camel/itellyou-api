@@ -3,7 +3,7 @@ package com.itellyou.api.controller.article;
 import com.itellyou.api.handler.TokenAccessDeniedException;
 import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.article.ArticleSourceType;
-import com.itellyou.model.article.ArticleVersionModel;
+import com.itellyou.model.article.ArticleVersionDetailModel;
 import com.itellyou.model.column.ColumnInfoModel;
 import com.itellyou.model.common.ResultModel;
 import com.itellyou.model.tag.TagDetailModel;
@@ -55,7 +55,7 @@ public class ArticleVersionController {
     @GetMapping("")
     public ResultModel list(UserInfoModel userModel,@PathVariable @NotNull Long articleId){
         check(articleId,userModel == null ? null : userModel.getId());
-        List<ArticleVersionModel> listVersion = versionService.searchByArticleId(articleId);
+        List<ArticleVersionDetailModel> listVersion = versionService.searchByArticleId(articleId);
         return new ResultModel(listVersion,
                 new Labels.LabelModel(UserInfoModel.class,"base"),
                 new Labels.LabelModel(TagInfoModel.class,"base"));
@@ -63,8 +63,8 @@ public class ArticleVersionController {
 
     @GetMapping("/{versionId:\\d+}")
     public ResultModel find(UserInfoModel userModel,@PathVariable @NotNull Long versionId, @PathVariable @NotNull Long articleId){
-        ArticleVersionModel versionModel = versionService.findByArticleIdAndId(versionId,articleId);
-        if(versionModel == null){
+        ArticleVersionDetailModel versionModel = versionService.getDetail(versionId);
+        if(versionModel == null || !versionModel.getArticleId().equals(articleId)){
             return new ResultModel(0,"错误的编号");
         }
         check(articleId,userModel == null ? null : userModel.getId());
@@ -73,7 +73,7 @@ public class ArticleVersionController {
                 new Labels.LabelModel(TagInfoModel.class,"base"));
     }
 
-    private String getVersionHtml(ArticleVersionModel versionModel){
+    private String getVersionHtml(ArticleVersionDetailModel versionModel){
         StringBuilder currentString = new StringBuilder("<div>");
         currentString.append("<h2>" + versionModel.getTitle() + "</h2>");
         List<TagDetailModel> currentTagList = versionModel.getTags();
@@ -118,13 +118,13 @@ public class ArticleVersionController {
     @GetMapping("/{current:\\d+}...{target:\\d+}")
     public ResultModel compare(UserInfoModel userModel,@PathVariable @NotNull Long current, @PathVariable @NotNull Long target, @PathVariable @NotNull Long articleId){
         check(articleId,userModel == null ? null : userModel.getId());
-        ArticleVersionModel currentVersion = versionService.findByArticleIdAndId(current,articleId);
-        if(currentVersion == null){
+        ArticleVersionDetailModel currentVersion = versionService.getDetail(current);
+        if(currentVersion == null || !currentVersion.getArticleId().equals(articleId)){
             return new ResultModel(0,"错误的当前编号");
         }
 
-        ArticleVersionModel targetVersion = versionService.findByArticleIdAndId(target,articleId);
-        if(targetVersion == null){
+        ArticleVersionDetailModel targetVersion = versionService.getDetail(target);
+        if(targetVersion == null || !targetVersion.getArticleId().equals(articleId)){
             return new ResultModel(0,"错误的目标编号");
         }
 

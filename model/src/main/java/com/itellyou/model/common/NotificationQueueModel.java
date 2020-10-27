@@ -6,9 +6,9 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.util.annotation.JSONDefault;
 import com.itellyou.util.serialize.IpDeserializer;
 import com.itellyou.util.serialize.IpSerializer;
-import com.itellyou.util.serialize.TimestampDeserializer;
-import com.itellyou.util.serialize.TimestampSerializer;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
 @ToString(callSuper = true)
@@ -21,12 +21,12 @@ public class NotificationQueueModel extends OperationalBaseModel {
     private Long id;
     private Long targetUserId;
     private Long createdUserId=0l;
-    @JSONField(serializeUsing = TimestampSerializer.class,deserializeUsing = TimestampDeserializer.class,label = "base")
-    private Long createdTime=0l;
+    @JSONField(label = "base")
+    private LocalDateTime createdTime;
     @JSONField(serializeUsing = IpSerializer.class,deserializeUsing = IpDeserializer.class)
     private Long createdIp;
 
-    public NotificationQueueModel(EntityAction action, EntityType type, Long targetId, Long targetUserId, Long createdUserId, Long createdTime, Long createdIp){
+    public NotificationQueueModel(EntityAction action, EntityType type, Long targetId, Long targetUserId, Long createdUserId, LocalDateTime createdTime, Long createdIp){
         setAction(action);
         setType(type);
         setTargetId(targetId);

@@ -155,7 +155,7 @@ public class ResultModel {
         return mapLabels;
     }
 
-    public ResultModelJson toResultJson(){
+    public String toJsonString(){
         Map<Class,String[]> includes = this.getIncludes();
 
         if(includes != null && includes.size() > 0){
@@ -182,8 +182,11 @@ public class ResultModel {
             }
             jsonData = jsonObject.toJSONString();
         }
+        return jsonData;
+    }
 
-        return new ResultModelJson(this.getStatus(),this.getMessage(),jsonData);
+    public ResultModelJson toResultJson(){
+        return new ResultModelJson(this.getStatus(),this.getMessage(),toJsonString());
     }
 
     @Override

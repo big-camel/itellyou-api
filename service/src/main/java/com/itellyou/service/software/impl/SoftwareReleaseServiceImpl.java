@@ -1,7 +1,10 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareReleaseDao;
-import com.itellyou.model.software.*;
+import com.itellyou.model.constant.CacheKeys;
+import com.itellyou.model.software.SoftwareReleaseDetailModel;
+import com.itellyou.model.software.SoftwareReleaseModel;
+import com.itellyou.model.software.SoftwareUpdaterDetailModel;
 import com.itellyou.service.software.SoftwareReleaseService;
 import com.itellyou.service.software.SoftwareUpdaterService;
 import com.itellyou.util.RedisUtils;
@@ -10,12 +13,9 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-@CacheConfig(cacheNames = "software_release")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_RELEASE_KEY)
 @Service
 public class SoftwareReleaseServiceImpl implements SoftwareReleaseService {
 
@@ -28,43 +28,43 @@ public class SoftwareReleaseServiceImpl implements SoftwareReleaseService {
     }
 
     @Override
-    @CacheEvict(value = "software_release" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_RELEASE_KEY , allEntries = true)
     public int add(SoftwareReleaseModel model) {
         return releaseDao.add(model);
     }
 
     @Override
-    @CacheEvict(value = "software_release" , allEntries = true)
-    public int addAll(HashSet<SoftwareReleaseModel> releaseValues) {
+    @CacheEvict(value = CacheKeys.SOFTWARE_RELEASE_KEY , allEntries = true)
+    public int addAll(Collection<SoftwareReleaseModel> releaseValues) {
         return releaseDao.addAll(releaseValues);
     }
 
     @Override
-    @CacheEvict(value = "software_release" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_RELEASE_KEY , allEntries = true)
     public int clear(Long softwareId) {
         return releaseDao.clear(softwareId);
     }
 
     @Override
-    @CacheEvict(value = "software_release" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_RELEASE_KEY , allEntries = true)
     public int remove(Long id) {
         return releaseDao.remove(id);
     }
 
     @Override
-    public List<SoftwareReleaseDetailModel> search(HashSet<Long> softwareIds) {
+    public List<SoftwareReleaseDetailModel> search(Collection<Long> softwareIds) {
         StringBuilder keySb = new StringBuilder();
         for (Long id : softwareIds){
             keySb.append(id);
         }
         String key = StringUtils.md5(keySb.toString());
-        List<SoftwareReleaseModel> cacheData = RedisUtils.getCache("software_release",key, List.class);
+        List<SoftwareReleaseModel> cacheData = RedisUtils.get(CacheKeys.SOFTWARE_RELEASE_KEY,key, List.class);
         if(cacheData == null || cacheData.size() == 0)
         {
             cacheData = releaseDao.search(softwareIds);
-            RedisUtils.setCache("software_release",key,cacheData);
+            RedisUtils.set(CacheKeys.SOFTWARE_RELEASE_KEY,key,cacheData);
         }
-        HashSet<Long> ids = new HashSet<>();
+        Collection<Long> ids = new HashSet<>();
         for (SoftwareReleaseModel model: cacheData) {
             ids.add(model.getId());
         }

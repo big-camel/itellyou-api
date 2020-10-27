@@ -1,21 +1,13 @@
 package com.itellyou.service.common.impl;
 
 import com.itellyou.dao.common.ViewInfoDao;
-import com.itellyou.model.article.ArticleInfoModel;
 import com.itellyou.model.common.ViewInfoModel;
-import com.itellyou.model.question.QuestionAnswerDetailModel;
-import com.itellyou.model.question.QuestionDetailModel;
-import com.itellyou.model.software.SoftwareInfoModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityType;
-import com.itellyou.model.sys.PageModel;
-import com.itellyou.model.tag.TagInfoModel;
-import com.itellyou.service.article.ArticleSingleService;
 import com.itellyou.service.common.ViewService;
-import com.itellyou.service.question.QuestionAnswerSearchService;
-import com.itellyou.service.question.QuestionSearchService;
-import com.itellyou.service.software.SoftwareSingleService;
-import com.itellyou.service.tag.TagSingleService;
 import com.itellyou.util.DateUtils;
+import com.itellyou.util.RedisUtils;
+import com.itellyou.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,20 +19,10 @@ import java.util.Map;
 public class ViewServiceImpl implements ViewService {
 
     private final ViewInfoDao viewDao;
-    private final QuestionSearchService questionSearchService;
-    private final QuestionAnswerSearchService answerSearchService;
-    private final ArticleSingleService articleSearchService;
-    private final SoftwareSingleService softwareSingleService;
-    private final TagSingleService tagSingleService;
 
     @Autowired
-    public ViewServiceImpl(ViewInfoDao viewDao, QuestionSearchService questionSearchService, QuestionAnswerSearchService answerSearchService, ArticleSingleService articleSearchService, SoftwareSingleService softwareSingleService, TagSingleService tagSingleService){
+    public ViewServiceImpl(ViewInfoDao viewDao){
         this.viewDao = viewDao;
-        this.questionSearchService = questionSearchService;
-        this.answerSearchService = answerSearchService;
-        this.articleSearchService = articleSearchService;
-        this.softwareSingleService = softwareSingleService;
-        this.tagSingleService = tagSingleService;
     }
 
     @Override
@@ -49,96 +31,67 @@ public class ViewServiceImpl implements ViewService {
     }
 
     @Override
-    public List<ViewInfoModel> search(Long id, Long userId, EntityType dataType, Long dataKey, String os, String browser, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        return viewDao.search(id,userId,dataType,dataKey,os,browser,beginTime,endTime,ip,order,offset,limit);
-    }
-
-    @Override
-    public List<ViewInfoModel> search(Long userId, Map<String, String> order, Integer offset, Integer limit) {
-        return search(null,userId,null,null,null,null,null,null,null,order,offset,limit);
-    }
-
-    @Override
-    public List<ViewInfoModel> search(Long userId, Integer offset, Integer limit) {
-        Map<String, String> order = new HashMap<>();
-        order.put("updated_time","desc");
-        return search(userId,order,offset,limit);
-    }
-
-    @Override
-    public int count(Long id, Long userId, EntityType dataType, Long dataKey, String os, String browser, Long beginTime, Long endTime, Long ip) {
-        return viewDao.count(id,userId,dataType,dataKey,os,browser,beginTime,endTime,ip);
-    }
-
-    @Override
-    public PageModel<ViewInfoModel> page(Long id, Long userId, EntityType dataType, Long dataKey, String os, String browser, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        if(offset == null) offset = 0;
-        if(limit == null) limit = 10;
-        List<ViewInfoModel> data = search(id,userId,dataType,dataKey,os,browser,beginTime,endTime,ip,order,offset,limit);
-        Integer total = count(id,userId,dataType,dataKey,os,browser,beginTime,endTime,ip);
-        return new PageModel<>(offset == 0,offset + limit >= total,offset,limit,total,data);
-    }
-
-    @Override
     public int update(ViewInfoModel viewModel) {
         return viewDao.update(viewModel);
     }
 
     @Override
-    public long insertOrUpdate(Long userId, EntityType dataType, Long dataKey, Long ip,String os,String browser) throws Exception {
-        Map<String, String> order = new HashMap<>();
-        order.put("updated_time","desc");
+    public long insertOrUpdate(Long userId, EntityType dataType, Long dataKey,String title, Long ip,String os,String browser) throws Exception {
 
-        List<ViewInfoModel> data = null;
-        if(userId != null && userId > 0){
-            data = search(null,userId,dataType,dataKey,null,null,null,null,null,order,0,1);
-        }else{
-            userId = 0l;
-            data = search(null,0l,dataType,dataKey,null,null,null,null,ip,order,0,1);
-        }
-        String title = "无标题";
-        ViewInfoModel view = data != null && data.size() > 0 ? data.get(0) : null;
-        switch (dataType){
-            case QUESTION:
-                QuestionDetailModel questionDetailModel = questionSearchService.getDetail(dataKey);
-                if(questionDetailModel != null) title = questionDetailModel.getTitle();
-                break;
-            case ANSWER:
-                QuestionAnswerDetailModel answerDetailModel = answerSearchService.getDetail(dataKey);
-                if(answerDetailModel != null) title = answerDetailModel.getQuestion().getTitle();
-                break;
-            case ARTICLE:
-                ArticleInfoModel articleDetailModel = articleSearchService.findById(dataKey);
-                if(articleDetailModel != null) title = articleDetailModel.getTitle();
-                break;
-            case SOFTWARE:
-                SoftwareInfoModel softwareInfoModel = softwareSingleService.findById(dataKey);
-                if(softwareInfoModel != null) title = softwareInfoModel.getName();
-                break;
-            case TAG:
-                TagInfoModel tagInfoModel = tagSingleService.findById(dataKey);
-                if(tagInfoModel != null) title = tagInfoModel.getName();
-                break;
-        }
-        Long prevTime = view == null ? 0l : view.getUpdatedTime();
+        //根据数据类型和数据编号、IP地址或用户编号查询浏览记录
+        ViewInfoModel view = userId != null && userId > 0 ? findByUser(userId,dataType,dataKey) : findByIp(ip,dataType,dataKey);
+        // 获取浏览的标题
+        title = StringUtils.isEmpty(title) ? "无标题" : title;
+        // 上次浏览时间
+        Long prevTime = view == null ? 0l : DateUtils.getTimestamp(view.getUpdatedTime());
+        String cacheKey = (userId != null && userId > 0 ? userId : ip) + "-" + dataType.getValue() + "-" + dataKey;
         if(view == null){
+            // 第一次浏览，记录到数据库
             view = new ViewInfoModel(title,os,browser,dataType,dataKey,userId,ip);
             int result = this.insert(view);
             if(result != 1) {
                 throw new Exception("写入浏览记录失败");
             }
-        }else{
+        }else if(DateUtils.getTimestamp() - prevTime > 3) {//3秒内访问不更新最新访问时间
+            // 更新浏览记录最新浏览时间
             view.setTitle(title);
             view.setOs(os);
             view.setBrowser(browser);
             view.setUpdatedIp(ip);
             view.setUpdatedUserId(userId);
-            view.setUpdatedTime(DateUtils.getTimestamp());
+            view.setUpdatedTime(DateUtils.toLocalDateTime());
             int result = this.update(view);
             if(result != 1) {
                 throw new Exception("更新浏览记录失败");
             }
         }
+        RedisUtils.set(CacheKeys.VIEW_KEY,cacheKey,view);
         return prevTime;
+    }
+
+    @Override
+    public ViewInfoModel findByUser(Long userId, EntityType dataType, Long dataKey) {
+        Map<String, String> order = new HashMap<>();
+        order.put("updated_time","desc");
+        String key = userId + "-" + dataType.getValue() + "-" + dataKey;
+        ViewInfoModel infoModel = RedisUtils.get(CacheKeys.VIEW_KEY,key,ViewInfoModel.class);
+        if(infoModel == null){
+            List<ViewInfoModel> data = viewDao.search(null,userId,dataType,dataKey,null,null,null,null,null,order,0,1);
+            infoModel = data != null && data.size() > 0 ? data.get(0) : null;
+        }
+        return infoModel;
+    }
+
+    @Override
+    public ViewInfoModel findByIp(Long ip, EntityType dataType, Long dataKey) {
+        Map<String, String> order = new HashMap<>();
+        order.put("updated_time","desc");
+        String key = ip + "-" + dataType.getValue() + "-" + dataKey;
+        ViewInfoModel infoModel = RedisUtils.get(CacheKeys.VIEW_KEY,key,ViewInfoModel.class);
+        if(infoModel == null){
+        List<ViewInfoModel> data = viewDao.search(null,0l,dataType,dataKey,null,null,null,null,ip,order,0,1);
+            infoModel = data != null && data.size() > 0 ? data.get(0) : null;
+        }
+        return infoModel;
     }
 }

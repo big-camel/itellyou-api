@@ -1,9 +1,8 @@
 package com.itellyou.service.software.impl;
 
 import com.itellyou.dao.software.SoftwareGroupDao;
-import com.itellyou.model.software.SoftwareDetailModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.software.SoftwareGroupModel;
-import com.itellyou.model.software.SoftwareInfoModel;
 import com.itellyou.model.sys.PageModel;
 import com.itellyou.service.software.SoftwareGroupService;
 import com.itellyou.util.RedisUtils;
@@ -13,11 +12,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-@CacheConfig(cacheNames = "software_group")
+@CacheConfig(cacheNames = CacheKeys.SOFTWARE_GROUP_KEY)
 @Service
 public class SoftwareGroupServiceImpl implements SoftwareGroupService {
 
@@ -28,34 +28,34 @@ public class SoftwareGroupServiceImpl implements SoftwareGroupService {
     }
 
     @Override
-    @CacheEvict(value = "software_group_all" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_GROUP_KEY + "_all" , allEntries = true)
     public int add(SoftwareGroupModel model) {
         int result = groupDao.add(model);
         return  result;
     }
 
     @Override
-    @CacheEvict(value = "software_group_all" , allEntries = true)
-    public int addAll(HashSet<SoftwareGroupModel> groupValues) {
+    @CacheEvict(value = CacheKeys.SOFTWARE_GROUP_KEY + "_all" , allEntries = true)
+    public int addAll(Collection<SoftwareGroupModel> groupValues) {
         int result = groupDao.addAll(groupValues);
         return result;
     }
 
     @Override
-    @CacheEvict(value = "software_group_all" , allEntries = true)
+    @CacheEvict(value = CacheKeys.SOFTWARE_GROUP_KEY + "_all" , allEntries = true)
     public int clear() {
         return groupDao.clear();
     }
 
     @Override
-    @Caching( evict = { @CacheEvict(key = "#id") , @CacheEvict(value = "software_group_all" , allEntries = true)})
+    @Caching( evict = { @CacheEvict(key = "#id") , @CacheEvict(value = CacheKeys.SOFTWARE_GROUP_KEY + "_all" , allEntries = true)})
     public int remove(Long id) {
         return groupDao.remove(id);
     }
 
     @Override
+    @Cacheable(value = CacheKeys.SOFTWARE_GROUP_KEY + "_all")
     public List<SoftwareGroupModel> searchAll() {
-        RedisUtils.clear("software_group_all");
         return groupDao.searchAll();
     }
 
@@ -67,21 +67,21 @@ public class SoftwareGroupServiceImpl implements SoftwareGroupService {
     }
 
     @Override
-    public List<SoftwareGroupModel> search(HashSet<Long> ids, String name, Long userId, Long beginTime, Long endTime,
+    public List<SoftwareGroupModel> search(Collection<Long> ids, String name, Long userId, Long beginTime, Long endTime,
                                            Long ip,
                                            Map<String, String> order, Integer offset, Integer limit) {
-        return RedisUtils.fetchByCache("software_group", SoftwareGroupModel.class,ids,(HashSet<Long> fetchIds) ->
+        return RedisUtils.fetch(CacheKeys.SOFTWARE_GROUP_KEY, SoftwareGroupModel.class,ids,(Collection<Long> fetchIds) ->
                 groupDao.search(fetchIds,name,userId,beginTime,endTime,ip,order,offset,limit)
         );
     }
 
     @Override
-    public int count(HashSet<Long> ids, String name, Long userId, Long beginTime, Long endTime, Long ip) {
+    public int count(Collection<Long> ids, String name, Long userId, Long beginTime, Long endTime, Long ip) {
         return groupDao.count(ids,name,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<SoftwareGroupModel> page(HashSet<Long> ids, String name, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+    public PageModel<SoftwareGroupModel> page(Collection<Long> ids, String name, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
         if(offset == null) offset = 0;
         if(limit == null) limit = 10;
         List<SoftwareGroupModel> data = search(ids,name,userId,beginTime,endTime,ip,order,offset,limit);

@@ -2,6 +2,7 @@ package com.itellyou.service.common.impl;
 
 import com.itellyou.dao.common.NotificationDisplayDao;
 import com.itellyou.model.common.NotificationDisplayModel;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.sys.EntityAction;
 import com.itellyou.model.sys.EntityType;
 import com.itellyou.service.common.NotificationDisplayService;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@CacheConfig(cacheNames = "notification_display")
+@CacheConfig(cacheNames = CacheKeys.NOTIFICATION_DISPLAY_KEY)
 @Service
 public class NotificationDisplayServiceImpl implements NotificationDisplayService {
 

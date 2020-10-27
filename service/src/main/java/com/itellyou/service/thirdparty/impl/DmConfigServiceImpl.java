@@ -1,6 +1,7 @@
 package com.itellyou.service.thirdparty.impl;
 
 import com.itellyou.dao.thirdparty.DmConfigDao;
+import com.itellyou.model.constant.CacheKeys;
 import com.itellyou.model.thirdparty.DmConfigModel;
 import com.itellyou.service.common.ConfigMapService;
 import org.springframework.cache.annotation.CacheConfig;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@CacheConfig(cacheNames = "ali_dm_config")
+@CacheConfig(cacheNames = CacheKeys.ALI_DM_CONFIG_KEY)
 @Service
 public class DmConfigServiceImpl implements ConfigMapService<DmConfigModel> {
 

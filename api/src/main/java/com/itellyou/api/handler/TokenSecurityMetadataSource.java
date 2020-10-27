@@ -39,7 +39,7 @@ public class TokenSecurityMetadataSource implements FilterInvocationSecurityMeta
 
         String method = request.getMethod();
         SysPermissionMethod permissionMethod = SysPermissionMethod.valueOf(method.toUpperCase());
-        List<SysPermissionModel> permissionModelList = permissionService.search(null,null, SysPermissionType.URL, permissionMethod,null,null,null,null);
+        List<SysPermissionModel> permissionModelList = permissionService.search(SysPermissionType.URL, permissionMethod);
 
         Collection<ConfigAttribute> configAttributes = new ArrayList<>();
 
