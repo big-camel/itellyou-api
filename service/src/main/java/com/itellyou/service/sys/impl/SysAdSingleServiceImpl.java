@@ -38,4 +38,32 @@ public class SysAdSingleServiceImpl implements SysAdSingleService {
         Integer count = count(ids,type,name,enabledForeign,enabledCn,userId,beginTime,endTime,ip);
         return new PageModel<>(offset,limit,count,list);
     }
+
+    @Override
+    public SysAdModel findByEnabledForeign(Boolean enabledForeign) {
+        String key = "foreign" + enabledForeign.toString();
+        SysAdModel adModel = RedisUtils.get(CacheKeys.SYS_AD,key,SysAdModel.class);
+        if(adModel == null){
+            List<SysAdModel> adModels = search(null,null,null,enabledForeign,null,null,null,null,null,null,null,null);
+            adModel = adModels.size() > 0 ? adModels.get(0) : null;
+        }
+        if(adModel != null){
+            RedisUtils.set(CacheKeys.SYS_AD,key,adModel);
+        }
+        return adModel;
+    }
+
+    @Override
+    public SysAdModel findByEnabledCn(Boolean enabledCn) {
+        String key = "cn" + enabledCn.toString();
+        SysAdModel adModel = RedisUtils.get(CacheKeys.SYS_AD,key,SysAdModel.class);
+        if(adModel == null) {
+            List<SysAdModel> adModels = search(null, null, null, null, enabledCn, null, null, null, null, null, null, null);
+            adModel = adModels.size() > 0 ? adModels.get(0) : null;
+        }
+        if(adModel != null){
+            RedisUtils.set(CacheKeys.SYS_AD,key,adModel);
+        }
+        return adModel;
+    }
 }

@@ -11,7 +11,7 @@ public interface SysAdSlotSingleService {
 
     List<SysAdSlotModel> search(Collection<Long> ids,
                                 String name,
-                                Long adId,
+                                Collection<Long> adIds,
                                 Long userId,
                                 Long beginTime, Long endTime,
                                 Long ip,
@@ -21,19 +21,21 @@ public interface SysAdSlotSingleService {
 
     int count(Collection<Long> ids,
               String name,
-              Long adId,
+              Collection<Long> adIds,
               Long userId,
               Long beginTime, Long endTime,
               Long ip);
 
     PageModel<SysAdSlotModel> page(Collection<Long> ids,
                                      String name,
-                                     Long adId,
+                                   Collection<Long> adIds,
                                      Long userId,
                                      Long beginTime, Long endTime,
                                      Long ip,
                                      Map<String, String> order,
                                      Integer offset,
                                      Integer limit);
+
+    List<SysAdSlotModel> findByAdId(Long adId);
 
 }

@@ -4,7 +4,7 @@ import com.itellyou.model.common.DataUpdateQueueModel;
 import com.itellyou.model.common.DataUpdateStepModel;
 import com.itellyou.model.common.IndexQueueModel;
 import com.itellyou.model.common.OperationalModel;
-import com.itellyou.model.event.ArticleCommentEvent;
+import com.itellyou.model.event.SoftwareCommentEvent;
 import com.itellyou.model.event.SoftwareEvent;
 import com.itellyou.model.statistics.StatisticsIncomeQueueModel;
 import com.itellyou.model.statistics.StatisticsIncomeStepModel;
@@ -108,6 +108,7 @@ public class SoftwareEventListener {
                 stepModel.setViewStep(1);
                 break;
             case COMMENT:
+                stepModel.setId(Long.valueOf(event.getArgs().get("software_id").toString()));
                 stepModel.setCommentStep(1);
                 break;
             case REWARD:
@@ -135,7 +136,7 @@ public class SoftwareEventListener {
      */
     @EventListener
     @Async
-    public void commentEvent(ArticleCommentEvent event){
+    public void commentEvent(SoftwareCommentEvent event){
         OperationalModel model = event.getOperationalModel();
         // 文章有新评论的时候更新文章索引
         switch (model.getAction()){
@@ -144,7 +145,7 @@ public class SoftwareEventListener {
                 // 统计信息
                 Long date = DateUtils.getTimestamp(model.getCreatedTime().toLocalDate());
                 DataUpdateStepModel stepModel = new DataUpdateStepModel();
-                stepModel.setId(model.getTargetId());
+                stepModel.setId(Long.valueOf(event.getArgs().get("software_id").toString()));
                 stepModel.setCommentStep(1);
                 DataUpdateQueueModel queueModel = new DataUpdateQueueModel(model.getTargetUserId(), EntityType.SOFTWARE,date,stepModel);
                 dataUpdateManageService.put(queueModel);

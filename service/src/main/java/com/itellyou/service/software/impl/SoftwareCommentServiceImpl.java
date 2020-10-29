@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.HashMap;
+
 @CacheConfig(cacheNames = CacheKeys.SOFTWARE_COMMENT_KEY)
 @Service
 public class SoftwareCommentServiceImpl implements SoftwareCommentService {
@@ -80,6 +82,7 @@ public class SoftwareCommentServiceImpl implements SoftwareCommentService {
                                 commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip) :
 
                         new SoftwareCommentEvent(this, EntityAction.COMMENT, commentModel.getId(), targetUserId, userId, DateUtils.toLocalDateTime(), ip);
+                event.setArgs(new HashMap<String, Object>(){{ put("software_id",softwareId);}});
                 operationalPublisher.publish(event);
             }
             return commentModel;

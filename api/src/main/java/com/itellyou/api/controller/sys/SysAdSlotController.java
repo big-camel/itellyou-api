@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.Map;
 
 @Validated
@@ -41,7 +42,7 @@ public class SysAdSlotController {
             Long endTime = params.getTimestamp("end");
 
             Map<String,String> orderMap = params.getOrderDefault("created_time","desc","created_time");
-            PageModel<SysAdSlotModel> list = adSlotSingleService.page(null, name,adId,null,beginTime,endTime,null,orderMap,offset,limit);
+            PageModel<SysAdSlotModel> list = adSlotSingleService.page(null, name,new HashSet<Long>(){{add(adId);}},null,beginTime,endTime,null,orderMap,offset,limit);
             return new ResultModel(list);
         }catch (Exception e){
             return new ResultModel(500,e.getLocalizedMessage());

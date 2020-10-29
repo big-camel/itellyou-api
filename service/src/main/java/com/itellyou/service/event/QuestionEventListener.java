@@ -92,6 +92,7 @@ public class QuestionEventListener {
                 stepModel.setViewStep(1);
                 break;
             case COMMENT:
+                stepModel.setId(Long.valueOf(event.getArgs().get("question_id").toString()));
                 stepModel.setCommentStep(1);
                 break;
             default:
@@ -117,7 +118,7 @@ public class QuestionEventListener {
                 // 统计信息
                 Long date = DateUtils.getTimestamp(model.getCreatedTime().toLocalDate());
                 QuestionUpdateStepModel stepModel = new QuestionUpdateStepModel();
-                stepModel.setId(model.getTargetId());
+                stepModel.setId(Long.valueOf(event.getArgs().get("question_id").toString()));
                 stepModel.setCommentStep(1);
                 DataUpdateQueueModel<QuestionUpdateStepModel> queueModel = new DataUpdateQueueModel(model.getTargetUserId(), EntityType.QUESTION,date,stepModel);
                 dataUpdateManageService.put(queueModel,(sModel,nModel) -> {

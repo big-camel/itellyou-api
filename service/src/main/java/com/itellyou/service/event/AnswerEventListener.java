@@ -104,6 +104,7 @@ public class AnswerEventListener {
                 stepModel.setViewStep(1);
                 break;
             case COMMENT:
+                stepModel.setId(Long.valueOf(event.getArgs().get("answer_id").toString()));
                 stepModel.setCommentStep(1);
                 break;
                 // 采纳为答案或者打赏回答的时候统计用户打赏收益
@@ -155,7 +156,7 @@ public class AnswerEventListener {
                 // 统计信息
                 Long date = DateUtils.getTimestamp(model.getCreatedTime().toLocalDate());
                 DataUpdateStepModel stepModel = new DataUpdateStepModel();
-                stepModel.setId(model.getTargetId());
+                stepModel.setId(Long.valueOf(event.getArgs().get("answer_id").toString()));
                 stepModel.setCommentStep(1);
                 DataUpdateQueueModel queueModel = new DataUpdateQueueModel(model.getTargetUserId(), EntityType.ANSWER,date,stepModel);
                 statisticsManageService.put(queueModel);

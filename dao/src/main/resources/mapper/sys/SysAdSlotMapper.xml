@@ -36,8 +36,11 @@
             <if test="ip != null">
                 and ${alias}created_ip = #{ip}
             </if>
-            <if test="adId != null">
-                and ${alias}ad_id = #{adId}
+            <if test="adIds != null &amp;&amp; adIds.size() > 0">
+                and
+                ${alias}ad_id <foreach collection="adIds" item="id" open=" in (" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
             <if test="userId != null">
                 and ${alias}created_user_id = #{userId}

@@ -42,7 +42,7 @@ public class SysAdServiceImpl implements SysAdService {
     }
 
     @Override
-    @CacheEvict(key = "#model.id")
+    @CacheEvict(allEntries = true)
     @Transactional
     public int updateById(SysAdModel model) {
         try {
@@ -72,7 +72,7 @@ public class SysAdServiceImpl implements SysAdService {
     }
 
     @Override
-    @CacheEvict(key = "#id")
+    @CacheEvict(allEntries = true)
     @Transactional
     public int deleteById(long id) {
         try {

@@ -22,7 +22,7 @@ public interface SysAdSlotDao {
 
     List<SysAdSlotModel> search(@Param("ids") Collection<Long> ids,
                             @Param("name") String name,
-                            @Param("adId") Long adId,
+                            @Param("adIds") Collection<Long> adIds,
                             @Param("userId") Long userId,
                             @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
                             @Param("ip") Long ip,
@@ -32,7 +32,7 @@ public interface SysAdSlotDao {
 
     int count(@Param("ids") Collection<Long> ids,
               @Param("name") String name,
-              @Param("adId") Long adId,
+              @Param("adIds") Collection<Long> adIds,
               @Param("userId") Long userId,
               @Param("beginTime") Long beginTime, @Param("endTime") Long endTime,
               @Param("ip") Long ip);

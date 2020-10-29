@@ -9,6 +9,7 @@ import com.itellyou.util.RedisUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -22,19 +23,31 @@ public class SysAdSlotSingleServiceImpl implements SysAdSlotSingleService {
     }
 
     @Override
-    public List<SysAdSlotModel> search(Collection<Long> ids, String name, Long adId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        return RedisUtils.fetch(CacheKeys.SYS_AD_SLOT,SysAdSlotModel.class,ids,fetchIds -> adSlotDao.search(fetchIds,name,adId,userId,beginTime,endTime,ip,order,offset,limit));
+    public List<SysAdSlotModel> search(Collection<Long> ids, String name,Collection<Long> adIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        return RedisUtils.fetch(CacheKeys.SYS_AD_SLOT,SysAdSlotModel.class,ids,fetchIds -> adSlotDao.search(fetchIds,name,adIds,userId,beginTime,endTime,ip,order,offset,limit));
     }
 
     @Override
-    public int count(Collection<Long> ids, String name, Long adId, Long userId, Long beginTime, Long endTime, Long ip) {
-        return adSlotDao.count(ids,name,adId,userId,beginTime,endTime,ip);
+    public int count(Collection<Long> ids, String name, Collection<Long> adIds, Long userId, Long beginTime, Long endTime, Long ip) {
+        return adSlotDao.count(ids,name,adIds,userId,beginTime,endTime,ip);
     }
 
     @Override
-    public PageModel<SysAdSlotModel> page(Collection<Long> ids, String name, Long adId, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
-        List<SysAdSlotModel> list = search(ids,name,adId,userId,beginTime,endTime,ip,order,offset,limit);
-        Integer total = count(ids,name,adId,userId,beginTime,endTime,ip);
+    public PageModel<SysAdSlotModel> page(Collection<Long> ids, String name, Collection<Long> adIds, Long userId, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        List<SysAdSlotModel> list = search(ids,name,adIds,userId,beginTime,endTime,ip,order,offset,limit);
+        Integer total = count(ids,name,adIds,userId,beginTime,endTime,ip);
         return new PageModel<>(offset,limit,total,list);
+    }
+
+    @Override
+    public List<SysAdSlotModel> findByAdId(Long adId) {
+        List<SysAdSlotModel> models = RedisUtils.get(CacheKeys.SYS_AD_SLOT,adId + "-ad",List.class);
+        if(models == null) {
+            models = search(null,null,new HashSet<Long>(){{ add(adId);}},null,null,null,null, null,null,null);
+        }
+        if(models != null){
+            RedisUtils.set(CacheKeys.SYS_AD_SLOT,adId + "-ad",models);
+        }
+        return models;
     }
 }

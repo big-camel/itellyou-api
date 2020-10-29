@@ -113,4 +113,8 @@ public class IPUtils {
     public static RegionModel getRegion(String ip){
         return getRegion(toLong(ip));
     }
+
+    public static RegionModel getRegion(HttpServletRequest request){
+        return getRegion(toLong(request));
+    }
 }

@@ -49,7 +49,7 @@ INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `rema
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_answer_version_list', 2, 1, 1, '/question/{questionId:\\d+}/answer/{answerId:\\d+}/version', '获取回答版本列表');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_answer_version_list_user', 2, 1, 1, '/question/{questionId:\\d+}/answer/version', '获取用户唯一回答版本列表');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_collab', 2, 1, 2, '/article/collab', '获取文章协作编辑数据');
-INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_comment_child_list', 2, 1, 1, '/article/{articleId:\\d+}/comment/child', '获取文章子评论列表');
+INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_comment_child_list', 2, 1, 1, '/article/{articleId:\\d+}/comment/{id:\d+}/child', '获取文章子评论列表');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_comment_create', 2, 1, 3, '/article/{articleId:\\d+}/comment/create', '创建文章评论');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_comment_delete', 2, 1, 4, '/article/{articleId:\\d+}/comment/{id:\\d+}', '删除文章评论');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_article_comment_oppose', 2, 1, 2, '/article/{articleId:\\d+}/comment/{id:\\d+}/{type:oppose}', '反对文章评论');
@@ -162,7 +162,7 @@ INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `rema
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_reward_log_answer_list', 2, 1, 1, '/reward/answer/list', '获取某个提问下所有回答打赏日志列表');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_search', 2, 1, 1, '/search', '全站查询接口');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_collab', 2, 1, 2, '/software/collab', '获取软件协作编辑数据');
-INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_comment_child_list', 2, 1, 1, '/software/{softwareId:\\d+}/comment/child', '获取软件子评论列表');
+INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_comment_child_list', 2, 1, 1, '/software/{softwareId:\\d+}/comment/{id:\d+}/child', '获取软件子评论列表');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_comment_create', 2, 1, 3, '/software/{softwareId:\\d+}/comment/create', '创建软件评论');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_comment_delete', 2, 1, 4, '/software/{softwareId:\\d+}/comment/{id:\\d+}', '删除软件评论');
 INSERT INTO `sys_permission`(`name`, `platform`, `type`, `method`, `data`, `remark`) VALUES ('api_software_comment_oppose', 2, 1, 2, '/software/{softwareId:\\d+}/comment/{id:\\d+}/{type:oppose}', '反对软件评论');

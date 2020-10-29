@@ -111,6 +111,7 @@ public class ArticleEventListener {
                 stepModel.setViewStep(1);
                 break;
             case COMMENT:
+                stepModel.setId(Long.valueOf(event.getArgs().get("article_id").toString()));
                 stepModel.setCommentStep(1);
                 break;
             case REWARD:
@@ -148,7 +149,7 @@ public class ArticleEventListener {
                 // 统计信息
                 Long date = DateUtils.getTimestamp(model.getCreatedTime().toLocalDate());
                 DataUpdateStepModel stepModel = new DataUpdateStepModel();
-                stepModel.setId(model.getTargetId());
+                stepModel.setId(Long.valueOf(event.getArgs().get("article_id").toString()));
                 stepModel.setCommentStep(1);
                 DataUpdateQueueModel queueModel = new DataUpdateQueueModel(model.getTargetUserId(), EntityType.ARTICLE,date,stepModel);
                 statisticsManageService.put(queueModel);

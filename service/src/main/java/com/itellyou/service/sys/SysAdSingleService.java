@@ -42,4 +42,8 @@ public interface SysAdSingleService {
                                  Map<String, String> order,
                                  Integer offset,
                                  Integer limit);
+
+    SysAdModel findByEnabledForeign(Boolean enabledForeign);
+
+    SysAdModel findByEnabledCn(Boolean enabledCn);
 }
