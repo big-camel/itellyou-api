@@ -86,7 +86,7 @@ public class IPUtils {
             DbConfig config = new DbConfig();
             // 读取本地的ip2region.db文件
             String rootPath = System.getProperty("user.dir");
-            String dbPath = rootPath + ".data/ip2region.db";
+            String dbPath = rootPath + File.separator + ".data/ip2region.db";
             File file = new File(dbPath);
 
             if (file.exists() == false) {
