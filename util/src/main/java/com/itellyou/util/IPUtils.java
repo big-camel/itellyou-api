@@ -84,14 +84,16 @@ public class IPUtils {
         try {
             //根据ip进行位置信息搜索
             DbConfig config = new DbConfig();
-            //获取ip库的位置
-            String dbFile = IPUtils.class.getResource("/ip2region.db").getPath();
-            File file = new File(dbFile);
-            if (!file.exists()) {
-                logger.warn("Invalid ip2region.db file");
+            // 读取本地的ip2region.db文件
+            String rootPath = System.getProperty("user.dir");
+            String dbPath = rootPath + ".data/ip2region.db";
+            File file = new File(dbPath);
+
+            if (file.exists() == false) {
+                logger.warn("ip2region not exists");
                 return null;
             }
-            DbSearcher searcher = new DbSearcher(config, dbFile);
+            DbSearcher searcher = new DbSearcher(config, dbPath);
             //采用Btree搜索
             DataBlock block = searcher.btreeSearch(ip);
             String regionString = block.getRegion();
