@@ -42,8 +42,6 @@ public class StatisticsIncomeJobServiceImpl extends QuartzJobBean {
     protected void executeInternal(JobExecutionContext jobExecutionContext) {
 
         String cacheKey = jobExecutionContext.getJobDetail().getJobDataMap().get("cacheKey").toString();
-        //获取当前日期时间戳
-        Long currentDate = DateUtils.getTimestamp(DateUtils.format(DateUtils.getTimestamp(),"yyyy-MM-dd 00:00:00"));
         //取出队列并清除缓存队列
         Map<Long, Map<Long, StatisticsIncomeStepModel>> queueMap = queueService.reset(cacheKey);
         try {

@@ -24,7 +24,7 @@ public class StatisticsIncomeManagerServiceImpl implements StatisticsIncomeManag
 
     private final String identityKey = "statisticsIncomeManager";
 
-    private final String cacheKey = "income";
+    private final String cacheKey = "default";
 
     public StatisticsIncomeManagerServiceImpl(Scheduler scheduler, StatisticsIncomeQueueService queueService) {
         this.scheduler = scheduler;

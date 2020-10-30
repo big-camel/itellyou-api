@@ -110,6 +110,8 @@ public class SysIncomeController {
             Double amount = relatedModel.getAmount();
             SysIncomeConfigModel configModel = relatedModel.getConfig();
             amount = ArithmeticUtils.multiply(amount, configModel.getScale());
+            if(amount <= 0) continue;
+            amount = ArithmeticUtils.divide(amount,100.00);
             totalAmount = ArithmeticUtils.add(totalAmount, amount);
         }
         AtomicReference<Double> totalScore = new AtomicReference<>(0.00);
@@ -127,10 +129,15 @@ public class SysIncomeController {
             if(statisticsInfoModel.getStarCount() < configModel.getMinStar()) return;
             //计算权重分
             Double viewScore = ArithmeticUtils.multiply(statisticsInfoModel.getViewCount(),configModel.getViewWeight());
+            viewScore = ArithmeticUtils.divide(viewScore,100.00);
             Double commentScore = ArithmeticUtils.multiply(statisticsInfoModel.getCommentCount(),configModel.getCommentWeight());
+            commentScore = ArithmeticUtils.divide(commentScore,100.00);
             Double supportScore = ArithmeticUtils.multiply(statisticsInfoModel.getSupportCount(),configModel.getSupportWeight());
+            supportScore = ArithmeticUtils.divide(supportScore,100.00);
             Double opposeScore = ArithmeticUtils.multiply(statisticsInfoModel.getOpposeCount(),configModel.getOpposeWeight());
+            opposeScore = ArithmeticUtils.divide(opposeScore,100.00);
             Double starScore = ArithmeticUtils.multiply(statisticsInfoModel.getStarCount(),configModel.getStarWeight());
+            starScore = ArithmeticUtils.divide(starScore,100.00);
             //总得分
             Double userTotalScore = ArithmeticUtils.add(viewScore,commentScore,supportScore,opposeScore,starScore);
             userScore.computeIfAbsent(userId,key -> new HashMap<>()).put(entityType,userTotalScore);
@@ -143,6 +150,9 @@ public class SysIncomeController {
             Map<Long,Double> typeScoreMap = new HashMap<>();
             userScore.forEach((userId,scoreMap) -> {
                 scoreMap.forEach((entityType,score) -> {
+                    if(!type.equals(entityType)){
+                        return;
+                    }
                     if(typeScoreMap.containsKey(entityType)) typeScoreMap.put(userId,ArithmeticUtils.add(score,typeScoreMap.get(userId)));
                     else typeScoreMap.put(userId,score);
                 });
