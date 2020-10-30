@@ -84,6 +84,8 @@ public class SysAdSlotController {
         Params params = new Params(args);
         Long id = params.getLong("id");
         if(id == null) return new ResultModel(500,"请输入编号");
+        SysAdSlotModel model = adSlotSingleService.findById(id);
+        if(model == null)return new ResultModel(500,"错误的编号");
         String name = params.get("name");
         String slotId = params.get("slot_id");
         Integer width = params.getInteger("width");
@@ -93,6 +95,7 @@ public class SysAdSlotController {
 
         SysAdSlotModel adSlotModel = new SysAdSlotModel();
         adSlotModel.setId(id);
+        adSlotModel.setAdId(model.getAdId());
         adSlotModel.setName(name);
         adSlotModel.setSlotId(slotId);
         adSlotModel.setWidth(width);

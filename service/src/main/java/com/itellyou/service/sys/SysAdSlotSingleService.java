@@ -38,4 +38,6 @@ public interface SysAdSlotSingleService {
 
     List<SysAdSlotModel> findByAdId(Long adId);
 
+    SysAdSlotModel findById(Long id);
+
 }

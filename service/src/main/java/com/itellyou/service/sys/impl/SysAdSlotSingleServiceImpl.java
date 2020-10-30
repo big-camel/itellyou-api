@@ -50,4 +50,10 @@ public class SysAdSlotSingleServiceImpl implements SysAdSlotSingleService {
         }
         return models;
     }
+
+    @Override
+    public SysAdSlotModel findById(Long id) {
+        List<SysAdSlotModel> list = search(new HashSet<Long>(){{add(id);}},null,null,null,null,null,null,null,null,null);
+        return list.size() > 0 ? list.get(0) : null;
+    }
 }
