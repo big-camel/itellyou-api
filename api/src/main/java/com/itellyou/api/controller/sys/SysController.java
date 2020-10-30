@@ -64,7 +64,7 @@ public class SysController {
         IPUtils.RegionModel regionModel = IPUtils.getRegion(request);
         if(regionModel == null) regionModel = new IPUtils.RegionModel("中国","","","","");
         //根据所在地获取广告配置
-        boolean isChina = regionModel.getCountry().equals("中国");
+        boolean isChina = regionModel.getCountry().equals("中国") && !Arrays.asList("香港","台湾","澳门").contains(regionModel.getCity());
         SysAdDetailModel adDetailModel = isChina ? adSearchService.findByEnabledCn(true) : adSearchService.findByEnabledForeign(true);
         dataMap.put("ad",adDetailModel);
         return new ResultModel(dataMap);

@@ -99,12 +99,12 @@ public class IPUtils {
             String regionString = block.getRegion();
             String[] regionArray = StringUtils.split(regionString,'|');
             RegionModel regionModel = new RegionModel();
-            if(StringUtils.isEmpty(regionArray[1]) || regionArray[1].equals("0")) return null;
-            regionModel.setCountry(regionArray[1]);
-            regionModel.setArea(StringUtils.isEmpty(regionArray[2]) || regionArray[2].equals("0") ? "" : regionArray[2]);
-            regionModel.setProvince(StringUtils.isEmpty(regionArray[3]) || regionArray[3].equals("0") ? "" : regionArray[3]);
-            regionModel.setCity(StringUtils.isEmpty(regionArray[4]) || regionArray[4].equals("0") ? "" : regionArray[4]);
-            regionModel.setIsp(StringUtils.isEmpty(regionArray[5]) || regionArray[5].equals("0") ? "" : regionArray[5]);
+            if(StringUtils.isEmpty(regionArray[0]) || regionArray[0].equals("0")) return null;
+            regionModel.setCountry(regionArray[0]);
+            regionModel.setArea(StringUtils.isEmpty(regionArray[1]) || regionArray[1].equals("0") ? "" : regionArray[1]);
+            regionModel.setProvince(StringUtils.isEmpty(regionArray[2]) || regionArray[2].equals("0") ? "" : regionArray[2]);
+            regionModel.setCity(StringUtils.isEmpty(regionArray[3]) || regionArray[3].equals("0") ? "" : regionArray[3]);
+            regionModel.setIsp(StringUtils.isEmpty(regionArray[4]) || regionArray[4].equals("0") ? "" : regionArray[4]);
             return regionModel;
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
