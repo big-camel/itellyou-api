@@ -83,6 +83,7 @@ public class ArticleSearchServiceImpl implements ArticleSearchService , EntitySe
             Collection authorIds = (Collection)args.computeIfAbsent("ids",key -> new HashSet<>());
             if(!authorIds.contains(model.getCreatedUserId())) authorIds.add(model.getCreatedUserId());
             args.put("ids",authorIds);
+            args.put("searchUserId",searchUserId);
             return new EntitySearchModel(EntityType.USER,args);
         });
 

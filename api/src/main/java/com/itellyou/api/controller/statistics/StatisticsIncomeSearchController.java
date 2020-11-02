@@ -68,14 +68,14 @@ public class StatisticsIncomeSearchController {
         //昨日时间戳
         Long yesterday = nowDate - 86400;
         //查询3个月以前1号到昨天的数据
-        LocalDate threeMonthsAgoDate = DateUtils.toLocalDate().minusMonths(3);
+        LocalDate threeMonthsAgoDate = DateUtils.toLocalDate().minusMonths(2);
         String beginDateStr = DateUtils.format(threeMonthsAgoDate,"yyyy-MM-01");
         Long beginDate = DateUtils.getTimestamp(beginDateStr);
         //结束日期为昨天
         Long endDate = yesterday;
 
         String currentMonthDate = DateUtils.format(localDate,"yyyy-MM");
-        LocalDate prevMonthLocalDate = localDate.minusMonths(3);
+        LocalDate prevMonthLocalDate = localDate.minusMonths(1);
         String prevMonthDate = DateUtils.format(prevMonthLocalDate,"yyyy-MM");
         String beforeMonthDate = DateUtils.format(threeMonthsAgoDate,"yyyy-MM");
 
@@ -83,15 +83,16 @@ public class StatisticsIncomeSearchController {
         List<StatisticsIncomeModel> incomeModels = incomeSingleService.search(userModel.getId(),beginDate,endDate,null,null,null,null,null);
         for (StatisticsIncomeModel incomeModel : incomeModels){
             LocalDate modelDate = incomeModel.getDate();
+            if(modelDate == null) continue;
             String monthDate = modelDate.getYear() + "-" + modelDate.getMonthValue();
-            StatisticsIncomeModel stepModel = null;
+            StatisticsIncomeModel stepModel;
             if(monthDate.equals(currentMonthDate)){
                 stepModel = data.computeIfAbsent("current_month",key -> new StatisticsIncomeModel());
             }else if(monthDate.equals(prevMonthDate)){
                 stepModel = data.computeIfAbsent("prev_month",key -> new StatisticsIncomeModel());
             }else if(monthDate.equals(beforeMonthDate)){
                 stepModel = data.computeIfAbsent("before_month",key -> new StatisticsIncomeModel());
-            }
+            }else continue;
             stepModel.setTotalAmount(ArithmeticUtils.add(stepModel.getTotalAmount(),incomeModel.getTotalAmount()));
             stepModel.setTipAmount(ArithmeticUtils.add(stepModel.getTipAmount(),incomeModel.getTipAmount()));
             stepModel.setRewardAmount(ArithmeticUtils.add(stepModel.getRewardAmount(),incomeModel.getRewardAmount()));
