@@ -214,7 +214,7 @@ public class ArticleDocServiceImpl implements ArticleDocService {
                 result = infoDao.updateVersion(id,isPublish ? versionModel.getVersion() : null,versionModel.getVersion(),isPublish && !detailModel.isPublished() ? true : null,DateUtils.getTimestamp(),ip,userId);
                 if(result != 1) throw new Exception("更新版本失败");
                 //增加版本标签，如果没有设置，继承原来的
-                versionTagService.addAll(versionModel.getId(),tagIds == null ? oldTagIds : tagIds);
+                if(oldTagIds.size() > 0 || tagIds != null) versionTagService.addAll(versionModel.getId(),tagIds == null ? oldTagIds : tagIds);
                 // 如果文章之前从未发布过，那么更新用户的文章数量+1
                 if(isPublish == true && detailModel.isPublished() == false) {
                     result = userService.updateArticleCount(detailModel.getCreatedUserId(),1);

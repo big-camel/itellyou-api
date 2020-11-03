@@ -167,7 +167,7 @@ public class SoftwareDocServiceImpl implements SoftwareDocService {
                 result = infoDao.updateVersion(id,isPublish ? versionModel.getVersion() : null,versionModel.getVersion(),isPublish && !detailModel.isPublished() ? true : null,DateUtils.getTimestamp(),ip,userId);
                 if(result != 1) throw new Exception("更新版本失败");
                 //增加版本标签，如果没有设置，继承原来的
-                versionTagService.addAll(versionModel.getId(),tagIds == null ? oldTagIds : tagIds);
+                if(oldTagIds.size() > 0 || tagIds != null) versionTagService.addAll(versionModel.getId(),tagIds == null ? oldTagIds : tagIds);
             }
             // 设置或更新用户草稿
             String draftTitle = versionModel.getName();
