@@ -65,7 +65,10 @@ public class IndexIOServiceImpl implements IndexIOService {
                 if(now - prevReader > 3600){
                     IndexReader newReader = DirectoryReader.openIfChanged((DirectoryReader) indexReader);
                     prevReader = now;
-                    if(newReader != null) return newReader;
+                    if(newReader != null) {
+                        indexReader.close();
+                        indexReader = newReader;
+                    }
                 }
                 return indexReader;
             }
