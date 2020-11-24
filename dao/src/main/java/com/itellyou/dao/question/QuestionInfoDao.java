@@ -23,7 +23,7 @@ public interface QuestionInfoDao {
      */
     int addStep(@Param("models") QuestionUpdateStepModel... models);
 
-    List<QuestionInfoModel> search(@Param("ids") Collection<Long> ids, @Param("mode") String mode, @Param("userId") Long userId, @Param("searchUserId") Long searchUserId,
+    List<QuestionInfoModel> search(@Param("ids") Collection<Long> ids, @Param("mode") String mode, @Param("userId") Long userId,
                                      @Param("isDisabled") Boolean isDisabled, @Param("isAdopted") Boolean isAdopted, @Param("isPublished") Boolean isPublished, @Param("isDeleted") Boolean isDeleted,
                                      @Param("ip") Long ip,
                                      @Param("rewardType") RewardType rewardType,

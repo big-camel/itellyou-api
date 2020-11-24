@@ -64,7 +64,7 @@ public class QuestionSearchServiceImpl implements QuestionSearchService, EntityS
         if(tags != null && ids.size() == 0){
             return new LinkedList<>();
         }
-        List<QuestionInfoModel> infoModels = singleService.search(ids,mode,userId,searchUserId,isDisabled,isDeleted,isAdopted,isPublished,ip,rewardType,minRewardValue,maxRewardValue,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
+        List<QuestionInfoModel> infoModels = singleService.search(ids,mode,userId,isDisabled,isDeleted,isAdopted,isPublished,ip,rewardType,minRewardValue,maxRewardValue,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
         List<QuestionDetailModel> detailModels = new LinkedList<>();
         if(infoModels.size() == 0) return detailModels;
         Collection<Long> authorIds = new LinkedHashSet<>();

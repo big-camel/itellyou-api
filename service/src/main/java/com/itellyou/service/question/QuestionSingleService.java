@@ -10,7 +10,7 @@ import java.util.Map;
 public interface QuestionSingleService {
     QuestionInfoModel findById(Long id);
 
-    List<QuestionInfoModel> search(Collection<Long> ids, String mode, Long userId, Long searchUserId, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
+    List<QuestionInfoModel> search(Collection<Long> ids, String mode, Long userId, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip,
                                   RewardType rewardType,
                                   Double minRewardValue,
                                   Double maxRewardValue,
