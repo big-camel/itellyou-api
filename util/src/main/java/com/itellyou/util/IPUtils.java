@@ -17,6 +17,7 @@ import java.net.InetAddress;
 public class IPUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(IPUtils.class);
+    private static DbSearcher searcher = null;
 
     public static Long toLong(HttpServletRequest request){
         return toLong(request,0l);
@@ -82,18 +83,20 @@ public class IPUtils {
 
     public static RegionModel getRegion(long ip){
         try {
-            //根据ip进行位置信息搜索
-            DbConfig config = new DbConfig();
-            // 读取本地的ip2region.db文件
-            String rootPath = System.getProperty("user.dir");
-            String dbPath = rootPath + File.separator + ".data/ip2region.db";
-            File file = new File(dbPath);
+            if(searcher == null){
+                // 读取本地的ip2region.db文件
+                String rootPath = System.getProperty("user.dir");
+                String dbPath = rootPath + File.separator + ".data/ip2region.db";
+                File file = new File(dbPath);
 
-            if (file.exists() == false) {
-                logger.warn("ip2region not exists");
-                return null;
+                if (file.exists() == false) {
+                    logger.warn("ip2region not exists");
+                    return null;
+                }
+                //根据ip进行位置信息搜索
+                DbConfig config = new DbConfig();
+                searcher = new DbSearcher(config, dbPath);
             }
-            DbSearcher searcher = new DbSearcher(config, dbPath);
             //采用Btree搜索
             DataBlock block = searcher.btreeSearch(ip);
             String regionString = block.getRegion();

@@ -281,8 +281,8 @@ public class QuestionSearchServiceImpl implements QuestionSearchService, EntityS
 
     @Override
     public PageModel<QuestionDetailModel> page(Long searchUserId,Long userId,Boolean hasContent,Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Integer childCount, RewardType rewardType, Double minRewardValue, Double maxRewardValue,  Collection<Long> tags,Integer minComment, Integer maxComment, Integer minAnswer, Integer maxAnswer, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order,Integer offset, Integer limit) {
-        if(offset == null) offset = 0;
-        if(limit == null) limit = 10;
+        if(offset == null || offset < 0) offset = 0;
+        if(limit == null || limit < 0) limit = 10;
         List<QuestionDetailModel> data = search(null,null,userId,searchUserId,hasContent,isDisabled,isDeleted,isAdopted,isPublished,null,childCount,rewardType,minRewardValue,maxRewardValue,tags,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit);
         Integer total = count(null,null,userId,isDisabled,isDeleted,isAdopted,isPublished,null,rewardType,minRewardValue,maxRewardValue,tags,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime);
         return new PageModel<>(offset,limit,total,data);

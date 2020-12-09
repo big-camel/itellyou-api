@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuestionVersionModel extends VersionModel implements CacheEntity {
-    private Long id;
     private Long questionId = 0l;
     private String title = "";
     @JSONField(serializeUsing = EnumSerializer.class , deserializeUsing = EnumSerializer.class)

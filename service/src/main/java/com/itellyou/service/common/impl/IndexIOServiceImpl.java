@@ -59,38 +59,30 @@ public class IndexIOServiceImpl implements IndexIOService {
     @Override
     public IndexReader getIndexReader(String direct) {
         try {
+            Directory directory = FSDirectory.open(Paths.get(direct));
+            if(!DirectoryReader.indexExists(directory)){
+                getIndexWriter(direct);
+                this.closeIndexWriter();
+            }
             if (indexReader != null) {
                 Long now = DateUtils.getTimestamp();
                 // 距离上次获取Reader大于一小时则尝试获取最新的Reader
                 if(now - prevReader > 3600){
                     IndexReader newReader = DirectoryReader.openIfChanged((DirectoryReader) indexReader);
-                    prevReader = now;
                     if(newReader != null) {
                         indexReader.close();
                         indexReader = newReader;
+                        prevReader = now;
                     }
                 }
                 return indexReader;
             }
-            Directory directory = FSDirectory.open(Paths.get(direct));
             indexReader = DirectoryReader.open(directory);
             return indexReader;
         }
-        catch (IndexNotFoundException e){
-            try{
-                logger.warn(e.getLocalizedMessage());
-                getIndexWriter(direct);
-                this.closeIndexWriter();
-                return getIndexReader(direct);
-            }catch (Exception ex){
-                logger.error(ex.getLocalizedMessage());
-                return null;
-            }
-        }
         catch (Exception e){
             logger.error(e.getLocalizedMessage());
-            indexReader = null;
-            return getIndexReader();
+            return null;
         }
     }
 
@@ -103,7 +95,8 @@ public class IndexIOServiceImpl implements IndexIOService {
         }catch (Exception e){
             logger.error(e.getLocalizedMessage());
         }finally {
-            lock.unlock();
+            if(lock != null)
+                lock.unlock();
         }
     }
 }

@@ -5,6 +5,7 @@ import com.itellyou.model.sys.EntityType;
 import com.itellyou.model.sys.SysPath;
 import com.itellyou.model.sys.SysPathModel;
 import com.itellyou.model.user.UserBankModel;
+import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.model.user.UserInfoModel;
 import com.itellyou.service.common.impl.IndexFactory;
 import com.itellyou.service.common.IndexService;
@@ -65,8 +66,10 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             if(result != 1){
                 throw new Exception("创建用户余额失败");
             }
-
-            indexService.createIndex(userInfoModel.getId());
+            UserDetailModel detailModel = new UserDetailModel(userInfoModel);
+            detailModel.setBank(bankModel);
+            detailModel.setPath(path);
+            indexService.createIndex(detailModel);
             return userInfoModel.getId();
         }catch (Exception e){
             e.printStackTrace();

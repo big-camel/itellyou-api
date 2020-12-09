@@ -38,8 +38,12 @@ public class QuestionSingleServiceImpl implements QuestionSingleService {
 
     @Override
     public List<QuestionInfoModel> search(Collection<Long> ids, String mode, Long userId, Boolean isDisabled, Boolean isDeleted, Boolean isAdopted, Boolean isPublished, Long ip, RewardType rewardType, Double minRewardValue, Double maxRewardValue, Integer minComment, Integer maxComment, Integer minAnswer, Integer maxAnswer, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Map<String, String> order, Integer offset, Integer limit) {
+        if(offset != null && offset < 0) offset = 0;
+        if(limit != null && limit < 0) limit = 0;
+        Integer finalOffset = offset;
+        Integer finalLimit = limit;
         List<QuestionInfoModel> infoModels = RedisUtils.fetch(CacheKeys.QUESTION_KEY, QuestionInfoModel.class,ids,(Collection<Long> fetchIds) ->
-                questionInfoDao.search(ids,mode,userId,isDisabled,isAdopted,isPublished,isDeleted,ip,rewardType,minRewardValue,maxRewardValue,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order,offset,limit)
+                questionInfoDao.search(ids,mode,userId,isDisabled,isAdopted,isPublished,isDeleted,ip,rewardType,minRewardValue,maxRewardValue,minComment,maxComment,minAnswer,maxAnswer,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,order, finalOffset, finalLimit)
         );
         // 从缓存里面计算统计数据值
         List<QuestionUpdateStepModel> stepModels = updateQueueService.get(EntityType.QUESTION,infoModels.stream().map(QuestionInfoModel::getId).collect(Collectors.toSet()),(stepModel,model) -> {

@@ -110,8 +110,8 @@ public class IndexServiceImpl<T> implements IndexService<T> {
     @Async
     public void update(T detailModel) {
         try {
-            if(detailModel == null) throw new Exception("更新索引对象不能为空");
             IndexWriter indexWriter = getIndexWriter();
+            if(detailModel == null) throw new Exception("更新索引对象不能为空");
             Long id = getId(detailModel);
             if(id != null) delete(indexWriter,id);
             create(indexWriter,detailModel);

@@ -40,8 +40,12 @@ public class ArticleSingleServiceImpl implements ArticleSingleService {
 
     @Override
     public List<ArticleInfoModel> search(Collection<Long> ids, String mode, Long columnId, Long userId, ArticleSourceType sourceType, Boolean isDisabled, Boolean isPublished, Boolean isDeleted, Integer minComment, Integer maxComment, Integer minView, Integer maxView, Integer minSupport, Integer maxSupport, Integer minOppose, Integer maxOppose, Integer minStar, Integer maxStar, Long beginTime, Long endTime, Long ip, Map<String, String> order, Integer offset, Integer limit) {
+        if(offset != null && offset < 0) offset = 0;
+        if(limit != null && limit < 0) limit = 0;
+        Integer finalOffset = offset;
+        Integer finalLimit = limit;
         List<ArticleInfoModel> infoModels = RedisUtils.fetch(CacheKeys.ARTICLE_KEY,ArticleInfoModel.class,ids,(Collection<Long> fetchIds) ->
-                infoDao.search(fetchIds,mode,columnId,userId,sourceType,isDisabled,isPublished,isDeleted, minComment, maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,ip,order,offset,limit)
+                infoDao.search(fetchIds,mode,columnId,userId,sourceType,isDisabled,isPublished,isDeleted, minComment, maxComment,minView,maxView,minSupport,maxSupport,minOppose,maxOppose,minStar,maxStar,beginTime,endTime,ip,order, finalOffset, finalLimit)
         );
         // 从缓存里面计算统计数据值
         List<DataUpdateStepModel> stepModels = updateQueueService.get(EntityType.ARTICLE,infoModels.stream().map(ArticleInfoModel::getId).collect(Collectors.toSet()));
