@@ -247,7 +247,7 @@ public class SoftwareGrabController {
                                 if(StringUtils.isNotEmpty(publishDateString)){
                                     String publishDateValue = publishDateString + (publishDateString.indexOf(":") > 0 ? "" : " 00:00:00");
                                     LocalDateTime publishDate = DateUtils.formatToDateTime(publishDateValue,null);
-                                    fileModel.setPublishDate(DateUtils.getTimestamp(publishDate));
+                                    fileModel.setPublishDate(publishDate);
                                 }
                                 fileModel.setEd2k(fileJson.getString("ed2k"));
                                 fileModel.setMagnet(fileJson.getString("magnet"));

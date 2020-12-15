@@ -41,7 +41,7 @@ public class SoftwareFileModel implements CacheEntity {
     @JSONField(label = "base")
     private String magnet;
     @JSONField( label = "base")
-    private Long publishDate;
+    private LocalDateTime publishDate;
     @JSONField( label = "base")
     private LocalDateTime createdTime;
     private Long createdUserId = 0l;
