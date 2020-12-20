@@ -10,6 +10,7 @@ import com.itellyou.service.thirdparty.GeetestService;
 import com.itellyou.service.thirdparty.SmsService;
 import com.itellyou.service.thirdparty.VerifyCodeException;
 import com.itellyou.service.user.UserSingleService;
+import com.itellyou.util.DateUtils;
 import com.itellyou.util.IPUtils;
 import com.itellyou.util.StringUtils;
 import com.itellyou.util.annotation.MultiRequestBody;
@@ -53,7 +54,7 @@ public class ValidationController {
             if(smsLogModel == null){
                 return new ResultModel(1003,"发送短信出错了",dataResult);
             }
-            dataResult.put("time",smsLogModel.getCreatedTime());
+            dataResult.put("time", DateUtils.getTimestamp(smsLogModel.getCreatedTime()));
         }catch (VerifyCodeException e){
             e.printStackTrace();
             Long seconds = e.getSeconds();
@@ -80,7 +81,7 @@ public class ValidationController {
             if(logModel == null){
                 return new ResultModel(1003,"发送邮件出错了",dataResult);
             }
-            dataResult.put("time",logModel.getCreatedTime());
+            dataResult.put("time",DateUtils.getTimestamp(logModel.getCreatedTime()));
         }catch (VerifyCodeException e){
             e.printStackTrace();
             Long seconds = e.getSeconds();
