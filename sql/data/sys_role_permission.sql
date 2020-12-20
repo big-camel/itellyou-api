@@ -557,5 +557,8 @@ INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id
 INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_statistice_search_content', 10016, 1602868578, 2130706433);
 INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_statistice_search_content_detail', 10016, 1602868577, 2130706433);
 INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_statistics_search_group_date', 10016, 1602580876, 2130706433);
+INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_user_answer_list', 10016, 0, 0);
+INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_user_article_list', 10016, 0, 0);
+INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (2, 'api_user_question', 10016, 0, 0);
 INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (1, 'api_system_init', 10016, 1601953818, 2130706433);
 INSERT INTO `sys_role_permission`(`role_id`, `permission_name`, `created_user_id`, `created_time`, `created_ip`) VALUES (1, 'api_answer_view', 10016, 1601918641, 2130706433);2130706433);

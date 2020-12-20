@@ -111,8 +111,8 @@ public class ArticleStarServiceImpl implements StarService<ArticleStarModel> {
             detailModels.add(detailModel);
         }
 
-        List<ArticleDetailModel> articleDetailModels = searchService.search(articleIds,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
-        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,null,null,null,null,null,null,null,null,null,null,null);
+        List<ArticleDetailModel> articleDetailModels = searchService.search(articleIds,null,null,null,userId,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (ArticleStarDetailModel detailModel : detailModels){
             for (ArticleDetailModel articleDetailModel :  articleDetailModels){
                 if(articleDetailModel.getId().equals(detailModel.getArticleId())){

@@ -104,8 +104,8 @@ public class ColumnStarServiceImpl implements StarService<ColumnStarModel> {
 
             detailModels.add(detailModel);
         }
-        List<ColumnDetailModel> columnDetailModels = searchService.search(columnIds,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
-        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,null,null,null,null,null,null,null,null,null,null,null);
+        List<ColumnDetailModel> columnDetailModels = searchService.search(columnIds,null,null,null,userId,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (ColumnStarDetailModel detailModel : detailModels){
             for (ColumnDetailModel columnDetailModel :  columnDetailModels){
                 if(columnDetailModel.getId().equals(detailModel.getColumnId())){

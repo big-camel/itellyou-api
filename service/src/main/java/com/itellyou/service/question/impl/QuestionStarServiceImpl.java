@@ -100,9 +100,9 @@ public class QuestionStarServiceImpl implements StarService<QuestionStarModel> {
         }
 
         // 一次获取问题
-        List<QuestionDetailModel> questionDetailModels = searchService.search(questionFetchIds,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
+        List<QuestionDetailModel> questionDetailModels = searchService.search(questionFetchIds,null,null,userId,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
         ,null,null,null,null,null,null,null,null,null,null);
-        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,null,null,null,null,null,null,null,null,null,null,null);
+        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (QuestionStarDetailModel detailModel : detailModels){
             for (QuestionDetailModel questionDetailModel :  questionDetailModels){
                 if(questionDetailModel.getId().equals(detailModel.getQuestionId())){

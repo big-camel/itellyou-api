@@ -117,8 +117,8 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
         }
 
         // 一次获取回答
-        List<QuestionAnswerDetailModel> answerDetailModels = answerSearchService.search(answerIds,null,null,null,null,true,null,null,null,null,null,null,null,null,null);
-        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,null,null,null,null,null,null,null,null,null,null,null);
+        List<QuestionAnswerDetailModel> answerDetailModels = answerSearchService.search(answerIds,null,null,userId,null,true,null,null,null,null,null,null,null,null,null);
+        List<UserDetailModel> userDetailModels = userSearchService.search(userIds,userId,null,null,null,null,null,null,null,null,null,null);
         for (QuestionAnswerStarDetailModel detailModel : detailModels){
             for (QuestionAnswerDetailModel answerDetailModel :  answerDetailModels){
                 if(answerDetailModel.getId().equals(detailModel.getAnswerId())){
