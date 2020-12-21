@@ -63,7 +63,7 @@ public class TagStarServiceImpl implements StarService<TagStarModel> {
         try{
             if(infoModel == null) throw new Exception("错误的标签ID");
             TagStarModel starModel = starSingleService.find(model.getTagId(),model.getCreatedUserId());
-            if(starModel == null) return 1;
+            if(starModel != null) return 1;
             int result = starDao.insert(model);
             if(result != 1) throw new Exception("写入关注记录失败");
             result = infoService.updateStarCountById(model.getTagId(),1);

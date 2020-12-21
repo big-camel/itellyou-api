@@ -24,7 +24,7 @@ public class QuestionAnswerStarSingleServiceImpl implements QuestionAnswerStarSi
     }
 
     @Override
-    @Cacheable(key = "T(String).valueOf(#columnId).concat('-').concat(#userId)",unless = "#result == null")
+    @Cacheable(key = "T(String).valueOf(#answerId).concat('-').concat(#userId)",unless = "#result == null")
     public QuestionAnswerStarModel find(Long answerId, Long userId) {
         List<QuestionAnswerStarModel> starModels = starDao.search(answerId != null ? new HashSet<Long>(){{add(answerId);}} : null,userId,null,null,null,null,null,null);
         return starModels != null && starModels.size() > 0 ? starModels.get(0) : null;

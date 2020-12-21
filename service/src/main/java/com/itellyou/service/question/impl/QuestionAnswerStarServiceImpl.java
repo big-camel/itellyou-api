@@ -11,6 +11,7 @@ import com.itellyou.service.common.StarService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.question.QuestionAnswerSearchService;
 import com.itellyou.service.question.QuestionAnswerSingleService;
+import com.itellyou.service.question.QuestionAnswerStarSingleService;
 import com.itellyou.service.question.QuestionSingleService;
 import com.itellyou.service.user.UserInfoService;
 import com.itellyou.service.user.UserSearchService;
@@ -39,9 +40,10 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
     private final UserSearchService userSearchService;
     private final QuestionSingleService questionSingleService;
     private final OperationalPublisher operationalPublisher;
+    private final QuestionAnswerStarSingleService starSingleService;
 
     @Autowired
-    public QuestionAnswerStarServiceImpl(QuestionAnswerStarDao starDao, QuestionAnswerSearchService answerSearchService, QuestionAnswerSingleService answerSingleService, UserInfoService userService, UserSearchService userSearchService, QuestionSingleService questionSingleService, OperationalPublisher operationalPublisher){
+    public QuestionAnswerStarServiceImpl(QuestionAnswerStarDao starDao, QuestionAnswerSearchService answerSearchService, QuestionAnswerSingleService answerSingleService, UserInfoService userService, UserSearchService userSearchService, QuestionSingleService questionSingleService, OperationalPublisher operationalPublisher, QuestionAnswerStarSingleService starSingleService){
         this.starDao = starDao;
         this.answerSearchService = answerSearchService;
         this.answerSingleService = answerSingleService;
@@ -49,6 +51,7 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
         this.userSearchService = userSearchService;
         this.questionSingleService = questionSingleService;
         this.operationalPublisher = operationalPublisher;
+        this.starSingleService = starSingleService;
     }
 
     @Override
@@ -60,7 +63,8 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
             if(infoModel == null) throw new Exception("错误的回答ID");
             QuestionInfoModel questionInfoModel = questionSingleService.findById(infoModel.getQuestionId());
             if(questionInfoModel == null) throw new Exception("问题不存在");
-
+            QuestionAnswerStarModel starModel = starSingleService.find(model.getAnswerId(),model.getCreatedUserId());
+            if(starModel != null) return infoModel.getStarCount();
             int result = starDao.insert(model);
             if(result != 1) throw new Exception("写入收藏记录失败");
             result = userService.updateCollectionCount(model.getCreatedUserId(),1);
@@ -85,7 +89,8 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
             if(infoModel == null) throw new Exception("错误的回答ID");
             QuestionInfoModel questionInfoModel = questionSingleService.findById(infoModel.getQuestionId());
             if(questionInfoModel == null) throw new Exception("问题不存在");
-
+            QuestionAnswerStarModel starModel = starSingleService.find(answerId,userId);
+            if(starModel == null) return infoModel.getStarCount();
             int result = starDao.delete(answerId,userId);
             if(result != 1) throw new Exception("删除收藏记录失败");
             result = userService.updateCollectionCount(userId,-1);
@@ -110,7 +115,7 @@ public class QuestionAnswerStarServiceImpl implements StarService<QuestionAnswer
 
         for (QuestionAnswerStarModel starModel : starModels){
             QuestionAnswerStarDetailModel detailModel = new QuestionAnswerStarDetailModel(starModel);
-            answerId.add(starModel.getAnswerId());
+            answerIds.add(starModel.getAnswerId());
             userIds.add(starModel.getCreatedUserId());
 
             detailModels.add(detailModel);

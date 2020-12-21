@@ -12,6 +12,7 @@ import com.itellyou.model.sys.PageModel;
 import com.itellyou.model.user.UserDetailModel;
 import com.itellyou.service.article.ArticleSearchService;
 import com.itellyou.service.article.ArticleSingleService;
+import com.itellyou.service.article.ArticleStarSingleService;
 import com.itellyou.service.common.StarService;
 import com.itellyou.service.event.OperationalPublisher;
 import com.itellyou.service.user.UserInfoService;
@@ -39,14 +40,16 @@ public class ArticleStarServiceImpl implements StarService<ArticleStarModel> {
     private final UserInfoService userService;
     private final UserSearchService userSearchService;
     private final OperationalPublisher operationalPublisher;
+    private final ArticleStarSingleService starSingleService;
 
-    public ArticleStarServiceImpl(ArticleStarDao starDao, ArticleSingleService singleService, ArticleSearchService searchService, UserInfoService userService, UserSearchService userSearchService, OperationalPublisher operationalPublisher){
+    public ArticleStarServiceImpl(ArticleStarDao starDao, ArticleSingleService singleService, ArticleSearchService searchService, UserInfoService userService, UserSearchService userSearchService, OperationalPublisher operationalPublisher, ArticleStarSingleService starSingleService){
         this.starDao = starDao;
         this.singleService = singleService;
         this.searchService = searchService;
         this.userService = userService;
         this.userSearchService = userSearchService;
         this.operationalPublisher = operationalPublisher;
+        this.starSingleService = starSingleService;
     }
 
     @Override
@@ -56,6 +59,8 @@ public class ArticleStarServiceImpl implements StarService<ArticleStarModel> {
         ArticleInfoModel infoModel = singleService.findById(model.getArticleId());
         try{
             if(infoModel == null) throw new Exception("错误的文章ID");
+            ArticleStarModel starModel = starSingleService.find(model.getArticleId(),model.getCreatedUserId());
+            if(starModel != null) return infoModel.getStarCount();
             int result = starDao.insert(model);
             if(result != 1) throw new Exception("写入收藏记录失败");
             result = userService.updateCollectionCount(model.getCreatedUserId(),1);
@@ -76,6 +81,8 @@ public class ArticleStarServiceImpl implements StarService<ArticleStarModel> {
         ArticleInfoModel infoModel = singleService.findById(articleId);
         try{
             if(infoModel == null) throw new Exception("错误的文章ID");
+            ArticleStarModel starModel = starSingleService.find(articleId,userId);
+            if(starModel == null) return infoModel.getStarCount();
             int result = starDao.delete(articleId,userId);
             if(result != 1) throw new Exception("删除收藏记录失败");
             result = userService.updateCollectionCount(userId,-1);
