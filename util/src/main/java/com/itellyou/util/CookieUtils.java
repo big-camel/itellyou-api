@@ -50,7 +50,7 @@ public class CookieUtils {
             cookie.setPath(path);
             String springProfilesActive = SpringContextUtils.getActiveProfile();
             if(StringUtils.isNotEmpty(springProfilesActive) && "prod".equals(springProfilesActive)){
-                cookie.setDomain("itellyou.com");
+                cookie.setDomain("yanmao.cc");
             }else{
                 cookie.setDomain("localhost");
             }

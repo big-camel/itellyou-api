@@ -37,7 +37,7 @@ public class SysLinkController {
         String endTime = params.get("end");
         Long end = DateUtils.getTimestamp(endTime);
         String ip = params.get("ip");
-        Long ipLong = IPUtils.toLong(ip);
+        Long ipLong = IPUtils.toLong(ip,null);
         return new ResultModel(linkService.page(null,text,link,target,null,begin,end,ipLong,null,offset,limit));
     }
 

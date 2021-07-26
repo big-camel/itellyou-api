@@ -43,7 +43,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             password = StringUtils.isEmpty(password) ? null : StringUtils.encoderPassword(password);
             UserInfoModel userInfoModel = new UserInfoModel();
             userInfoModel.setName(name);
-            userInfoModel.setAvatar("https://cdn-object.itellyou.com/avatar/default.png");
+            userInfoModel.setAvatar("https://cdn-object.yanmao.cc/avatar/default.png");
             userInfoModel.setLoginPassword(password);
             userInfoModel.setMobile(mobile);
             userInfoModel.setMobileStatus(true);
