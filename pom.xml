@@ -25,7 +25,7 @@
         <lucene.version>8.4.0</lucene.version>
         <ansj.version>5.1.6</ansj.version>
         <alipay.version>4.9.124.ALL</alipay.version>
-        <jsoup.version>1.13.1</jsoup.version>
+        <jsoup.version>1.14.2</jsoup.version>
         <user.agent.utils.version>1.21</user.agent.utils.version>
         <ip2region.version>1.7.2</ip2region.version>
         <dao.version>1.0.0-SNAPSHOT</dao.version>
