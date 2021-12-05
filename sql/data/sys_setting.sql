@@ -1,1 +1,1 @@
-INSERT INTO `itellyou`.`sys_setting`(`key`, `name`, `logo`, `icp_text`, `copyright`, `company_name`, `user_agreement_link`, `footer_scripts`) VALUES ('default', 'ITELLYOU , 我告诉你', '', '蜀ICP备17019166号', 'Copyright © 2020', '四川西维尔科技有限公司', 'https://www.yanmao.cc/article/46', '');
+INSERT INTO `itellyou`.`sys_setting`(`key`, `name`, `logo`, `icp_text`, `copyright`, `company_name`, `user_agreement_link`, `footer_scripts`) VALUES ('default', 'ITELLYOU , 我告诉你', '', '蜀ICP备17019166号', 'Copyright © 2020', '四川西维尔科技有限公司', 'https://www.aomao.com/article/46', '');

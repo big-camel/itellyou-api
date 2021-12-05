@@ -56,7 +56,7 @@ public class ExploreController {
             IndexSearcher searcher = new IndexSearcher(multiReader);
 
             Long now = DateUtils.getTimestamp();
-            Long beginTime = now - 360 * 86400;
+            Long beginTime = now - 3600 * 86400;
 
             BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
             Query dateQuery = LongPoint.newRangeQuery("updated_time",beginTime,now);

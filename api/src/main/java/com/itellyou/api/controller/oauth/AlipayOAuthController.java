@@ -120,11 +120,11 @@ public class AlipayOAuthController {
             String uri = logModel.getRedirectUri();
             URL url = new URL(uri);
 
-            if(!new HashSet<String>(){{ add("localhost");add("www.yanmao.cc");add("www.maogu.com");}}.contains(url.getHost()))
-                uri = "https://www.yanmao.cc";
+            if(!new HashSet<String>(){{ add("localhost");add("www.yanmao.cc");add("www.aomao.com");}}.contains(url.getHost()))
+                uri = "https://www.aomao.com";
             response.sendRedirect(uri);
         }catch (Exception e){
-            response.sendRedirect("https://www.yanmao.cc/500");
+            response.sendRedirect("https://www.aomao.com/500");
         }
     }
 

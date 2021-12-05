@@ -1,5 +1,5 @@
-### ITELLYOU API
-https://www.yanmao.cc 后端服务API
+### AOMAO API
+https://www.aomao.com 后端服务API
 
 ### 本地安装运行
 
