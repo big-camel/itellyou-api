@@ -9,7 +9,7 @@
     <description>ITELLYOU Root</description>
     <properties>
         <java.version>1.8</java.version>
-        <spring.version>2.2.1.RELEASE</spring.version>
+        <spring.version>2.5.12</spring.version>
         <spring.mock.version>2.0.8</spring.mock.version>
         <mysql.version>8.0.18</mysql.version>
         <druid.version>1.1.10</druid.version>
